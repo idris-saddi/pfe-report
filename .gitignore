@@ -1,21 +1,35 @@
 # macOS
 .DS_Store
 
-# LaTeX build artifacts (in case the report is written in LaTeX)
+# LaTeX build artifacts
 *.aux
 *.bbl
 *.bcf
 *.blg
+*.brf
 *.fdb_latexmk
 *.fls
 *.log
 *.lof
 *.lot
+*.maf
+*.mtc
+*.mtc[0-9]*
 *.out
 *.run.xml
 *.synctex.gz
 *.toc
+
+# Editor backups
+*.tex.bak
+*~
+
+# LaTeX package output dirs
 _minted-*/
+
+# Build PDFs (figure PDFs under figures/ subdirs stay tracked)
+*.pdf
+!**/figures/*.pdf
 
 # Editor metadata
 .vscode/

@@ -1,8 +1,0 @@
-{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {1}Repository and branch protection model}{\reset@font\mtcSfont 12}{section.3.1}}
-{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {1.1}Repository decomposition}{\reset@font\mtcSSfont 12}{subsection.3.1.1}}
-{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {1.2}Branch model and PR workflow}{\reset@font\mtcSSfont 12}{subsection.3.1.2}}
-{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {2}Continuous integration strategy}{\reset@font\mtcSfont 12}{section.3.2}}
-{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3}Roadmap as a single source of truth}{\reset@font\mtcSfont 12}{section.3.3}}
-{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.1}Roadmap structure}{\reset@font\mtcSSfont 12}{subsection.3.3.1}}
-{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.2}Auto-synchronisation and stakeholder visibility}{\reset@font\mtcSSfont 12}{subsection.3.3.2}}
-{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4}Development environment philosophy}{\reset@font\mtcSfont 12}{section.3.4}}
