@@ -1,0 +1,121 @@
+\setcounter{chapter}{2}
+\chapter{Implementation}
+\minitoc
+\graphicspath{{Chapter3/figures/}}
+
+%==============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\bfseries\rightmark}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\chaptermark}[1]{\markboth{{\chaptername~\thechapter.\ #1}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thechapter.\thesection~ #1}}
+
+\begin{spacing}{1.2}
+%==============================================================================
+\section*{Introduction}
+This chapter covers the implementation work and the bibliography.
+
+\section{Tools and Languages}
+The technical study may live in this chapter, or be performed in parallel with
+the theoretical study (as the 2TUP model suggests). The goal here is to argue
+for your technology choices: a short state of the art with a comparison, a
+synthesis, and a justified choice of tools is expected.
+
+\section{Application Walk-Through}
+It is tempting to fill this section with every screenshot of the application
+you worked so hard on -- resist. You should include screenshots, but pick
+them carefully and present them as a scenario: choose one execution path,
+say creating a new customer, then walk through the interfaces involved while
+briefly describing the application's behaviour. Not too many images, not too
+much prose -- concise, as always.
+
+Avoid pasting raw code: nobody wants to read the contents of your classes.
+You may include snippets to highlight specific features
+\cite{YOUSFI2015,Latex} when truly useful. Installation steps, configuration
+files and longer code excerpts belong in the appendix.
+
+\subsection{Table Example}
+You can use a tabular comparison between existing works.
+See Table~\ref{tab:exple}.
+
+\begin{table}[ht]
+  \centering
+  \caption{Comparison table}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{|>{\bfseries\vspace*{\fill}}X
+                              ||>{\centering\vspace*{\fill}}X
+                                |>{\centering\vspace*{\fill}}X
+                                |>{\centering\vspace*{\fill}}X
+                                |>{\vspace*{\fill}}X<{\centering}|}
+    \hline
+            & \bfseries Col1 & \bfseries Col2 & \bfseries Col3 & \bfseries Col4 \\
+    \hline\hline
+    Row1    &      &  X  &      &      \\
+    Row2    &  X   &     &      &      \\
+    Row3    &  X   &  X  &  X   &  X   \\
+    Row4    &  X   &     &  X   &  X   \\
+    Row5    &  X   &     &  X   &  X   \\
+    Row6    &  X   &     &  X   &  X   \\
+    Row7    &  X   &     &  X   &      \\
+    Row8    &  X   &  X  &  X   &      \\
+    \hline
+  \end{tabularx}
+  \label{tab:exple}
+\end{table}
+
+\subsection{Code Example}
+A Java snippet with syntax highlighting -- see Listing~\ref{code:java}.
+
+\begin{lstlisting}[label=code:java,caption=Hello World in Java,language=java]
+public class HelloWorld {
+    // entry point
+    public static void main(String[] args) {
+        System.out.println("Hello, World");
+    }
+}
+\end{lstlisting}
+
+\section{Notes on the Bibliography}
+Your bibliography must meet a number of criteria; otherwise it will get
+flagged (and sometimes flagged even when you think it shouldn't -- everyone
+has a personal opinion on what makes a good bibliography).\\
+\begin{itemize}
+  \item A bibliography in a good report should contain more books and
+        articles than websites -- it's a bibliography after all. Prefer
+        peer-reviewed works for definitions, rather than jumping to
+        Wikipedia;
+  \item Entries are usually ordered alphabetically, or by theme (and
+        alphabetically within each theme);
+  \item A bibliography entry generally takes this form:
+  \begin{itemize}
+    \item A unique identifier -- either a number \texttt{[1]} or the first
+          author's name plus year, e.g.\ \texttt{[Kuntz, 1987]};
+    \item If a book: author(s), title, publisher, ISBN/ISSN, publication date;
+    \item If an article: author(s), title, journal or conference,
+          publication date;
+    \item If a website or electronic document: title, URL, date accessed;
+    \item If a thesis: author, title, defending university, year, page count;
+    \item Examples:
+    \begin{description}
+      \item $[\text{Bazin, 1992}]$ BAZIN R., REGNIER B. Antiviral treatments
+            and their clinical trials. Rev.~Prat., 1992, 42, 2, p.~148--153.
+      \item $[\text{Anderson, 1998}]$ ANDERSON P.JF. Checklist of criteria
+            used for evaluation of metasites. [online]. University of
+            Michigan, USA.\\
+            \url{http://www.lib.umich.edu/megasite/critlist.html}.
+            (Accessed 1998-09-11.)
+    \end{description}
+    \item In the body of the report, every claim taken from a reference must
+          cite its identifier right after the claim. Failing to do so is
+          plagiarism.
+  \end{itemize}
+\end{itemize}
+
+\section*{Conclusion}
+That's it.
+
+%==============================================================================
+\end{spacing}

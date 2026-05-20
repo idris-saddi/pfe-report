@@ -1,0 +1,102 @@
+\setcounter{chapter}{2}
+\chapter{Phase 0: Engineering Foundations}
+\minitoc
+\graphicspath{{Chapter3/figures/}}
+
+%==============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\bfseries\rightmark}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\chaptermark}[1]{\markboth{{\chaptername~\thechapter.\ #1}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thechapter.\thesection~ #1}}
+
+\begin{spacing}{1.2}
+%==============================================================================
+
+\section*{Introduction}
+% TODO: Frame Phase 0 NOT as ``the setup work'' but as the set of
+% engineering decisions taken before any feature code was written.
+% A short chapter on purpose -- emphasise that what matters here is
+% the DECISIONS, not the commands run.
+
+%--------------------------------------------------------------------
+\section{Repository and branch protection model}
+% TODO: Engineer-level framing.
+%   - Why four repositories instead of a monorepo: independent release
+%     cadence for backend vs. frontend, blast-radius isolation, simpler
+%     CI per repo.
+%   - Branch protection model: protected `main` and `develop`,
+%     feature branches off `develop`, PRs into `develop`, periodic
+%     `develop` -> `main` promotions for production.
+%   - Why a two-line branch model (and not GitFlow with release branches
+%     or trunk-based with feature flags): solo developer, weekly
+%     release cadence, no parallel maintenance branches required.
+
+\subsection{Repository decomposition}
+% One short diagram showing the four repos and what each owns.
+\dots
+
+\subsection{Branch model and PR workflow}
+% State the rule (features -> develop -> main), the rationale,
+% and the constraints enforced by branch protection (required review,
+% up-to-date branch, status checks green).
+\dots
+
+%--------------------------------------------------------------------
+\section{Continuous integration strategy}
+% TODO: Strategy, not YAML.
+%   - The CI gate: lint, test, build, image push. What each gate
+%     defends against.
+%   - Conventional commits for automated changelog -- traceability lever.
+%   - Image tagging convention (semver per repo) so rollbacks are
+%     trivial.
+%   - Cost discipline: builds are short (\textless\,3 minutes) by
+%     design; this is a maintainability investment.
+% AVOID: specific GitHub Actions YAML, runners, secrets management
+% command lines. Push that to Appendix A.3 if needed.
+\dots
+
+%--------------------------------------------------------------------
+\section{Roadmap as a single source of truth}
+% TODO: Traceability is the engineering value here.
+%   - One canonical Markdown roadmap (\path{clmpilot-roadmap.md}).
+%   - Auto-synced to a tracking spreadsheet and a shared Google Sheet
+%     for stakeholder visibility.
+%   - Mention -- without dwelling on it -- that the chapter numbering
+%     of THIS report mirrors the roadmap's phase structure.
+%   - Why this matters: in a solo-dev release-train context, the
+%     roadmap is the only stable contract between past-self,
+%     present-self, and future-self.
+
+\subsection{Roadmap structure}
+\dots
+
+\subsection{Auto-synchronisation and stakeholder visibility}
+% Mention the spreadsheet and Google Sheet at a single sentence each;
+% the script's invocation contract goes to Appendix A.3.
+\dots
+
+%--------------------------------------------------------------------
+\section{Development environment philosophy}
+% TODO: Engineer-level.
+%   - Local dev mirrors production via Docker Compose -- not a
+%     ``runs on my machine'' setup.
+%   - Pre-commit gates (lint, format) reduce CI churn.
+%   - Editor and tooling choices are aligned across team members
+%     (a team of one today; scaling assumption: a team of three by
+%     Phase 2).
+% AVOID: just lists of versions of Go/Node/Python. One sentence
+% naming the languages is sufficient; the rest is appendix.
+\dots
+
+%--------------------------------------------------------------------
+\section*{Conclusion}
+% TODO: One paragraph. With the foundations in place, Phase 1A starts
+% the backend realisation -- the next chapter.
+\dots
+
+%==============================================================================
+\end{spacing}

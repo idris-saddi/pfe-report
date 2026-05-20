@@ -1,0 +1,49 @@
+\setcounter{figure}{0}
+\setcounter{table}{0}
+\setcounter{footnote}{0}
+\setcounter{equation}{0}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\chaptermark}[1]{\markboth{\MakeUppercase{#1}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection~ #1}}
+\fancyhead[R]{\bfseries\rightmark}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\makeatletter
+\renewcommand\thefigure{A.\arabic{figure}}
+\renewcommand\thetable{A.\arabic{table}}
+\makeatother
+
+\chapter{Appendices}
+\graphicspath{{Appendix1/figures/}}
+%==============================================================================
+
+% TODO: Candidate appendix sections. Drop anything that does not earn its
+% place; appendices are for material that the body genuinely cannot carry.
+
+\section*{Appendix A.1 -- Glossary}
+% TODO: One-line definitions for CLM, GoBD, GDPR, CQRS, ES, DDD, RBAC, MFA,
+%       SLA, ERP, SaaS, IaC, OIDC, MVP.
+\dots
+
+\section*{Appendix A.2 -- Comby framework reference}
+% TODO: Catalogue of commands / queries / events used in the project.
+\dots
+
+\section*{Appendix A.3 -- Configuration files}
+% TODO: Trimmed but real:
+%   - docker-compose.yml (with secrets redacted).
+%   - nginx site config.
+%   - systemd unit for the clmpilot service.
+\dots
+
+\section*{Appendix A.4 -- OAuth setup walkthroughs}
+% TODO: Step-by-step for Google Drive and SharePoint, suitable for a
+%       customer admin to follow.
+\dots
+
+\section*{Appendix A.5 -- API contract excerpts}
+% TODO: Selected OpenAPI snippets that did not fit inline.
+\dots

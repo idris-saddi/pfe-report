@@ -1,0 +1,54 @@
+\setcounter{figure}{0}
+\setcounter{table}{0}
+\setcounter{footnote}{0}
+\setcounter{equation}{0}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\chaptermark}[1]{\markboth{\MakeUppercase{#1}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection~ #1}}
+\fancyhead[R]{\bfseries\rightmark}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\makeatletter
+\renewcommand\thefigure{A.\arabic{figure}}
+\renewcommand\thetable{A.\arabic{table}}
+\makeatother
+
+\chapter{Appendix: Miscellaneous remarks}
+\graphicspath{{Appendix1/figures/}}
+%==============================================================================
+
+\begin{itemize}
+  \item A report must always be properly paginated.
+  \item Prefer no more than two colours, and avoid fancy display fonts.
+  \item Keep your report sober and professional.
+  \item Avoid first-person singular pronouns; use the editorial ``we''.
+  \item If there is no section 1.2, do not introduce a 1.1.
+  \item ALWAYS, ALWAYS have someone else (ideally outside the field) proofread
+        your report for spelling and grammar.
+  \item Always highlight your contribution -- it should stand out clearly.
+  \item Every chapter must contain an introduction and a conclusion.
+  \item Keep a clear narrative thread throughout the report: the reader
+        should follow a clean line of reasoning and see how the parts
+        connect.
+  \item Define abbreviations the first time they appear. If there are many,
+        use a glossary.
+  \item When describing the hardware environment, don't talk about the
+        laptop you developed on -- that's irrelevant. Mention only the
+        hardware that affects the application itself. Whether you developed
+        on Windows or Ubuntu does not matter.
+  \item Never end a page with a heading.
+  \item Define abbreviations on first use; if you have many, add a glossary.
+  \item Keep sentences short -- clear and concise is the rule.\\
+
+  \newpage
+
+  \textbf{Remember that your report is the face of your work: a bad report
+  can overshadow excellent work. Pay it the attention it deserves.}
+
+  \begin{figure}[!ht]\centering
+    \includegraphics[scale=0.5]{engineer.jpg}
+  \end{figure}
+\end{itemize}

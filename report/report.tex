@@ -1,0 +1,212 @@
+%%==============================================================================
+%% CLMPilot -- INSAT PFE report (English).
+%%
+%% Release-based TOC: Phases 0/1A/1B/1C/2/3 are individual chapters, with
+%% Chapter I providing the general context that wraps them all.
+%% See outline.md in this folder for the rationale and section breakdown.
+%%
+%% Build:
+%%   pdflatex report
+%%   bibtex   report
+%%   pdflatex report
+%%   pdflatex report
+%%
+%% Or simply:  latexmk -pdf report.tex
+%%==============================================================================
+\documentclass[oneside,12pt]{Classes/aesm_edspia}
+
+% --- Extra packages (encoding/fonts/hyperref/natbib/minitoc come from .cls) --
+\usepackage{amsmath}
+\usepackage{lettrine}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{textcomp}
+\usepackage{setspace}
+\usepackage{soul}
+\usepackage[nottoc]{tocbibind}
+\usepackage[leftcaption]{sidecap}
+\usepackage[labelsep=endash,
+            textfont={footnotesize,singlespacing},
+            margin=10pt,
+            format=plain,
+            labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage[Conny]{Classes/fncychap}
+\usepackage{listings}
+\usepackage{courier}
+
+% --- Small adjustments ------------------------------------------------------
+\newcommand{\ie}{i.e.~}
+\hbadness=10000
+\hfuzz=50pt
+
+\makeatletter
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\SC@figure@vpos}{c}
+\renewcommand{\fnum@figure}{\small\textbf{Figure~\thefigure}}
+\renewcommand{\fnum@table}{\small\textbf{Table~\thetable}}
+\makeatother
+
+\def\thechapter{\Roman{chapter}}
+
+% --- Code listings ----------------------------------------------------------
+\lstloadlanguages{xml,java}
+\lstset{
+  basicstyle      = \footnotesize\ttfamily,
+  numberstyle     = \tiny,
+  numbersep       = 5pt,
+  tabsize         = 2,
+  extendedchars   = true,
+  breaklines      = true,
+  keywordstyle    = \color[rgb]{0.43,0,0}\bfseries,
+  frame           = b,
+  commentstyle    = \color[rgb]{0.51,0.51,0.51}\itshape,
+  stringstyle     = \ttfamily\color[rgb]{0,0.44,0},
+  showspaces      = false,
+  showtabs        = false,
+  xleftmargin     = 17pt,
+  framexleftmargin   = 17pt,
+  framexrightmargin  = 5pt,
+  framexbottommargin = 4pt,
+  showstringspaces   = false
+}
+
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFont{black}{\color{black}}
+\DeclareCaptionFormat{listing}{%
+  \colorbox[cmyk]{0.43,0.35,0.35,0.01}{%
+    \parbox{\textwidth}{\hspace{15pt}#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,
+                          labelfont=black,
+                          textfont=white,
+                          singlelinecheck=false,
+                          margin=0pt,
+                          font={bf,footnotesize}}
+
+%%==============================================================================
+\begin{document}
+%%==============================================================================
+\renewcommand\figurename{\small\textbf{Figure}}
+\addtocounter{page}{-1}
+
+% --- Cover-page metadata ----------------------------------------------------
+% TODO: Personalise the cover page.
+\TitreProjet{CLMPilot: an integration-first Contract Lifecycle Management
+             platform for the European Mittelstand, built on a CQRS and
+             Event Sourcing framework}
+
+\AuteurA{Idris}{SADDI}
+
+\Encadrant {Mr.}{First}{LAST}      % INSAT academic supervisor
+\EncadrantS{Mr.}{First}{LAST}      % Gradient Zero company supervisor
+
+\Filiere{Software Engineering}
+\datesout{--/06/2026}
+
+\President  {Mr. President}{LAST}
+\RapporteurA{Ms. Reviewer}{LAST}
+
+\AnneeUniv{2025/2026}
+
+%%==============================================================================
+\makethese
+\onehalfspacing
+
+\newpage\thispagestyle{empty}\addtocounter{page}{-3}
+\null\newpage\thispagestyle{empty}
+
+\frontmatter
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{Acknowledgements}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\include{Acknowledgments/acknowledgments}
+
+% --- TOC --------------------------------------------------------------------
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\renewcommand{\contentsname}{Table of Contents}
+
+\dominitoc
+\nomtcrule
+\renewcommand{\mtctitle}{Summary}
+
+\tableofcontents
+
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyhead[R]{Table of Contents}
+
+% --- List of figures --------------------------------------------------------
+\makeatletter
+\@addtoreset{figure}{chapter}
+\makeatother
+
+\renewcommand\listfigurename{List of Figures}
+\listoffigures \mtcaddchapter
+\fancyhead[R]{List of Figures}
+\newpage
+
+% --- List of tables ---------------------------------------------------------
+\renewcommand\listtablename{List of Tables}
+\listoftables \mtcaddchapter
+\fancyhead[R]{List of Tables}
+
+% --- Abstract ---------------------------------------------------------------
+\include{Abstract/abstract}
+
+%%==============================================================================
+\mainmatter
+\pagestyle{fancy}
+\fancyhead[R]{General Introduction}
+\include{Introduction/introduction}
+\fancyhf{}
+\fancyhead[R]{General Introduction}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+
+%---- Part 1 -- Project framing and design ----------------------------------
+\part{Project framing and design}
+\include{Chapter1/chapter1}   % I.   General Context
+\include{Chapter2/chapter2}   % II.  Architecture and Design
+
+%---- Part 2 -- Release-based delivery --------------------------------------
+\part{Release-based delivery}
+\include{Chapter3/chapter3}   % III. Phase 0  -- Engineering Foundations
+\include{Chapter4/chapter4}   % IV.  Phase 1A -- Backend Delivery
+\include{Chapter5/chapter5}   % V.   Phase 1B -- Frontend Delivery
+\include{Chapter6/chapter6}   % VI.  Phase 1C -- Production Deployment
+% Phase 2 and Phase 3 chapters are deferred until those phases are worked on.
+% They currently live only as forward-looking text in the Conclusion's
+% "Perspectives" section. Uncomment the includes below once writing of
+% those chapters begins; the placeholder files already document the
+% intended sections (engineer-level reframing applied).
+%\include{Chapter7/chapter7}  % VII.  Phase 2 -- Enterprise Features  (TODO: enable)
+%\include{Chapter8/chapter8}  % VIII. Phase 3 -- Platform Vision      (TODO: enable)
+
+\backmatter
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\chaptermark}[1]{\markboth{Conclusion and Perspectives}{}}
+\fancyhead[R]{Conclusion and Perspectives}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\include{Conclusion/conclusion}
+
+\bibliographystyle{Bibliography/unsrt_modif}
+\singlespacing
+\renewcommand{\bibname}{References}
+\bibliography{Bibliography/references}
+
+\onehalfspacing
+\appendix
+\include{Appendix1/appendix1}
+
+\end{document}

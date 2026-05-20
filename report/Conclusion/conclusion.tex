@@ -1,0 +1,47 @@
+\chapter{Conclusion and Perspectives}
+%==============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\bfseries\rightmark}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\chaptermark}[1]{\markboth{\MakeUppercase{\chaptername~\thechapter.\ #1}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thechapter.\thesection~ #1}}
+
+\begin{spacing}{1.2}
+%==============================================================================
+
+% TODO: Two parts only (see _Notes/conclusion.md):
+%
+% PART 1 -- Recap (~1 page)
+%   - Contribution: CLMPilot, an integration-first CLM platform for the
+%     DACH Mittelstand, built on the comby framework (CQRS + Event
+%     Sourcing in Go), shipped in live production at clmpilot.com.
+%   - Realised scope: Phases 0 and 1 complete -- repository foundation,
+%     four backend domains (Contract / Approval / Deadline /
+%     DocumentLink), a Vue 3 SPA, and a Hetzner-hosted production
+%     deployment with monitoring and backups.
+%   - Methodology: release-train delivery with a single source-of-truth
+%     roadmap that drove both the work and the structure of this report.
+%   - Difficulties encountered (briefly): the .dockerignore /docs gap;
+%     the deploy.sh lockstep behaviour; the older comby MFA example
+%     bug; auth-vs-query authorisation gap for backfills.
+%
+% PART 2 -- Perspectives (~1 page)
+%   - Phase 2: intelligence service (LLM-powered metadata extraction),
+%     DocuSign, custom fields, obligation tracking, mobile companion.
+%   - Phase 3: public API, ERP integrations (DATEV, SAP), multi-entity
+%     consolidation, marketplace, batch intelligence, K8s, multi-region.
+%   - Beyond the roadmap: open research directions (clause-level
+%     reasoning over the event store, federated audit-trail
+%     verification, contract similarity embeddings for negotiation
+%     support).
+
+\section*{Recap of the contribution}
+\dots
+
+\section*{Perspectives}
+\dots
+
+\end{spacing}

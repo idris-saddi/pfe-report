@@ -1,0 +1,174 @@
+\setcounter{chapter}{1}
+\chapter{Architecture and Design}
+\minitoc
+\graphicspath{{Chapter2/figures/}}
+
+%==============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\bfseries\rightmark}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\chaptermark}[1]{\markboth{{\chaptername~\thechapter.\ #1}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thechapter.\thesection~ #1}}
+
+\begin{spacing}{1.2}
+%==============================================================================
+
+\section*{Introduction}
+% TODO:
+%   - Frame this chapter as the architectural narrative that the release
+%     chapters (III to VIII) will reference back to.
+%   - State the three forces shaping the architecture: integration-first
+%     (no document migration), compliance-by-construction (immutable audit
+%     trail), and single-tenant-per-customer (DACH Mittelstand sensibility).
+%   - Preview the sections: drivers, CQRS/ES rationale, comby framework,
+%     domain model, system topology, security & compliance, i18n.
+
+%--------------------------------------------------------------------
+\section{Architectural drivers}
+% TODO: Recap the NFRs from Chapter I as ARCHITECTURAL DRIVERS, one
+% paragraph each. These are the constraints that any solution must
+% satisfy regardless of release scope.
+%   - Auditability and immutability (GoBD, ISO 27001).
+%   - Integration-first (documents stay in Drive/SharePoint -- non-negotiable).
+%   - EU data residency (GDPR; the entire stack hosts in Germany).
+%   - Single-tenant economics (DACH Mittelstand customers expect a
+%     dedicated logical tenant, not a shared multi-tenant pool).
+%   - Maintainability under solo development.
+% These drivers will be referenced explicitly in every Phase chapter as
+% the justification for each decision taken at delivery time.
+\dots
+
+%--------------------------------------------------------------------
+\section{Why CQRS and Event Sourcing for CLM?}
+% TODO: Architectural reasoning, not implementation. Cite Young 2010,
+% Fowler CQRS/ES, Vernon 2013, Evans 2003.
+%   - The CLM domain is naturally event-driven: ``contract signed'',
+%     ``approval granted'', ``deadline crossed'' -- these are events,
+%     not states.
+%   - Event Sourcing yields the audit trail for free; it is not a
+%     feature bolted on top, it is the storage model.
+%   - Command/Query separation maps cleanly to the read-heavy nature
+%     of dashboards and the write-careful nature of approvals.
+%   - Trade-offs honestly stated: eventual consistency in read models,
+%     event-schema versioning, learning curve.
+%   - Why not alternatives: CRUD with audit columns (audit trail is a
+%     bolt-on, not a guarantee), document databases (no transactional
+%     model for approvals), traditional workflow engines (vendor lock-in).
+\dots
+
+%--------------------------------------------------------------------
+\section{The comby framework}
+% TODO: Engineer-level presentation. What comby IS, what role it plays,
+% why it was chosen.
+%   - One-paragraph definition: an in-house Go framework providing the
+%     command/query buses, the event store abstraction, the projection
+%     runner, and the reactor scaffolding for CQRS+ES applications at
+%     Gradient Zero.
+%   - Position in the build vs. buy axis: not a developer convenience
+%     library but a strategic architectural asset of the company.
+%   - What CLMPilot inherits from comby and what it builds on top.
+%   - Alternative considered: EventStoreDB + custom Go code; Axon
+%     (Java only); EventFlow (.NET); bespoke. Justification for comby
+%     in one paragraph.
+
+\subsection{Role in the architecture}
+\dots
+
+\subsection{Justification of choice}
+% Inline comparison table -- the trade-off discussion is the engineer's
+% deliverable, not the API surface.
+\dots
+
+%--------------------------------------------------------------------
+\section{Domain model overview}
+% TODO: Show the four bounded contexts at the conceptual level only.
+% NO aggregate-by-aggregate event lists or command lists here -- those
+% live in Chapter IV.
+%   - Diagram: the four aggregates and their relationships
+%     (Contract, Approval, Deadline, DocumentLink), plus the boundary
+%     between them.
+%   - One paragraph per aggregate, focusing on the BUSINESS responsibility,
+%     not the event types: Contract = the central record; Approval =
+%     the workflow gate; Deadline = the temporal awareness; DocumentLink
+%     = the integration boundary.
+%   - The cross-cutting concerns (identity, audit log) live outside
+%     the four aggregates as platform-level concerns.
+
+\subsection{Bounded contexts}
+\begin{figure}[!ht]\centering
+  % \includegraphics[scale=0.7]{domain-model-overview.png}
+  \caption{The four bounded contexts of CLMPilot and their relationships.}
+  \label{fig:domains}
+\end{figure}
+
+\subsection{Aggregate responsibilities}
+\dots
+
+%--------------------------------------------------------------------
+\section{System topology}
+% TODO: One diagram, brief commentary. The topology is the answer to
+% ``where does code run and where does data live''.
+%   - Four repositories, four services: backend (Go), frontend (Vue),
+%     intelligence (Python stub for MVP), deployment (compose stack).
+%   - Two stateful stores: PostgreSQL event store, Redis (sessions
+%     + MFA tokens).
+%   - One reverse proxy (nginx on the host).
+%   - External: SendGrid for email, Google Drive / SharePoint as
+%     integration targets, eventually DocuSign (Phase 2) and
+%     ERP systems (Phase 3).
+
+\subsection{Deployment topology}
+\begin{figure}[!ht]\centering
+  % \includegraphics[scale=0.7]{system-topology.png}
+  \caption{CLMPilot deployment topology and external integrations.}
+  \label{fig:topology}
+\end{figure}
+
+\subsection{Why a 4-repository split}
+% Engineer-level reasoning: separation of release cadence, separation of
+% concerns (backend / UI / intelligence / ops), team-of-one autonomy.
+\dots
+
+%--------------------------------------------------------------------
+\section{Security and compliance model}
+% TODO: Authentication and authorization as ARCHITECTURE, not
+% as ``how MFA was wired in''.
+%   - Identity model: tenant, user, role, permission.
+%   - Authentication factors: password + email MFA OTP (SendGrid HTTP API).
+%   - Authorization: RBAC scoped per tenant.
+%   - Compliance positioning: GoBD compliance comes from the immutable
+%     event log (Section 2 above); GDPR from EU hosting + per-tenant
+%     data isolation.
+%   - Audit trail availability is a CONSEQUENCE of ES, not an additional
+%     feature -- this is the central architectural sales pitch.
+
+\subsection{Identity and access model}
+\dots
+
+\subsection{Compliance positioning}
+\dots
+
+%--------------------------------------------------------------------
+\section{Internationalisation strategy}
+% TODO: Architectural decision, not i18n file format.
+%   - EN as primary language; DE and FR scaffolded for DACH expansion.
+%   - Server-side message catalogue (used by email + audit log) and
+%     client-side message catalogue (used by the SPA) kept in sync.
+%   - User-locale resolution: explicit setting first, browser hint
+%     second, EN default.
+\dots
+
+%--------------------------------------------------------------------
+\section*{Conclusion}
+% TODO: Recap the architectural foundation. Bridge to Chapter III:
+% ``With the architecture set, the next chapters walk through the
+% release-based delivery. Chapter III covers the engineering
+% foundations established in Phase 0 before any feature code was
+% written.''
+\dots
+
+%==============================================================================
+\end{spacing}

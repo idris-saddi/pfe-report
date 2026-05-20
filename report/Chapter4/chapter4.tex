@@ -1,0 +1,162 @@
+\setcounter{chapter}{3}
+\chapter{Phase 1A: Backend Delivery}
+\minitoc
+\graphicspath{{Chapter4/figures/}}
+
+%==============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\bfseries\rightmark}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\chaptermark}[1]{\markboth{{\chaptername~\thechapter.\ #1}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thechapter.\thesection~ #1}}
+
+\begin{spacing}{1.2}
+%==============================================================================
+
+\section*{Introduction}
+% TODO:
+%   - Frame Phase 1A as the application of the architecture from
+%     Chapter II to the backend tier.
+%   - Pattern-led structure: each section presents a recurring pattern,
+%     not a domain. The four aggregates appear repeatedly as
+%     illustrations, never as the unit of organisation.
+%   - State the deliverable boundary: end of Phase 1A = backend service
+%     able to host the four aggregates with command/query separation,
+%     reactive side effects, and external integrations.
+
+%--------------------------------------------------------------------
+\section{Backend service composition}
+% TODO: How the backend is composed at the macro level. Not file
+% structure -- composition pattern.
+%   - The Go service hosts the comby kernel plus the four domain
+%     modules; each domain is registered through the comby facade.
+%   - Bootstrap order matters: domains must be registered before any
+%     command can be dispatched -- a design constraint inherited from
+%     comby v3 (see Appendix for the precise hook point).
+%   - REST handlers are thin: they translate HTTP into commands or
+%     queries and translate the result back. Business logic does not
+%     live in HTTP handlers.
+
+\subsection{Module composition}
+\dots
+
+\subsection{Bootstrap and dispatch lifecycle}
+\dots
+
+%--------------------------------------------------------------------
+\section{Command-Query Responsibility Segregation in practice}
+% TODO: This is the central engineering exhibit of Phase 1A. Show how
+% CQRS is applied uniformly across the four domains.
+%   - Commands as intent: typed, validated, authorised, dispatched.
+%   - Queries as views: built from read models, never traversing the
+%     write side.
+%   - Authorisation differs subtly between command path and query
+%     path -- this is an architectural property of comby; the team
+%     pays attention to it when writing backfill scripts (see
+%     [[feedback-comby-command-auth-curl-gap]]).
+%   - One UML sequence diagram showing a command path and a query
+%     path side by side -- a single illustrative scenario, e.g.
+%     ``user creates a contract then dashboards reflect it''.
+
+\subsection{Command path}
+\dots
+
+\subsection{Query path and read-model projections}
+\dots
+
+\subsection{Authorisation asymmetry}
+% Engineer's observation: the auth model differs between commands and
+% queries; this informs the design of backfill jobs and operational
+% tooling. Cite the memory note; don't reproduce the curl footgun
+% inline -- one sentence and a forward reference to the appendix.
+\dots
+
+%--------------------------------------------------------------------
+\section{Aggregate design and bounded contexts}
+% TODO: One section, not four. Each aggregate gets one paragraph at
+% the business-responsibility level, then a single diagram shows the
+% boundaries.
+%   - Contract: the central record.
+%   - Approval: the multi-step workflow gate.
+%   - Deadline: the time-aware reminder engine.
+%   - DocumentLink: the integration boundary.
+% Highlight ONE non-obvious modelling decision per aggregate (e.g.
+% Deadline as a first-class aggregate vs. a Contract subordinate;
+% Approval as a workflow vs. a property of Contract). Reasoning is
+% engineering, mechanics is appendix.
+
+\subsection{Aggregate map}
+\begin{figure}[!ht]\centering
+  % \includegraphics[scale=0.7]{aggregate-map.png}
+  \caption{Aggregate boundaries and inter-aggregate references.}
+  \label{fig:aggregates}
+\end{figure}
+
+\subsection{Modelling decisions worth highlighting}
+\dots
+
+%--------------------------------------------------------------------
+\section{Reactive patterns: events driving side effects}
+% TODO: The reactor pattern is the engineering lever that decouples
+% workflow steps. Show it once, with concrete examples.
+%   - Reactor abstraction: subscribe to domain events, dispatch new
+%     commands or trigger external effects (email send, audit-log entry).
+%   - Three concrete reactor classes used in Phase 1A:
+%       1. Deadline emission (Contract event -> Deadline command).
+%       2. Recipient resolution for notifications (event -> SendGrid).
+%       3. Audit-log enrichment (any event -> audit projection).
+%   - Idempotency is a designed-in property, not a hope. State HOW
+%     it is achieved at the pattern level (event id + dedupe key);
+%     specific Go code stays out.
+\dots
+
+%--------------------------------------------------------------------
+\section{External integration patterns}
+% TODO: DocumentLink is the canonical illustration of the
+% integration-first principle from Chapter II.
+%   - The adapter contract: one DocumentLinker interface, multiple
+%     implementations (Google Drive, SharePoint, generic URL).
+%   - Per-tenant OAuth configuration: the architectural cost of
+%     ``documents stay where they live''.
+%   - Failure modes that the architecture must handle: provider
+%     downtime, revoked tokens, deleted source files. The reactor
+%     pattern carries most of the recovery responsibility.
+
+\subsection{Adapter contract}
+\dots
+
+\subsection{Authentication and authorisation against integration providers}
+\dots
+
+\subsection{Failure-mode handling}
+\dots
+
+%--------------------------------------------------------------------
+\section{Authentication, authorisation and identity}
+% TODO: Identity model from Chapter II, realised in Phase 1A. Focus on
+% the architectural decisions, not the password hashing algorithm or
+% the SendGrid call.
+%   - Multi-factor authentication via email OTP (justify: lowest
+%     friction for Mittelstand non-technical users; no SMS gateway
+%     cost; aligns with existing comby MFA primitives).
+%   - Pre-issued login MFA token on registration confirm -- a
+%     UX-driven architectural micro-decision worth one paragraph
+%     ([[reference-comby-register-confirm-token]]).
+%   - RBAC scoping: a permission is always evaluated within a tenant
+%     boundary; the architecture forbids cross-tenant authorisation
+%     paths by construction.
+\dots
+
+%--------------------------------------------------------------------
+\section*{Conclusion}
+% TODO: Recap (backend tier realised on the architecture of Chapter II
+% using four uniform patterns: composition, CQRS, reactors, adapters,
+% identity). Bridge to Chapter V (the frontend that consumes this
+% backend).
+\dots
+
+%==============================================================================
+\end{spacing}
