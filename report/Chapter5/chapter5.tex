@@ -1,124 +1,33 @@
-\setcounter{chapter}{4}
-\chapter{Phase 1B: Frontend Delivery}
-\minitoc
-\graphicspath{{Chapter5/figures/}}
-
 %==============================================================================
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[R]{\bfseries\rightmark}
-\fancyfoot[R]{\thepage}
-\renewcommand{\headrulewidth}{0.5pt}
-\renewcommand{\footrulewidth}{0pt}
-\renewcommand{\chaptermark}[1]{\markboth{{\chaptername~\thechapter.\ #1}}{}}
-\renewcommand{\sectionmark}[1]{\markright{\thechapter.\thesection~ #1}}
-
-\begin{spacing}{1.2}
+%% Phase 2 -- Enterprise Features
+%%
+%% PLACEHOLDER. This chapter will be written when Phase 2 work begins.
+%% To re-enable: uncomment the matching \include line in report.tex.
+%%
+%% Planned section breakdown -- engineer-level reframing (see outline.md):
+%%
+%%   1. Intelligence service: architecture of an LLM-mediated extraction
+%%      pipeline.
+%%      Patterns to highlight: provider abstraction (LLM gateway),
+%%      pre/post-processing stages, evaluation harness as a design
+%%      artefact.
+%%
+%%   2. Custom fields: schema flexibility without sacrificing the event
+%%      log integrity.
+%%      Patterns to highlight: typed-vs-untyped trade-offs, projection
+%%      strategy for dynamic columns.
+%%
+%%   3. E-signature integration: external workflow synchronisation.
+%%      Patterns to highlight: webhook reception as a domain event
+%%      source; envelope state machine alignment with the Approval
+%%      aggregate.
+%%
+%%   4. Obligation tracking and advanced reporting.
+%%      Patterns to highlight: derived aggregates (Obligation as a
+%%      projection from Contract clauses), reporting-side denormalisation
+%%      strategy.
+%%
+%%   5. Mobile companion and staging environment.
+%%      Patterns to highlight: the same API contract serving multiple
+%%      clients; environment parity as an operational discipline.
 %==============================================================================
-
-\section*{Introduction}
-% TODO:
-%   - Frame Phase 1B as the application of the same architectural
-%     drivers from Chapter II to the user-facing tier.
-%   - Pattern-led structure: the frontend is presented through six
-%     recurring patterns, not as a tour of pages. The pages themselves
-%     appear only in the illustrative walk-through (Section 6).
-%   - Deliverable boundary: end of Phase 1B = a single-page application
-%     consuming the Phase 1A backend, suitable for daily use by the
-%     legal/finance role at a Mittelstand customer.
-
-%--------------------------------------------------------------------
-\section{Single-page application architecture}
-% TODO: Engineer-level reasoning for the SPA choice.
-%   - No SEO requirement; an admin-facing back-office product.
-%   - Simpler hosting (static bundle behind nginx) -- aligns with
-%     the integration-first deployment posture from Chapter II.
-%   - Server-side rendering trade-off explicitly rejected (added
-%     complexity for no business value at this stage).
-%   - Vue 3 chosen over alternatives -- one paragraph of comparison,
-%     not a syntax tour.
-\dots
-
-%--------------------------------------------------------------------
-\section{Modular composition: composables and components}
-% TODO: The architectural pattern that gives the frontend its
-% reusability.
-%   - Component vs. composable separation -- one is visual, one is
-%     behavioural.
-%   - The catalogue of cross-cutting composables (auth state,
-%     contract operations, toast notifications, internationalisation).
-%   - A short justification: this pattern is what makes per-page
-%     code thin enough that adding a page is a half-day, not a week.
-\dots
-
-%--------------------------------------------------------------------
-\section{API integration and state management}
-% TODO: How the SPA talks to the backend.
-%   - Axios wrapper with auth interceptors and error normalisation
-%     -- a single integration boundary, not scattered fetch calls.
-%   - Pinia for explicit shared state; component-local state for the
-%     rest. Justify why no Redux/Vuex-classic.
-%   - Optimistic update strategy on mutations: described as an
-%     architectural choice (perceived latency vs. consistency trade-off).
-\dots
-
-%--------------------------------------------------------------------
-\section{Authentication user journey}
-% TODO: The user-facing realisation of the identity model from
-% Chapter II. One sequence diagram covering:
-%   - Login -> MFA email -> session.
-%   - Registration -> confirm -> pre-issued login MFA token -> session
-%     (the architectural shortcut that skips a second OTP, see
-%     [[reference-comby-register-confirm-token]]).
-%   - Password reset.
-% Diagram-led; prose minimal.
-
-\begin{figure}[!ht]\centering
-  % \includegraphics[scale=0.7]{auth-journey.png}
-  \caption{Authentication user journey covering login, registration confirm
-           with pre-issued login MFA token, and password reset.}
-  \label{fig:auth-journey}
-\end{figure}
-
-%--------------------------------------------------------------------
-\section{Internationalisation in practice}
-% TODO: How the i18n strategy from Chapter II is realised in the SPA.
-%   - Client-side message catalogue using vue-i18n; locale resolved
-%     from user preference first, browser hint second.
-%   - Bundling strategy: all locales in the initial bundle (cheap)
-%     vs. lazy-loaded (over-engineered for three locales).
-%   - The /help docs bundle is included in the build at compile time;
-%     this is a design choice with an operational consequence
-%     captured by [[feedback-dockerignore-docs-gap]].
-\dots
-
-%--------------------------------------------------------------------
-\section{Feature realisation walk-through}
-% TODO: ONE illustrative end-to-end scenario showing all the patterns
-% from sections 1--5 coming together. Suggested scenario: ``a legal
-% manager attaches a Google Drive document to a contract and submits
-% it for approval'' -- it touches authentication, the SPA navigation,
-% the API client, the document linker, and the approval submission.
-%
-% No page-by-page UX tour. Screenshots illustrate the scenario, not
-% the menu structure. Limit to ~5 screenshots maximum.
-%
-% Anything else that's worth showing of the UI (dashboard, contract
-% list, settings) goes into Appendix A.5 as a brief gallery, not the
-% body.
-
-\subsection{Scenario summary}
-\dots
-
-\subsection{Walk-through with screenshots}
-\dots
-
-%--------------------------------------------------------------------
-\section*{Conclusion}
-% TODO: Recap (frontend tier realised through SPA composition and
-% backend integration patterns). Bridge to Chapter VI: ``With both
-% tiers built, Phase 1C takes the application to production.''
-\dots
-
-%==============================================================================
-\end{spacing}

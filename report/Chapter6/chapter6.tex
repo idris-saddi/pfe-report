@@ -1,111 +1,32 @@
-\setcounter{chapter}{5}
-\chapter{Phase 1C: Production Deployment}
-\minitoc
-\graphicspath{{Chapter6/figures/}}
-
 %==============================================================================
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[R]{\bfseries\rightmark}
-\fancyfoot[R]{\thepage}
-\renewcommand{\headrulewidth}{0.5pt}
-\renewcommand{\footrulewidth}{0pt}
-\renewcommand{\chaptermark}[1]{\markboth{{\chaptername~\thechapter.\ #1}}{}}
-\renewcommand{\sectionmark}[1]{\markright{\thechapter.\thesection~ #1}}
-
-\begin{spacing}{1.2}
+%% Phase 3 -- Platform Vision
+%%
+%% PLACEHOLDER. This chapter will be written when Phase 3 work begins.
+%% To re-enable: uncomment the matching \include line in report.tex.
+%%
+%% Planned section breakdown -- engineer-level reframing (see outline.md):
+%%
+%%   1. Public API: from product to platform.
+%%      Patterns to highlight: API versioning and lifecycle management,
+%%      idempotency guarantees as a contract, rate limiting as a fairness
+%%      mechanism.
+%%
+%%   2. ERP integrations (DATEV, SAP): the integration-first principle
+%%      taken to its logical conclusion.
+%%      Patterns to highlight: enterprise system data-shape translation,
+%%      reconciliation between event-sourced and CRUD systems.
+%%
+%%   3. Multi-entity consolidation and marketplace.
+%%      Patterns to highlight: bounded contexts at the tenancy boundary,
+%%      marketplace as an extension surface for third-party domain models.
+%%
+%%   4. Intelligence: batch processing of legacy contract archives.
+%%      Patterns to highlight: streaming vs. batch trade-offs, cost-aware
+%%      LLM orchestration.
+%%
+%%   5. Kubernetes migration, multi-region, and scalability.
+%%      Patterns to highlight: when to graduate from compose to K8s
+%%      (cost-of-operating discussion, not feature-list), data residency
+%%      constraints in multi-region designs, event-store growth and
+%%      snapshotting strategy.
 %==============================================================================
-
-\section*{Introduction}
-% TODO:
-%   - Frame Phase 1C as the operational realisation of the system
-%     topology designed in Chapter II Section 5.
-%   - Engineer's posture: what to monitor, what to back up, what
-%     SLO to target, how to release safely. Tools are illustrations,
-%     not subject matter.
-%   - State the milestone closed at the end of Phase 1C: live in
-%     production at \texttt{clmpilot.com}, monitored, backed up,
-%     with a repeatable release path.
-
-%--------------------------------------------------------------------
-\section{Production topology}
-% TODO: One diagram of what actually runs in production. Differences
-% from the topology diagram in Chapter II (if any) explained briefly.
-%   - Single Hetzner CX22 host, Docker Compose stack.
-%   - Services: backend, frontend, intelligence stub, postgres, redis.
-%   - Reverse proxy: nginx on the host (not inside the compose stack).
-%   - Outbound dependencies: SendGrid, Google Drive, SharePoint.
-% AVOID: ``how I provisioned the server'' tutorial. The provisioning
-% recipe lives in Appendix A.3.
-
-\begin{figure}[!ht]\centering
-  % \includegraphics[scale=0.7]{production-topology.png}
-  \caption{Production deployment topology.}
-  \label{fig:prod-topology}
-\end{figure}
-
-%--------------------------------------------------------------------
-\section{Infrastructure choices and trade-offs}
-% TODO: Engineer's decisions, justified.
-%   - Hetzner CX22 vs. AWS/GCP/Azure: cost profile for early-stage
-%     CLM, EU data residency, simple billing.
-%   - Docker Compose vs. Kubernetes for the MVP: K8s is over-engineered
-%     for a single-host MVP; the path to K8s is on the Phase 3 roadmap.
-%   - Apex-only domain (\texttt{clmpilot.com}, no \texttt{app.} subdomain)
-%     -- a small architectural decision that matters operationally
-%     ([[project-apex-domain]]).
-%   - Email via SendGrid HTTP API rather than self-hosted SMTP -- removes
-%     deliverability and DNS-warming burden ([[project-smtp-provider]]).
-\dots
-
-%--------------------------------------------------------------------
-\section{Edge and transport security}
-% TODO: At the security-posture level, not the nginx config level.
-%   - TLS 1.3 with Let's Encrypt, automated renewal.
-%   - HTTP-to-HTTPS redirection enforced at the proxy.
-%   - SSH hardening: public-key only, no root password auth.
-%   - One short paragraph naming the controls; the nginx and
-%     systemd files live in Appendix A.3.
-\dots
-
-%--------------------------------------------------------------------
-\section{Observability and operational posture}
-% TODO: What the team can see and react to in production.
-%   - Health checks at the compose level (every container has one).
-%   - Application-level error reporting to email (MVP-lite: SendGrid
-%     alerts instead of a paid APM).
-%   - Backup strategy: daily Postgres dumps with off-host retention,
-%     restore procedure tested on schedule.
-%   - SLO target for the MVP: not a 99.99\% promise, but a stated
-%     posture (~99\% within business hours; planned-maintenance
-%     windows).
-%   - Engineer's note: the auditability built in at the event-store
-%     level is itself an observability lever -- any production
-%     anomaly can be replayed from events.
-\dots
-
-%--------------------------------------------------------------------
-\section{Release process and MVP validation}
-% TODO: How a change goes from develop branch to production.
-%   - The release pipeline: develop -> main PR -> image build -> tag bump
-%     in the deployment repo -> \texttt{deploy.sh} on the host.
-%   - The lockstep behaviour of \texttt{deploy.sh}: writes the same
-%     version to all three component repos. Documented as an
-%     architectural property to be aware of; the per-component bypass
-%     procedure is in the runbook ([[feedback-deploy-script-lockstep-pain]]).
-%   - End-to-end validation gate (Playwright suite) before promotion.
-%   - The MVP launch checklist as a release-process artefact, not a
-%     to-do list -- prove each checklist item exists as an automated
-%     check.
-\dots
-
-%--------------------------------------------------------------------
-\section*{Conclusion}
-% TODO: Recap (production deployment realised on the topology of
-% Chapter II, validated by a Phase 1A/1B/1C sequence that culminated
-% in the live MVP at \texttt{clmpilot.com}). Bridge: the General
-% Conclusion (and the deferred Phase 2/3 chapters) extend the story.
-\dots
-
-%==============================================================================
-\end{spacing}

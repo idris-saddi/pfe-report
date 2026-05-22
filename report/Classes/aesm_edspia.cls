@@ -183,8 +183,8 @@
   {\Large\textbf{\AUTEURD}}%
 }
 
-\newcommand{\ENCADRANT}{\ENCt\ \ENCp\ \ENCn}
-\newcommand{\ENCADRANTSoc}{\ENCSt\ \ENCSp\ \ENCSn}
+\newcommand{\ENCADRANT}{\ENCt\ \ENCn\ \ENCp}
+\newcommand{\ENCADRANTSoc}{\ENCSt\ \ENCSn\ \ENCSp}
 
 \newcommand{\JURY}{%
   \textbf{\large{\textbf{JURY}}}\\[\baselineskip]

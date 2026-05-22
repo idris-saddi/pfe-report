@@ -1,6 +1,5 @@
 \setcounter{chapter}{3}
-\chapter{Phase 1A: Backend Delivery}
-\minitoc
+\chapter{Phase 1: MVP Delivery}\label{chap:phase1}
 \graphicspath{{Chapter4/figures/}}
 
 %==============================================================================
@@ -18,144 +17,224 @@
 
 \section*{Introduction}
 % TODO:
-%   - Frame Phase 1A as the application of the architecture from
-%     Chapter II to the backend tier.
-%   - Pattern-led structure: each section presents a recurring pattern,
-%     not a domain. The four aggregates appear repeatedly as
-%     illustrations, never as the unit of organisation.
-%   - State the deliverable boundary: end of Phase 1A = backend service
-%     able to host the four aggregates with command/query separation,
-%     reactive side effects, and external integrations.
+%   - Frame Phase 1 as the application of Chapter II's architecture across
+%     the full stack.
+%   - State the deliverable boundary: a live MVP at clmpilot.com handling
+%     contract registry, document linking, deadline reminders, approval
+%     workflows, RBAC + MFA, and audit trail for Mittelstand customers.
+%   - Note the organising principle: this chapter does NOT walk the
+%     tiers one-by-one (backend then frontend then ops). It walks the
+%     six engineering themes that span the stack -- each section a
+%     pattern that touches several layers.
 
 %--------------------------------------------------------------------
-\section{Backend service composition}
-% TODO: How the backend is composed at the macro level. Not file
-% structure -- composition pattern.
-%   - The Go service hosts the comby kernel plus the four domain
-%     modules; each domain is registered through the comby facade.
-%   - Bootstrap order matters: domains must be registered before any
-%     command can be dispatched -- a design constraint inherited from
-%     comby v3 (see Appendix for the precise hook point).
-%   - REST handlers are thin: they translate HTTP into commands or
-%     queries and translate the result back. Business logic does not
-%     live in HTTP handlers.
+\section{Backend service architecture}
+% TODO:
+%   - Macro composition: a single Go service hosting the comby kernel
+%     plus the four domain modules; bootstrap order matters (domains
+%     registered before any command can be dispatched -- a design
+%     constraint inherited from comby v3, see
+%     [[feedback-v3-post-facade-command-dispatch-broken]]).
+%   - REST handlers as a thin shell: they translate HTTP into commands
+%     or queries and translate results back. No business logic in
+%     handlers.
+%   - Command-Query separation in practice -- one sequence diagram
+%     showing a command path and a query path side by side.
+%   - Authorisation asymmetry: the auth model differs between commands
+%     and queries; this informs backfill / operational tooling
+%     ([[feedback-comby-command-auth-curl-gap]]). Cite the memory
+%     reference, push the curl footgun example to Appendix A.
 
-\subsection{Module composition}
+\subsection{Module composition and bootstrap}
 \dots
 
-\subsection{Bootstrap and dispatch lifecycle}
-\dots
-
-%--------------------------------------------------------------------
-\section{Command-Query Responsibility Segregation in practice}
-% TODO: This is the central engineering exhibit of Phase 1A. Show how
-% CQRS is applied uniformly across the four domains.
-%   - Commands as intent: typed, validated, authorised, dispatched.
-%   - Queries as views: built from read models, never traversing the
-%     write side.
-%   - Authorisation differs subtly between command path and query
-%     path -- this is an architectural property of comby; the team
-%     pays attention to it when writing backfill scripts (see
-%     [[feedback-comby-command-auth-curl-gap]]).
-%   - One UML sequence diagram showing a command path and a query
-%     path side by side -- a single illustrative scenario, e.g.
-%     ``user creates a contract then dashboards reflect it''.
-
-\subsection{Command path}
-\dots
-
-\subsection{Query path and read-model projections}
-\dots
+\subsection{Command path and query path}
+\begin{figure}[!ht]\centering
+  % \includegraphics[scale=0.7]{cqrs-paths.png}
+  \caption{Side-by-side view of a command path and a query path through the
+           backend service.}
+  \label{fig:cqrs-paths}
+\end{figure}
 
 \subsection{Authorisation asymmetry}
-% Engineer's observation: the auth model differs between commands and
-% queries; this informs the design of backfill jobs and operational
-% tooling. Cite the memory note; don't reproduce the curl footgun
-% inline -- one sentence and a forward reference to the appendix.
 \dots
 
 %--------------------------------------------------------------------
-\section{Aggregate design and bounded contexts}
-% TODO: One section, not four. Each aggregate gets one paragraph at
-% the business-responsibility level, then a single diagram shows the
-% boundaries.
-%   - Contract: the central record.
-%   - Approval: the multi-step workflow gate.
-%   - Deadline: the time-aware reminder engine.
-%   - DocumentLink: the integration boundary.
-% Highlight ONE non-obvious modelling decision per aggregate (e.g.
-% Deadline as a first-class aggregate vs. a Contract subordinate;
-% Approval as a workflow vs. a property of Contract). Reasoning is
-% engineering, mechanics is appendix.
+\section{Domain realisation: the four bounded contexts}
+% TODO:
+%   - Recap the aggregate map from Chapter II briefly, then one
+%     paragraph per aggregate at the modelling-decision level (not the
+%     event-list level).
+%   - Contract: the central record. Worth highlighting -- relationship
+%     to documents is by reference, not by content storage.
+%   - Approval: the multi-step workflow gate. Worth highlighting --
+%     workflow steps are first-class events, not metadata on Contract.
+%   - Deadline: the temporal awareness layer. Worth highlighting --
+%     Deadline is a first-class aggregate, not a property of Contract
+%     (this enables independent lifecycle and replayable reminder logic).
+%   - DocumentLink: the integration boundary. Worth highlighting --
+%     one aggregate, multiple adapter implementations (Drive,
+%     SharePoint, URL).
+%   - Cross-cutting concerns -- identity, audit -- handled at the
+%     platform level (Section~5 below), not inside any aggregate.
 
 \subsection{Aggregate map}
 \begin{figure}[!ht]\centering
-  % \includegraphics[scale=0.7]{aggregate-map.png}
-  \caption{Aggregate boundaries and inter-aggregate references.}
-  \label{fig:aggregates}
+  % \includegraphics[scale=0.7]{aggregate-map-phase1.png}
+  \caption{The four bounded contexts realised in Phase~1 and their
+           inter-aggregate references.}
+  \label{fig:aggregates-phase1}
 \end{figure}
 
 \subsection{Modelling decisions worth highlighting}
 \dots
 
 %--------------------------------------------------------------------
-\section{Reactive patterns: events driving side effects}
-% TODO: The reactor pattern is the engineering lever that decouples
-% workflow steps. Show it once, with concrete examples.
-%   - Reactor abstraction: subscribe to domain events, dispatch new
-%     commands or trigger external effects (email send, audit-log entry).
-%   - Three concrete reactor classes used in Phase 1A:
+\section{Reactive patterns and external integrations}
+% TODO:
+%   - Reactor pattern as the engineering lever that decouples workflow
+%     steps. Show the pattern once with concrete examples.
+%   - Three reactors in Phase~1:
 %       1. Deadline emission (Contract event -> Deadline command).
 %       2. Recipient resolution for notifications (event -> SendGrid).
 %       3. Audit-log enrichment (any event -> audit projection).
-%   - Idempotency is a designed-in property, not a hope. State HOW
-%     it is achieved at the pattern level (event id + dedupe key);
-%     specific Go code stays out.
+%   - Idempotency by design (event-id + dedupe key); not a hope.
+%   - Adapter pattern for external systems: DocumentLink as the
+%     canonical case, with Google~Drive and SharePoint as concrete
+%     adapters; OAuth setup per tenant; failure-mode handling.
+%   - Email via SendGrid HTTP API rather than self-hosted SMTP --
+%     reason in one line, citing [[project-smtp-provider]].
+
+\subsection{The reactor pattern in practice}
+\dots
+
+\subsection{External integration via the adapter pattern}
+\dots
+
+\subsection{Outbound notifications}
 \dots
 
 %--------------------------------------------------------------------
-\section{External integration patterns}
-% TODO: DocumentLink is the canonical illustration of the
-% integration-first principle from Chapter II.
-%   - The adapter contract: one DocumentLinker interface, multiple
-%     implementations (Google Drive, SharePoint, generic URL).
-%   - Per-tenant OAuth configuration: the architectural cost of
-%     ``documents stay where they live''.
-%   - Failure modes that the architecture must handle: provider
-%     downtime, revoked tokens, deleted source files. The reactor
-%     pattern carries most of the recovery responsibility.
+\section{Frontend application architecture}
+% TODO:
+%   - SPA choice rationale (admin-style product, no SEO requirement,
+%     simpler hosting).
+%   - Composables and components as the architectural lever for reuse
+%     (one is visual, one is behavioural).
+%   - API integration boundary: Axios wrapper with auth interceptors
+%     and error normalisation; a single integration boundary, not
+%     scattered fetch calls.
+%   - State management: Pinia for shared state; component-local state
+%     for the rest.
+%   - Internationalisation realised: vue-i18n catalogue, locale
+%     resolution (user setting > browser hint > EN default).
+%   - One illustrative end-to-end scenario (e.g. ``a legal manager
+%     attaches a Google~Drive document to a contract and submits it
+%     for approval'') showing all patterns coming together. No
+%     page-by-page UI tour; the rest of the UI gallery goes to
+%     Appendix~A.5.
 
-\subsection{Adapter contract}
+\subsection{Single-page application choice}
 \dots
 
-\subsection{Authentication and authorisation against integration providers}
+\subsection{Modular composition}
 \dots
 
-\subsection{Failure-mode handling}
+\subsection{API integration and state management}
+\dots
+
+\subsection{Internationalisation in practice}
+% Note the /help docs bundle is part of this story; the
+% .dockerignore operational consequence is acknowledged here in one
+% sentence and the detail pushed to Appendix~A.3
+% ([[feedback-dockerignore-docs-gap]]).
+\dots
+
+\subsection{End-to-end walk-through scenario}
 \dots
 
 %--------------------------------------------------------------------
-\section{Authentication, authorisation and identity}
-% TODO: Identity model from Chapter II, realised in Phase 1A. Focus on
-% the architectural decisions, not the password hashing algorithm or
-% the SendGrid call.
-%   - Multi-factor authentication via email OTP (justify: lowest
-%     friction for Mittelstand non-technical users; no SMS gateway
-%     cost; aligns with existing comby MFA primitives).
-%   - Pre-issued login MFA token on registration confirm -- a
-%     UX-driven architectural micro-decision worth one paragraph
-%     ([[reference-comby-register-confirm-token]]).
-%   - RBAC scoping: a permission is always evaluated within a tenant
-%     boundary; the architecture forbids cross-tenant authorisation
-%     paths by construction.
+\section{Identity, authentication and access control}
+% TODO: Full-stack: backend identity model + frontend user journey.
+%   - Identity model realised: tenant, user, role, permission. The
+%     architectural constraint from Chapter~II is that a permission is
+%     always evaluated within a tenant boundary; cross-tenant paths
+%     are forbidden by construction.
+%   - Multi-factor authentication: email OTP via SendGrid
+%     ([[project-smtp-provider]]).
+%   - The authentication user journey -- login, registration with
+%     pre-issued login MFA token ([[reference-comby-register-confirm-token]]),
+%     password reset -- as one sequence diagram covering the full stack.
+%   - RBAC scoping: roles vs. permissions; how the frontend reads
+%     them from the session to drive UI affordances.
+
+\subsection{Identity model realisation}
+\dots
+
+\subsection{Authentication user journey}
+\begin{figure}[!ht]\centering
+  % \includegraphics[scale=0.7]{auth-journey.png}
+  \caption{The authentication user journey: login, registration with
+           pre-issued login MFA token, and password reset.}
+  \label{fig:auth-journey}
+\end{figure}
+
+\subsection{Role-based access control}
+\dots
+
+%--------------------------------------------------------------------
+\section{Production deployment and release process}
+% TODO: Operational realisation of the topology designed in
+% Chapter~II. Engineering posture, not sysadmin tutorial.
+%   - Production topology in one diagram (single Hetzner CX22 host,
+%     Docker Compose stack, nginx on the host, outbound dependencies
+%     SendGrid + Google~Drive + SharePoint).
+%   - Infrastructure choices and trade-offs: Hetzner vs. AWS/GCP
+%     (cost + EU residency); Docker Compose vs. K8s for MVP
+%     (over-engineering avoided; K8s on the Phase~3 roadmap); apex
+%     domain (no \texttt{app.} subdomain), [[project-apex-domain]].
+%   - Edge and transport security: TLS, SSH hardening (posture-level,
+%     not config-level).
+%   - Observability and operational posture: health checks,
+%     application-level error reporting to email, daily Postgres
+%     dumps with off-host retention, MVP SLO posture (not a
+%     99.99\% promise).
+%   - Release process: develop -> main PR -> image build -> tag bump
+%     -> \texttt{deploy.sh} on the host. Document the lockstep
+%     property of \texttt{deploy.sh} as an architectural quirk to
+%     be aware of, with the bypass procedure pushed to Appendix
+%     ([[feedback-deploy-script-lockstep-pain]]).
+%   - End-to-end validation gate before promotion.
+%   - Phase~1 launch outcome: live at \texttt{clmpilot.com},
+%     monitored, backed up.
+
+\subsection{Production topology}
+\begin{figure}[!ht]\centering
+  % \includegraphics[scale=0.7]{production-topology.png}
+  \caption{Production deployment topology realised in Phase~1.}
+  \label{fig:prod-topology}
+\end{figure}
+
+\subsection{Infrastructure choices and trade-offs}
+\dots
+
+\subsection{Edge security and operational posture}
+\dots
+
+\subsection{Release process and MVP validation}
 \dots
 
 %--------------------------------------------------------------------
 \section*{Conclusion}
-% TODO: Recap (backend tier realised on the architecture of Chapter II
-% using four uniform patterns: composition, CQRS, reactors, adapters,
-% identity). Bridge to Chapter V (the frontend that consumes this
-% backend).
+% TODO: Recap. The MVP shipped to production at \texttt{clmpilot.com}
+% realises the four-aggregate domain model on the comby framework
+% (Sections~1--3), exposes it through a Vue 3 single-page application
+% (Section~4), enforces a per-tenant identity and access model
+% (Section~5), and runs on a Hetzner-hosted Docker Compose topology
+% with a documented release process (Section~6). Bridge to
+% Chapter~V: ``Phase 2 extends this MVP with the enterprise feature
+% set that takes CLMPilot from a launched product to a commercial
+% offering.''
 \dots
 
 %==============================================================================
