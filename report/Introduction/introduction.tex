@@ -3,45 +3,72 @@
 \begin{spacing}{1.2}
 %==============================================================================
 
-% TODO: Four paragraphs, following the standard INSAT structure
-% (see _Notes/structure.md).
-
 % 1. CONTEXT
-%    The domain: contract management for European mid-market companies.
-%    Why this market segment matters; the digitisation gap; the role of
-%    compliance frameworks (GoBD, GDPR, ISO 27001).
-The European Mittelstand \dots
+Contracts are the connective tissue of any business: they record what an
+organisation has committed to, with whom, on what terms and until when. For
+the European \textit{Mittelstand} -- the mid-sized enterprises that form the
+economic backbone of Germany, Austria and Switzerland -- managing those
+commitments has remained a stubbornly manual affair, even as the rest of the
+back office has moved online. At the same time, the regulatory bar has risen:
+GoBD\footnote{GoBD stands for \textit{Grunds\"atze zur ordnungsm\"a\ss igen
+F\"uhrung und Aufbewahrung von B\"uchern, Aufzeichnungen und Unterlagen in
+elektronischer Form sowie zum Datenzugriff}. It is a German administrative
+directive that defines exactly how companies must handle, process and store
+tax-relevant digital documents, to ensure auditability and prevent fraud.},
+the European data-protection regulation (GDPR) and the
+ISO~27001 security standard now expect business records to be retained
+immutably, traced to an actor and a moment, and kept within controlled
+boundaries. The discipline that addresses this -- Contract Lifecycle
+Management (CLM) -- is mature in the large enterprise, but the tools that
+serve it there assume budgets, IT departments and rollout timelines the
+mid-market does not have.
 
 % 2. PROBLEM STATEMENT
-%    What's broken today: scattered contracts (email, drives, cabinets),
-%    silent auto-renewals, no audit trail, no portfolio overview,
-%    enterprise solutions priced out of reach.
-\dots
+The consequence is a recurring and costly gap. In a company without a
+dedicated system, contracts are scattered across email inboxes, shared drives
+and filing cabinets; renewal and cancellation windows pass unnoticed, so
+agreements renew silently and decisions default to the counterparty; there is
+no auditable record of who approved which version of a contract; and the
+simple portfolio questions -- how much value expires next quarter, where the
+renegotiation leverage lies -- can be answered only by a manual exercise that
+is stale the moment it is finished. The platforms that could close this
+gap either price and scope themselves for the enterprise, or, in the
+compliance-aware DACH niche, require the customer to migrate every document
+into the vendor's own storage -- an entry fee that pushes mid-market buyers
+back to spreadsheets and email.
 
 % 3. CONTRIBUTION
-%    CLMPilot: an integration-first CLM platform built on the comby
-%    framework (CQRS + Event Sourcing in Go), delivered as a release-based
-%    roadmap (Phases 0--3). Phases 0 and 1 are live in production at
-%    clmpilot.com; Phases 2 and 3 are designed.
-\dots
+This report presents \textbf{CLMPilot}, an integration-first contract
+lifecycle management platform for the DACH Mittelstand, built during an
+end-of-studies internship at Gradient~Zero. Its defining decision is to
+manage the lifecycle of a contract -- its metadata, deadlines, approvals and
+audit trail -- while the document itself stays in the customer's own storage,
+so adoption carries no migration fee. The platform is built on \texttt{comby},
+the company's in-house Go framework for Command-Query Responsibility
+Segregation and Event~Sourcing, which makes the compliance-grade audit trail
+a property of the storage model rather than a feature bolted on top. CLMPilot
+was delivered as a release train, and the realised pilot -- foundations, a
+full-stack minimum viable product, and a tier of enterprise features -- runs
+in production at \url{https://clmpilot.com}. The remaining internship effort
+then turns inward, from the product to the event-sourced system beneath it,
+in a forward-looking engineering study of how that framework should evolve.
 
 % 4. REPORT OUTLINE
-%    Chapter I sets the context (company, problem, functional and
-%    non-functional requirements, methodology). Chapter II presents
-%    the architecture and design choices -- CQRS and Event Sourcing on
-%    the comby framework, the domain model, the system topology, and
-%    the security and compliance posture -- that underpin every
-%    release. Chapters III and IV describe the realised delivery:
-%    the engineering foundations established in Phase 0, and the
-%    full-stack MVP shipped in Phase 1. A general conclusion
-%    summarises the contribution and lays out the perspectives for
-%    Phase 2 (enterprise features) and Phase 3 (platform), which are
-%    designed and on the roadmap.
-%
-%    NOTE: When the Phase 2 / Phase 3 chapters get written, edit the
-%    above to add a sentence such as "Chapters V and VI present the
-%    realised Phase 2 enterprise features and the Phase 3 platform
-%    vision".
-\dots
+The report is organised in two parts. The first frames the project and its
+design: Chapter~I sets the general context and analysis -- the hosting
+company, the market, the problem, the functional and non-functional
+requirements, the actors, and the methodology under which the work was
+carried out -- and Chapter~\ref{chap:arch} presents the architecture and
+design, justifying the choice of CQRS and Event~Sourcing on the \texttt{comby}
+framework, deriving the domain model and the system topology, setting out the
+security and compliance posture, and naming the seams the design deliberately
+leaves open for later evolution. The second part covers realisation and
+planned evolution: Chapter~\ref{chap:realisation} consolidates the work
+delivered across the realised phases, and Chapter~\ref{chap:future} sets 
+out the planned improvements to the event-sourced system, implementing updates 
+on broker communications, deepening multi-tenancy, and scaling the framework 
+and the event store. A general conclusion then recaps the contribution and 
+opens the perspectives for the work that follows.
 
+%==============================================================================
 \end{spacing}

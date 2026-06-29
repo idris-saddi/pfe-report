@@ -1,0 +1,50 @@
+@startuml uc-reporting-audit
+'==============================================================================
+' Detailed use cases: Dashboard & reporting (Sec. 4.6) and Audit & compliance (Sec. 4.5).
+' Render:  plantuml -tsvg uc-reporting-audit.puml && \
+'          rsvg-convert -f pdf -o uc-reporting-audit.pdf uc-reporting-audit.svg
+'==============================================================================
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam ranksep 60
+skinparam nodesep 12
+skinparam usecase {
+  BorderColor      #34495E
+  BackgroundColor  #FDFEFE
+  ArrowColor       #5D6D7E
+}
+
+actor "Legal Manager" as lm
+actor "Auditor"       as aud
+actor "Admin"         as admin
+actor "User"          as user
+lm    --|> user
+aud   --|> user
+admin --|> user
+
+rectangle "Dashboard, reporting & audit" {
+  usecase "View dashboard"        as UC_dash
+  usecase "Generate report"       as UC_report
+  usecase "Schedule recurring\nreport" as UC_schedule
+  usecase "Review system\naudit log"   as UC_sysaudit
+  usecase "Read full event log"   as UC_readlog
+  usecase "Export audit trail"    as UC_export
+  usecase "Reconstruct past\ncontract state" as UC_reconstruct
+}
+
+lm    --> UC_dash
+lm    --> UC_report
+admin --> UC_sysaudit
+aud   --> UC_readlog
+aud   --> UC_export
+aud   --> UC_reconstruct
+UC_schedule ..> UC_report : <<extend>>
+
+note bottom of UC_reconstruct
+  Any past date within the
+  10-year GoBD retention window
+end note
+@enduml

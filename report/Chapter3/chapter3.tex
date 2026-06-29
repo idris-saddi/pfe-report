@@ -1,7 +1,14 @@
 \setcounter{chapter}{2}
-\chapter{Phase 0: Engineering Foundations}
+\chapter{Realisation of the CLMPilot platform}\label{chap:realisation}
 \graphicspath{{Chapter3/figures/}}
 
+%==============================================================================
+%% SECTION-LEVEL SKELETON. This chapter consolidates the realised work of
+%% Phases 0-2, organised by ENGINEERING THEME, not by phase. Each section
+%% carries a one-line `% intent:` note and a `% figure:` note naming the UML
+%% view it will carry. Prose to be written; keep the engineer-level register
+%% (patterns, abstractions, justified choices -- implementation minutiae go to
+%% the Appendix). See outline.md for the rationale.
 %==============================================================================
 \pagestyle{fancy}
 \fancyhf{}
@@ -12,90 +19,132 @@
 \renewcommand{\chaptermark}[1]{\markboth{{\chaptername~\thechapter.\ #1}}{}}
 \renewcommand{\sectionmark}[1]{\markright{\thechapter.\thesection~ #1}}
 
+% NOTE: the \pumlfig figure helper is defined in Chapter II and persists for
+% the whole document; reuse it here when figures are added. The only caveat is
+% that its \IfFileExists check is hardcoded to Chapter2/figures -- when Chapter
+% III figures are introduced, generalise the helper (or render the diagrams
+% into a shared figures path) so the self-healing placeholder resolves.
+
 \begin{spacing}{1.2}
 %==============================================================================
 
 \section*{Introduction}
-% TODO: Frame Phase 0 NOT as ``the setup work'' but as the set of
-% engineering decisions taken before any feature code was written.
-% A short chapter on purpose -- emphasise that what matters here is
-% the DECISIONS, not the commands run.
+% intent: Frame the chapter as the realisation of Chapter II's architecture
+% across the full stack, consolidating Phases 0-2 by engineering theme rather
+% than by phase. State the deliverable: a live pilot at clmpilot.com covering
+% the contract lifecycle plus the enterprise capabilities of
+% Section~\ref{sec:fr-enterprise}. Name the organising principle: each section
+% is a recurring pattern that spans the stack, illustrated by the realised
+% domains, never a per-tier or per-phase tour.
+This chapter turns the architecture of Chapter~\ref{chap:arch} into the
+platform that was actually built. It consolidates the work delivered across
+Phases~0 to~2 -- the engineering foundations, the contract-lifecycle core and
+the enterprise capabilities -- and organises it by engineering theme rather
+than by phase, so each section reads as one recurring pattern carried across
+the stack. \emph{(Section-level skeleton; prose to follow.)}
 
 %--------------------------------------------------------------------
-\section{Repository and branch protection model}
-% TODO: Engineer-level framing.
-%   - Why four repositories instead of a monorepo: independent release
-%     cadence for backend vs. frontend, blast-radius isolation, simpler
-%     CI per repo.
-%   - Branch protection model: protected `main` and `develop`,
-%     feature branches off `develop`, PRs into `develop`, periodic
-%     `develop` -> `main` promotions for production.
-%   - Why a two-line branch model (and not GitFlow with release branches
-%     or trunk-based with feature flags): solo developer, weekly
-%     release cadence, no parallel maintenance branches required.
-
-\subsection{Repository decomposition}
-% One short diagram showing the four repos and what each owns.
-\dots
-
-\subsection{Branch model and PR workflow}
-% State the rule (features -> develop -> main), the rationale,
-% and the constraints enforced by branch protection (required review,
-% up-to-date branch, status checks green).
-\dots
+\section{Engineering foundations and the delivery process}
+% intent: Phase 0 as a set of decisions, not setup. The four-repository split
+% by concern and release cadence; protected main/develop with feature->develop
+% ->main promotion; the CI gate (lint/test/build/image push) and what each
+% guards; conventional commits and per-repo semver for trivial rollbacks; the
+% roadmap as the single source of truth; local dev mirroring production.
+% Cite [[feedback-git-workflow]]; push YAML/commands to Appendix.
+% figure: package/component diagram -- the four repositories and what each owns.
 
 %--------------------------------------------------------------------
-\section{Continuous integration strategy}
-% TODO: Strategy, not YAML.
-%   - The CI gate: lint, test, build, image push. What each gate
-%     defends against.
-%   - Conventional commits for automated changelog -- traceability lever.
-%   - Image tagging convention (semver per repo) so rollbacks are
-%     trivial.
-%   - Cost discipline: builds are short (\textless\,3 minutes) by
-%     design; this is a maintainability investment.
-% AVOID: specific GitHub Actions YAML, runners, secrets management
-% command lines. Push that to Appendix A.3 if needed.
-\dots
+\section{Backend service architecture on comby}
+% intent: A single Go service hosting the comby kernel plus the domain modules;
+% the registration/bootstrap order that command dispatch depends on
+% ([[feedback-v3-post-facade-command-dispatch-broken]]); REST handlers as a
+% thin shell translating HTTP into commands/queries and back, no business logic
+% in handlers; the command path vs the query path; the command-vs-query
+% authorisation asymmetry and its operational consequence
+% ([[feedback-comby-command-auth-curl-gap]], detail to Appendix).
+% figure: sequence diagram -- a command path and a query path, side by side.
 
 %--------------------------------------------------------------------
-\section{Roadmap as a single source of truth}
-% TODO: Traceability is the engineering value here.
-%   - One canonical Markdown roadmap (\path{clmpilot-roadmap.md}).
-%   - Auto-synced to a tracking spreadsheet and a shared Google Sheet
-%     for stakeholder visibility.
-%   - Mention -- without dwelling on it -- that the chapter numbering
-%     of THIS report mirrors the roadmap's phase structure.
-%   - Why this matters: in a solo-dev release-train context, the
-%     roadmap is the only stable contract between past-self,
-%     present-self, and future-self.
-
-\subsection{Roadmap structure}
-\dots
-
-\subsection{Auto-synchronisation and stakeholder visibility}
-% Mention the spreadsheet and Google Sheet at a single sentence each;
-% the script's invocation contract goes to Appendix A.3.
-\dots
+\section{The contract domain and its lifecycle}
+% intent: Realisation of the Contract aggregate (metadata, status state machine,
+% per-tenant custom fields) and of DocumentLink as the integration boundary
+% turned domain object -- one aggregate, provider adapters for Google Drive,
+% SharePoint and URL, reference-not-content enforced at this seam. The audit
+% trail is anchored on Contract by construction.
+% figure: class diagram -- the realised Contract + DocumentLink model with events.
 
 %--------------------------------------------------------------------
-\section{Development environment philosophy}
-% TODO: Engineer-level.
-%   - Local dev mirrors production via Docker Compose -- not a
-%     ``runs on my machine'' setup.
-%   - Pre-commit gates (lint, format) reduce CI churn.
-%   - Editor and tooling choices are aligned across team members
-%     (a team of one today; scaling assumption: a team of three by
-%     Phase 2).
-% AVOID: just lists of versions of Go/Node/Python. One sentence
-% naming the languages is sufficient; the rest is appendix.
-\dots
+\section{Workflow and temporal automation}
+% intent: The three workflow/time contexts -- Approval (ordered multi-step
+% review), Deadline (auto-created cancellation/renewal/expiry markers and
+% reminders) and Obligation (post-signature, recurring) -- shown through the
+% reactor pattern (a domain event derives a follow-up command, e.g. contract
+% registered -> deadlines created) and the in-process cron scheduler that
+% drives time-based checks. Idempotency by design, not by hope.
+% figure: sequence diagram -- contract registration fires the deadline-creation
+% reactor; or activity diagram for obligation recurrence.
+
+%--------------------------------------------------------------------
+\section{Document intelligence and electronic signature}
+% intent: The two most novel Phase-2 subsystems. The stateless intelligence
+% service (metadata extraction, classification, clause detection) behind an
+% LLM gateway, with an evaluation harness as a design artefact; the enrichment
+% reactor that folds AI suggestions onto a contract with accept/edit/undo, only
+% filling empty fields. Electronic signature via DocuSeal: envelope dispatch,
+% webhook reception as a domain-event source, signed PDF linked back as a
+% DocumentLink, draft->active transition. Note scanned-PDF/OCR limit
+% ([[project-pdf-clause-detection]]); cite [[project-smtp-provider]] for mail.
+% figure: sequence diagram -- document linked -> extraction pipeline -> contract
+% patched; component view of the e-signature webhook flow.
+
+%--------------------------------------------------------------------
+\section{The web application and internationalised user experience}
+% intent: The Vue 3 + Quasar SPA: composition via stores (Pinia) and
+% composables/components for reuse; a single API integration boundary using the
+% type-safe client generated from the backend OpenAPI contract; realised
+% internationalisation (English/German, locale resolution, bundled /help docs,
+% [[feedback-dockerignore-docs-gap]] to Appendix); the advanced report builder
+% and the custom-field UX. One end-to-end scenario tying the patterns together;
+% the rest of the UI gallery to Appendix.
+% figure: package/component diagram of the SPA; or a sequence for the scenario.
+
+%--------------------------------------------------------------------
+\section{Identity, access control and multi-tenancy in practice}
+% intent: The realised identity model from the comby defaults (tenant, account,
+% identity, group, permission), the five RBAC role groups, email-OTP MFA, and
+% the authentication user journey (login, self-serve registration with a
+% pre-issued login token [[reference-comby-register-confirm-token]], password
+% reset). Tenant isolation in practice -- the archived-tenant middleware and the
+% seeded system-administrator cross-tenant interface. RBAC drives both backend
+% authorisation and frontend affordances ([[feedback-skipauth-tests-miss-rbac]]).
+% figure: sequence diagram -- the authentication journey across the full stack.
+
+%--------------------------------------------------------------------
+\section{Production deployment and release operations}
+% intent: The operational realisation of Chapter II's topology. The single
+% EU-hosted Hetzner Docker-Compose stack, host nginx + certbot TLS, loopback
+% binding; backups with an off-host retention and a verified restore drill;
+% observability posture (structured logs, Prometheus metrics emitted but not yet
+% aggregated -- honest about the MVP); the release process (develop->main,
+% image build, tag bump, deploy.sh on the host) and the deploy.sh lockstep
+% caveat with the bypass ([[feedback-deploy-script-lockstep-pain]], Appendix);
+% the apex-domain choice ([[project-apex-domain]]); MVP availability/performance
+% posture now that production traffic can be observed.
+% figure: deployment diagram -- the realised production topology.
 
 %--------------------------------------------------------------------
 \section*{Conclusion}
-% TODO: One paragraph. With the foundations in place, Phase 1 starts the
-% full-stack MVP delivery -- the next chapter.
-\dots
+% intent: Recap that the realised platform delivers Chapter II's design across
+% the full stack -- the contract core and its workflow/temporal automation, the
+% intelligence and e-signature subsystems, the internationalised SPA, the
+% per-tenant identity model, and a documented production deployment -- live at
+% clmpilot.com. Bridge to Chapter IV: with the platform realised, the remaining
+% engineering work turns inward, to the event-sourced system it runs on.
+With the platform realised across Phases~0 to~2, the engineering effort turns
+from the product to the framework beneath it. Chapter~\ref{chap:future} takes
+up the seams named in Section~\ref{sec:seams} and develops the planned
+improvements to the event-sourced system. \emph{(Section-level skeleton; prose
+to follow.)}
 
 %==============================================================================
 \end{spacing}

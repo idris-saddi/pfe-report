@@ -1,0 +1,30 @@
+@startuml context
+'==============================================================================
+' Figure (Chapter I): system context / scope.
+' CLMPilot owns metadata, deadlines, approvals and the audit trail; the
+' contract documents stay in the customer's own storage. This is the
+' integration-first positioning made visible as a system boundary.
+' Render:  plantuml -tpdf context.puml      (or -tpng)
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+left to right direction
+
+actor "Legal Manager" as lm
+actor "Approver"      as appr
+actor "Auditor"       as aud
+
+rectangle "CLMPilot\n\nmetadata, deadlines,\napprovals, audit trail" as clm
+
+cloud "Customer document storage\n(Google Drive / SharePoint / URL)" as store
+
+lm   --> clm : manage contracts
+appr --> clm : decide approvals
+aud  --> clm : read audit trail
+clm  ..> store : references (never copies)
+
+note bottom of store
+  The contract documents stay in the customer's
+  own storage; CLMPilot keeps only references.
+end note
+@enduml

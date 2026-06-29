@@ -14,8 +14,8 @@
 
 \section*{Introduction}
 This chapter establishes the context in which CLMPilot was built. We
-introduce Gradient~Zero, the hosting company that commissioned the
-project, and we situate CLMPilot within the company's portfolio. We then
+introduce Gradient~Zero, the hosting company that initiated the
+project. We then
 characterise the market the product addresses -- contract lifecycle
 management in the DACH Mittelstand -- and the regulatory, operational
 and commercial pressures that make this market actionable today. From
@@ -24,48 +24,66 @@ responds to, the functional and non-functional requirements that flow
 from them, the actors who interact with the platform, and the
 project-management methodology under which the work was carried out.
 
-The chapter answers four questions in order: who commissioned the work,
+The chapter answers four questions in order: who inducted the work,
 what problem the product is designed to solve, what the product is
 required to do, and how the work was organised. The architectural
 response to those requirements -- the CQRS and Event~Sourcing framework,
 the domain decomposition and the deployment topology -- is the subject
-of Chapter~\ref{chap:arch}. The release-based delivery of that
-architecture is then described in Chapters~III through~VI.
+of Chapter~\ref{chap:arch}. The realised platform that resulted -- the
+engineering foundations, the contract-lifecycle core and the enterprise
+capabilities delivered -- is then consolidated by
+engineering theme in Chapter~\ref{chap:realisation}, and the forward-looking
+engineering work that the remainder of the internship is devoted to --
+improvements to the event-sourced system itself -- is the subject of
+Chapter~\ref{chap:future}.
 
 %--------------------------------------------------------------------
 \section{Hosting company: Gradient Zero}
 \label{sec:gradient-zero}
 
 \subsection{General presentation}
-Gradient~Zero\footnote{\url{https://gradient0.com/}} is a software company
-founded in 2019 and headquartered in Vienna, Austria, building business
-applications for European mid-market enterprises. Its portfolio is
-organised around the conviction that mid-market customers in regulated
-industries -- finance, healthcare, manufacturing, professional services --
-are under-served by both the US-centric SaaS landscape and the entrenched
-enterprise vendors. The company's products are designed to be deployed
-quickly, comply with the DACH regulatory baseline by construction (GoBD,
-GDPR, ISO~27001), and to coexist with rather than replace the
-document-management systems customers already use.
+Gradient~Zero\footnote{\url{https://gradient0.com/}} -- registered as
+\textit{Gradient Zero Softwareentwicklungs~GmbH} -- is a software and
+machine-learning company founded in 2018 and headquartered in Vienna,
+Austria, operating under the banner of \textit{Machine Learning Excellence}.
+Its core business is privacy-first artificial intelligence: it builds
+platforms and bespoke solutions that let organisations extract value from
+highly sensitive data without exposing it, and it develops parts of that work
+into standalone products and spin-off ventures.
 
-CLMPilot, the subject of this report, is Gradient~Zero's contract
-management offering and the most recent product built end-to-end on the
-company's in-house Command-Query Responsibility Segregation (CQRS) and
-Event~Sourcing framework~\cite{Young2010,FowlerCQRS,FowlerEventSourcing}.
-The platform is publicly available at \url{https://clmpilot.com}.
+The company's technology portfolio reflects that focus. \textit{DQ0}
+(Detabord) provides secure data management built on differential privacy, so
+analysis can run over sensitive data in a GDPR-compliant way; \textit{Daiki}
+is an AI-governance platform for managing the risks of trustworthy AI; and an
+in-house private large-language-model and retrieval-augmented-generation
+stack, a Git-based data-versioning platform certified by TÜV~Austria, and a
+library of pre-trained machine-learning methods round out the offering. These
+products are deployed chiefly in highly regulated sectors -- healthcare and
+medical research, banking and financial technology, agriculture and industrial
+automation -- where data-protection law is a hard constraint rather than an
+afterthought.
+
+CLMPilot, the subject of this report, belongs to the products-and-ventures
+side of that portfolio. It is Gradient~Zero's contract-management offering,
+and the most recent product built end-to-end on \textbf{comby}, the company's
+in-house Command-Query Responsibility Segregation (CQRS) and Event~Sourcing
+backend~\cite{Young2010,FowlerCQRS,FowlerEventSourcing}. The platform is
+publicly available at \url{https://clmpilot.com}.
 
 \subsection{Areas of expertise}
-Gradient~Zero's distinctive technical asset is \textbf{comby}, an internal
-Go framework that provides the building blocks of a CQRS and Event~Sourcing
-application: command and query dispatch, an event-store abstraction,
-projection runners, and a reactor scaffold. Comby is the company's
-strategic answer to the build-versus-buy question: where each new product
-would otherwise reimplement -- or import from an open-source project -- the
-same plumbing for audit trails, approval workflows, and temporal queries,
-comby makes that plumbing a shared asset reused across products.
+Of Gradient~Zero's technology assets, the one CLMPilot is built on is
+\textbf{comby}, an internal Go framework that provides the building blocks of
+a CQRS and Event~Sourcing application: command and query dispatch, an
+event-store abstraction, projection runners, and a reactor scaffold. Comby is
+the company's strategic answer to the build-versus-buy question: where each
+new product would otherwise reimplement -- or import from an open-source
+project -- the same plumbing for audit trails, approval workflows, and
+temporal queries, comby makes that plumbing a shared asset reused across
+products.
 
-Beyond comby, the team's areas of expertise concentrate around three
-threads. The first is \textit{compliance-by-architecture}: the use of
+Around comby sits a broader engineering identity, visible across the
+privacy-first portfolio and inherited directly by CLMPilot, that concentrates
+on three threads. The first is \textit{compliance-by-architecture}: the use of
 immutable event logs to satisfy GoBD and ISO~27001 requirements without
 bolt-on audit features. The second is \textit{overlay-on-incumbents}:
 products are deliberately not built to become the system of record for
@@ -81,9 +99,10 @@ rather than premium options.
 The CLMPilot project was carried out as a solo build by the author of this
 report, supervised by Mr.~Artur~Susdorf, Chief Technology Officer of
 Gradient~Zero, through a weekly synchronisation meeting at the start
-of each week. The release-train cadence presented in
-Chapter~\ref{chap:arch} -- Phase~0 (foundations), Phase~1 (MVP),
-Phase~2 (enterprise features), Phase~3 (platform) -- was set jointly
+of each week. The release-train cadence detailed in
+Section~\ref{sec:methodology} -- Phase~0 (foundations), Phase~1 (the MVP)
+and Phase~2 (enterprise features), followed by a forward-looking
+engineering effort on the event-sourced system itself -- was set jointly
 with the company supervisor at the start of the internship and
 adjusted in light of customer-discovery findings during the first
 weeks.
@@ -153,8 +172,8 @@ sources, producing snapshots that are stale the moment they are delivered.
 
 The third pressure is \textbf{commercial}. The global CLM software market
 is projected to grow from USD~2.07~billion in 2026 to USD~5.09~billion by
-2034, an 11.9~per~cent CAGR over the forecast period, with North America
-holding a 35~per~cent share in 2025~\cite{FortuneBusinessInsightsCLM}.
+2034, an 11.9\% CAGR over the forecast period, with North America
+holding a 35\% share in 2025~\cite{FortuneBusinessInsightsCLM}.
 Penetration in the DACH Mittelstand, however, remains low: the majority
 of companies still operate on file-share-plus-spreadsheet processes.
 
@@ -205,17 +224,30 @@ toward DIY. The positioning chosen for CLMPilot -- to manage the lifecycle
 of contracts whose documents \textit{stay in their original storage} --
 bypasses that entry fee deliberately, and is the single product decision
 that most shapes the architectural choices presented in
-Chapter~\ref{chap:arch}.
+Chapter~\ref{chap:arch}. Figure~\ref{fig:context} draws that positioning as
+a system boundary: CLMPilot owns the contract's metadata, deadlines,
+approvals and audit trail, while the document itself never leaves the
+customer's storage.
+
+\begin{figure}[!ht]\centering
+  \IfFileExists{Chapter1/figures/context.pdf}
+    {\includegraphics[width=0.92\linewidth]{context}}
+    {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
+      \textit{Diagram to be rendered from} \texttt{figures/context.puml}\vspace{2em}}}}
+  \caption{System context: CLMPilot manages the contract lifecycle --
+           metadata, deadlines, approvals and the audit trail -- while the
+           documents stay in the customer's own storage.}
+  \label{fig:context}
+\end{figure}
 
 %--------------------------------------------------------------------
 \section{Problem statement}
 
 From customer-discovery interviews with target Mittelstand companies, four
 pain points recur consistently, each with a distinct operational and
-financial cost. The remainder of this report -- both the architecture
-presented in Chapter~\ref{chap:arch} and the release-based delivery
-described in Chapters~III through~VI -- can be read as a structured
-response to these four problems.
+financial cost. The architecture presented in Chapter~\ref{chap:arch}, 
+and the realised platform consolidated in Chapter~\ref{chap:realisation},
+can be read as a structured response to these four problems.
 
 \subsection*{Missed deadlines}
 The default outcome for a contract whose renewal window is unmonitored is
@@ -234,7 +266,7 @@ When an external auditor or an internal compliance function asks who
 approved a given contract, when, and on which version of the document, the
 answer in the absence of a CLM is \textit{``let me search my email''}.
 Email threads are not designed as auditable artefacts: they are mutable,
-they decay -- through deleted accounts and expired retention windows --
+they degrade -- through deleted accounts and expired retention windows --
 and they offer no guarantee that the version of the document approved is
 the version currently on file. Under GoBD, this gap is sufficient to fail
 an audit; under ISO~27001, it is sufficient to delay a certification.
@@ -349,8 +381,7 @@ question the problem statement identifies as routinely unanswered.
 Identity and access management (IAM) is a precondition for every other
 capability. The Admin creates user accounts, assigns roles and revokes
 access; users authenticate with an email address, a password and a
-second factor delivered by email or, for high-privilege accounts, a
-time-based one-time password. The platform enforces role-based access
+second factor delivered as a one-time code by email. The platform enforces role-based access
 control along the actor catalogue of
 Section~\ref{sec:actors-catalogue}: the same query can return different
 projections depending on the caller's role, and any command that
@@ -358,6 +389,26 @@ exceeds the caller's authority is refused before it reaches the domain.
 The reset, invitation and lockout flows are required at this layer
 because they are the everyday surface through which IAM is exercised
 by non-Admin users.
+
+\subsection{Enterprise capabilities}
+\label{sec:fr-enterprise}
+Beyond the core registry, the platform is required to support a tier of
+enterprise capabilities that deepen the response to the same four pain
+points. Document linking is expected to trigger \textit{intelligence-assisted
+capture}: when a contract's document is attached, the platform proposes
+counterparty, dates, value and detected clauses for the Legal~Manager to
+confirm, rather than leaving every field to manual entry. The platform must
+take a contract through \textit{electronic signature} with an external
+counterparty and reflect the signed outcome on the record, so that execution
+is part of the tracked lifecycle rather than an out-of-band step.
+\textit{Per-tenant custom fields} let each organisation extend the contract
+schema to its own taxonomy without a code change. \textit{Post-signature
+obligation tracking} expands standard deadline management, ensuring the 
+organization monitors and fulfills all operational deliverables throughout 
+the active lifecycle of the contract. And \textit{advanced, schedulable 
+reporting} answers the portfolio questions of the problem statement on a 
+recurring basis rather than on demand. These capabilities are stated here 
+as requirements; their realisation is consolidated in Chapter~\ref{chap:realisation}.
 
 %--------------------------------------------------------------------
 \section{Non-functional requirements}
@@ -370,6 +421,7 @@ maintainability -- each justified by a constraint of the deployment
 context rather than by a feature in isolation.
 
 \subsection{Security}
+\label{sec:nfr-security}
 All traffic between the client and the platform is carried over
 Transport-Layer Security (TLS) in its current widely-deployed version;
 data at rest in the event store and the relational projections is
@@ -377,15 +429,16 @@ encrypted with a key under the operator's control. Every command and
 query is authenticated; authorisation is enforced before the request
 reaches the domain layer, on the basis of the caller's role. Passwords
 are stored as salted hashes computed with a modern key-derivation
-function. A second factor of authentication is mandatory for Admin
-accounts and offered to every other role.
+function. A second factor of authentication -- a one-time code delivered by
+email -- is mandatory for Admin accounts and offered to every other
+role.
 
 \subsection{Compliance and data residency}
 \label{sec:nfr-compliance}
 The platform must satisfy three regulatory baselines simultaneously.
 GoBD requires that contract records be retained immutably and
 recoverable in their state as of any past date, for a period of up to
-ten years. The General Data Protection Regulation (GDPR) requires that
+ten years. The GDPR requires that
 personal data be processed under documented purposes, subject to access
 and erasure requests, and stored within the European Union. ISO~27001
 imposes a documented information-security management system, with
@@ -395,18 +448,18 @@ under a contract with an EU-resident provider; no customer data is
 processed or stored outside the EU without an explicit opt-in.
 
 \subsection{Availability and reliability}
-The MVP carries an availability target rather than a contractually
-committed SLO: 99.5~per~cent monthly during DACH business hours and
-99.0~per~cent outside them, to be validated against operational
+The minimum viable product (MVP) carries an availability target rather
+than a contractually committed Service-Level Objective (SLO):
+99.5\% monthly during DACH business hours and
+99.0\% outside them, to be validated against operational
 data once production traffic is observed. Recovery-Point Objective
-(RPO) is set at twenty-four hours, sustained by nightly off-site
-backups; Recovery-Time Objective (RTO) at four hours. These figures
+(RPO) is set at 24 hours, sustained by nightly off-site
+backups; Recovery-Time Objective (RTO) at 4 hours. These figures
 are MVP targets and will be tightened or relaxed based on customer
 commitments in later phases. The platform degrades gracefully when
-external document stores -- Google~Drive, SharePoint -- are
-unreachable: contract metadata and workflow remain available, and
-document previews surface a transient-error state rather than failing
-the surrounding page.
+external document stores are unreachable: contract metadata and 
+workflow remain available, and document previews surface a 
+transient-error state rather than failing the surrounding page.
 
 \subsection{Performance}
 \label{sec:nfr-perf}
@@ -430,42 +483,46 @@ is itself an event, layered on top of the prior history. The audit log
 is exportable in a tabular format independent of the application's
 runtime and is reconstructible at any point in time within the GoBD
 retention window. This requirement aligns directly with the
-compliance-by-architecture thread of Section~\ref{sec:gradient-zero}
-and shapes the architectural choices presented in
-Chapter~\ref{chap:arch}.
+compliance-by-architecture and shapes the architectural choices 
+presented in Chapter~\ref{chap:arch}.
 
 \subsection{Internationalisation}
-English is the primary language of the MVP user interface; German and
-French are first-class targets for Phase~2, with translation slots
-reserved in the user-interface layer from the outset. Dates, numbers
-and currencies are formatted according to the user's declared locale
-rather than the server's, and the platform stores time-stamps in
-Coordinated Universal Time (UTC) and renders them in the user's
-time zone. Email notifications inherit the recipient's locale.
+\label{sec:nfr-i18n}
+English is the primary language of the user interface, with German
+maintained alongside it; Other languages could be targeted for a 
+future expansion, with translation slots reserved in the user-interface 
+layer from the outset. Dates, numbers and currencies are formatted 
+according to the user's declared locale rather than the server's, 
+and the platform stores time-stamps in Coordinated Universal Time (UTC) 
+and renders them in the user's time zone. Email notifications inherit 
+the recipient's locale.
 
 \subsection{Maintainability}
-The platform was built by a single developer over the course of an
-internship; every architectural choice was weighed against the cost
-of carrying the result alone. Concretely, the platform favours a
-narrow set of well-understood technologies over a broader,
-best-of-breed stack; it uses conventional commit messages and a
-release-train cadence (Section~\ref{sec:methodology}) to keep the
-history readable; and it ships with three layers of automated tests --
-unit, integration and end-to-end -- so that a future maintainer can
-change the code with confidence. Documentation is co-located with
-the code and bundled into the running application's help system,
-ensuring that the documentation that ships is the documentation that
-is current.
+The platform was built by a single developer during a brief internship, 
+every architectural choice had to minimize the long-term maintenance burden. 
+The platform deliberately relies on a narrow, well-understood technology 
+stack rather than chasing a fragmented mix of "best tools". 
+To keep the project manageable for future developers, it incorporates 
+conventional commit messages, a predictable release-train cadence 
+(Section~\ref{sec:methodology}), and three distinct layers of automated 
+testing (unit, integration, and end-to-end). Finally, documentation is stored 
+directly alongside the code and compiled straight into the running application's 
+help system, preventing the docs from drifting out of date.
 
 %--------------------------------------------------------------------
 \section{Actors and high-level use cases}
 \label{sec:actors}
 
-The actor model is intentionally narrow. CLMPilot is deployed inside a
-single tenant -- one customer organisation per instance -- and the
-roles within that tenant map onto the functions that already exist in
-a Mittelstand legal-operations team. Table~\ref{tab:actors} catalogues
-the five actors and the use cases each one initiates.
+The actor model is intentionally narrow. CLMPilot is a multi-tenant
+platform: each customer organisation is an isolated tenant, so the
+catalogue below describes the roles \emph{within} a single tenant,
+mapping onto the functions that already exist in a Mittelstand
+legal-operations team. Above them sits a platform-level system
+administrator who provisions and isolates the tenants themselves; that
+role belongs to the operator rather than the customer, and is treated
+with the architecture in Chapter~\ref{chap:arch}. Table~\ref{tab:actors}
+catalogues the four per-tenant actors and the use cases each one
+initiates.
 
 \subsection{Actor catalogue}
 \label{sec:actors-catalogue}
@@ -493,34 +550,91 @@ the five actors and the use cases each one initiates.
       trail; reconstruct the state of any contract at any past date
       within the retention window. \\
     \hline
-    External~Reviewer & Receive a scoped, time-limited link to a single
-      contract and respond on it (Phase~2). \\
-    \hline
   \end{tabularx}
   \label{tab:actors}
 \end{table}
 
-The system clock is a sixth participant, neither a human nor an actor
-in the UML sense, but the trigger for the scheduled use cases of the
+The system clock is the fifth actor. It is the trigger for the scheduled use cases of the
 deadline-management subsystem. We treat it separately to make the
 provenance of system-initiated actions explicit in the audit log.
 
 \subsection{Use-case diagram}
-Figure~\ref{fig:usecase} presents the high-level use-case diagram for
-CLMPilot. The diagram groups use cases by actor rather than by
-functional area, following the rule that one diagram per actor group
-is clearer than a single dense picture. Detailed scenarios for the
-most consequential use cases -- contract creation, approval workflow,
-and audit-log reconstruction -- are presented in
-Chapter~\ref{chap:arch} alongside the architectural elements they
-exercise.
+Figure~\ref{fig:usecase} gives a high-level view of the platform: each
+use case inside the system boundary names one functional area, and every
+actor is linked to the areas it drives. The four human roles specialise a
+common \emph{User} and inherit the shared authentication case from it, 
+while the \emph{System clock} is a secondary actor that drives the 
+scheduled deadline and renewal reminders. The individual use
+cases inside each area, with their relationships and constraints, are
+expanded one subsystem per figure in
+Figures~\ref{fig:uc-identity}--\ref{fig:uc-reporting}.
 
-\begin{figure}[!ht]\centering
-  % \includegraphics[scale=0.7]{usecase-overview.png}
-  \fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
-    \textit{Use-case diagram to be inserted}\vspace{2em}}}
-  \caption{High-level use-case diagram for CLMPilot.}
+\begin{figure}[H]\centering
+  \IfFileExists{Chapter1/figures/usecase-overview.pdf}
+    {\includegraphics[width=0.92\linewidth,keepaspectratio]{usecase-overview}}
+    {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
+      \textit{Diagram to be rendered from} \texttt{figures/usecase-overview.puml}\vspace{2em}}}}
+  \caption{High-level use-case diagram for CLMPilot: each use case names one
+           functional area, the human roles specialise a common \emph{User},
+           and the \emph{System clock} is the secondary actor that drives the
+           scheduled reminders.}
   \label{fig:usecase}
+\end{figure}
+
+Each area is then expanded into its individual use cases. Identity and access (Figure~\ref{fig:uc-identity}) requires every
+authentication to include a second factor, mandatory for administrators,
+and lets the Admin provision users, assign roles and configure
+organisation-wide policies and custom fields. Contracts and documents
+(Figure~\ref{fig:uc-contracts}) covers the registry and its document
+links: archiving never hard-deletes a record, and intelligence-assisted
+capture extends the attachment of a document link. Approvals and deadlines
+(Figure~\ref{fig:uc-approvals}) combine the workflow -- where initiating an
+approval includes selecting a template, and a reject or request-changes
+outcome returns the contract to its initiator -- with the time-driven
+reminders the system clock raises before each notice window. Dashboard,
+reporting and audit (Figure~\ref{fig:uc-reporting}) groups the portfolio
+views and reports, where scheduled reporting extends report generation,
+with the read-only audit capabilities through which any past contract
+state can be reconstructed within the ten-year retention window. Across
+these areas, the enterprise capabilities of
+Section~\ref{sec:fr-enterprise} -- intelligence-assisted capture,
+electronic signature, post-signature obligation tracking, scheduled
+reporting and per-tenant custom fields -- extend the core registry rather
+than replacing it. Detailed, step-by-step scenarios for the most
+consequential cases -- contract creation, the approval workflow, and
+audit-log reconstruction -- are deferred to the release chapters that
+follow.
+
+\begin{figure}[tbp]\centering
+  \includegraphics[width=\linewidth,keepaspectratio]{uc-identity}
+  \caption{Detailed use cases -- identity and access. Every authentication
+           \emph{includes} a second factor, mandatory for administrators.}
+  \label{fig:uc-identity}
+\end{figure}
+
+\begin{figure}[tbp]\centering
+  \includegraphics[width=\linewidth,keepaspectratio]{uc-contracts}
+  \caption{Detailed use cases -- contracts and documents. Archiving never
+           hard-deletes a record, and intelligence-assisted capture
+           \emph{extends} the attachment of a document link.}
+  \label{fig:uc-contracts}
+\end{figure}
+
+\begin{figure}[tbp]\centering
+  \includegraphics[width=\linewidth,keepaspectratio]{uc-approvals-deadlines}
+  \caption{Detailed use cases -- approvals and deadlines. Initiating an
+           approval \emph{includes} selecting a template; a reject or
+           request-changes outcome \emph{extends} the decision by returning
+           the contract to its initiator.}
+  \label{fig:uc-approvals}
+\end{figure}
+
+\begin{figure}[tbp]\centering
+  \includegraphics[width=\linewidth,keepaspectratio]{uc-reporting-audit}
+  \caption{Detailed use cases -- dashboard, reporting and audit. Scheduled
+           reporting \emph{extends} report generation; any past contract
+           state is reconstructible within the ten-year retention window.}
+  \label{fig:uc-reporting}
 \end{figure}
 
 %--------------------------------------------------------------------
@@ -529,33 +643,44 @@ exercise.
 
 The methodology under which CLMPilot was built was shaped by a single
 operating constraint: the work was carried out by one developer
-against a fixed set of phase milestones. The two subsections that
-follow describe the resulting delivery model -- a release train with
-absolute phase gates -- and the planning cadence and traceability
-artefacts that supported it.
+against a fixed set of phase milestones. That constraint also fixes the
+scope of this report. The internship delivered a working pilot across
+three phases -- foundations, the MVP, and a tier of enterprise features --
+and then turned to a forward-looking engineering effort on the
+event-sourced system that underlies the product. The two
+subsections that follow describe the delivery model that produced the
+pilot -- a release train with absolute phase gates -- and the planning
+cadence and traceability artefacts that supported it.
 
 \subsection{Release-train delivery}
-The build was organised as a release train of four phases, each with
-an explicit entry gate, exit milestone and demonstrable artefact:
+The build was organised as a release train of three product phases, each
+with an explicit entry gate, exit milestone and demonstrable artefact:
 \textit{Phase~0}~--~foundations (repository, CI/CD, development
-environment, planning); \textit{Phase~1}~--~the minimum viable product
-(MVP) covering the contract registry, document linking, deadlines,
-approvals, dashboard and IAM; \textit{Phase~2}~--~enterprise features
-on top of the MVP (intelligence service, custom fields, e-signature
-integration, obligation tracking, mobile companion); and
-\textit{Phase~3}~--~the platform tier (multi-tenancy, public APIs,
-marketplace integrations). Each phase advances the product to a state
-in which it can be deployed and used; no phase is internal-only.
+environment, planning); \textit{Phase~1}~--~the MVP itself, covering the
+contract registry, document linking, deadlines, approvals, dashboard and
+IAM; and \textit{Phase~2}~--~enterprise features on top of the MVP
+(intelligence-assisted extraction, electronic signature, per-tenant custom
+fields, obligation tracking and advanced reporting). Each of these phases
+advances the product to a state in which it can be deployed and used; no
+phase is internal-only, and all three were realised and shipped to
+production. The internship then moved past the product release train to a
+fourth, different kind of work: a forward-looking engineering effort on the
+event-sourced framework itself.
+Figure~\ref{fig:release-train} shows the three realised phases, the gates
+between them, and the evolution that follows.
 
-The release train differs from a calendar-driven sprint cadence in
-two ways. Phases are sized by scope rather than by duration, so a
-phase boundary marks a step change in capability rather than the end
-of a fixed week. And the gates are absolute: an outstanding defect on
-the critical path defers the entire phase, rather than being deferred
-into the next sprint. Within a phase, work is decomposed into sections
-and subsections that mirror the chapter numbering of this report: a
-reader can locate the discussion of any given delivery in this report
-by following the roadmap's hierarchy.
+\begin{figure}[!ht]\centering
+  \IfFileExists{Chapter1/figures/release-train.pdf}
+    {\includegraphics[width=0.62\linewidth]{release-train}}
+    {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
+      \textit{Diagram to be rendered from} \texttt{figures/release-train.puml}\vspace{2em}}}}
+  \caption{The release-train delivery model: three scope-sized product
+           phases with absolute gates, all realised in this report
+           (Chapter~\ref{chap:realisation}), followed by the 
+           evolution of the event-sourced system
+           (Chapter~\ref{chap:future}).}
+  \label{fig:release-train}
+\end{figure}
 
 \subsection{Planning cadence and traceability}
 The planning cadence is weekly. Each week opens with a synchronisation
@@ -565,8 +690,7 @@ selected. Architectural decisions are not on a fixed schedule: they
 are raised as they arise and discussed with the supervisor at the
 next available opportunity. There is no fixed sprint length, since a
 solo developer working to a release-train schedule is best served by
-a continuous flow with explicit checkpoints, rather than by the
-iteration boundaries that serve cross-functional teams.
+a continuous flow with explicit checkpoints.
 
 Traceability is enforced by three artefacts. The roadmap is the single
 source of truth and is held in a Markdown document under version
@@ -585,26 +709,28 @@ there, and which phase of the project introduced it?}
 This chapter has framed the work that the remainder of the report
 describes. We placed CLMPilot inside Gradient~Zero's portfolio of
 European mid-market products, characterised the DACH Mittelstand as a
-segment under-served by both US-centric SaaS vendors and entrenched
-enterprise platforms, and showed that the regulatory, operational and
+segment, and showed that the regulatory, operational and
 commercial pressures on that segment have made contract lifecycle
 management an actionable need rather than a deferred ambition. From
 that context we derived four operational pain points -- missed
 deadlines, missing audit trails, absent portfolio overview, and
 unstructured approval flows -- and the functional and non-functional
-requirements that flow from them. We catalogued the five actors that
-interact with the platform and the use cases they initiate, and we set
-out the release-train methodology under which the work was carried
-out.
+requirements that flow from them. We catalogued the platform's actors --
+four per-tenant human roles specialising a common user, together with the
+system clock that drives its scheduled actions -- and expanded the use
+cases they initiate from a single high-level overview down to the
+individual cases of each functional area. Finally, we set out the
+release-train methodology under which the work was carried out.
 
 With the context and the constraints established, the next chapter
 turns to the structural response. Chapter~\ref{chap:arch} presents the
 CQRS and Event~Sourcing architecture, the comby framework on which
 CLMPilot is built, the domain decomposition that maps the requirements
 of this chapter onto bounded contexts, and the deployment topology
-that hosts them. Chapters~III through~VI then describe how the
-architecture of Chapter~\ref{chap:arch} was delivered, phase by phase,
-along the release train introduced above.
+that hosts them. Chapter~\ref{chap:realisation} then consolidates the
+realised platform, and Chapter~\ref{chap:future}
+sets out the improvements to the event-sourced system that the
+remainder of the internship is devoted to.
 
 %==============================================================================
 \end{spacing}

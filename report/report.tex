@@ -1,8 +1,15 @@
 %%==============================================================================
 %% CLMPilot -- INSAT PFE report (English).
 %%
-%% Release-based TOC: Phases 0/1A/1B/1C/2/3 are individual chapters, with
-%% Chapter I providing the general context that wraps them all.
+%% Four-chapter TOC, in two parts:
+%%   PART 1 -- Project framing and design
+%%     I.  General Context and Analysis      (Chapter1/)
+%%     II. Architecture and Design           (Chapter2/)
+%%   PART 2 -- Realisation and planned evolution
+%%     III. Realisation of the CLMPilot platform  (Chapter3/, Phases 0-2 by theme)
+%%     IV.  Improvements in the event-sourced system (Chapter4/, planned R&D)
+%% The earlier per-phase chapters (Phase 0/1/2/3) are retired; Chapter5/ and
+%% Chapter6/ remain on disk for history but are no longer included.
 %% See outline.md in this folder for the rationale and section breakdown.
 %%
 %% Build:
@@ -35,6 +42,9 @@
 \usepackage[Conny]{Classes/fncychap}
 \usepackage{listings}
 \usepackage{courier}
+% Keep figures within the section that introduces them (stops floats from
+% drifting to the end of the chapter, away from their referencing text).
+\usepackage[section]{placeins}
 
 % --- Small adjustments ------------------------------------------------------
 \newcommand{\ie}{i.e.~}
@@ -176,17 +186,13 @@
 \include{Chapter1/chapter1}   % I.   General Context and Analysis
 \include{Chapter2/chapter2}   % II.  Architecture and Design
 
-%---- Part 2 -- Release-based delivery --------------------------------------
-\part{Release-based delivery}
-\include{Chapter3/chapter3}   % III. Phase 0 -- Engineering Foundations
-\include{Chapter4/chapter4}   % IV.  Phase 1 -- MVP Delivery (full-stack)
-% Phase 2 and Phase 3 chapters are deferred until those phases are worked on.
-% They currently live only as forward-looking text in the Conclusion's
-% "Perspectives" section. Uncomment the includes below once writing of
-% those chapters begins; the placeholder files already document the
-% intended sections (engineer-level reframing applied).
-%\include{Chapter5/chapter5}  % V.  Phase 2 -- Enterprise Features  (TODO: enable)
-%\include{Chapter6/chapter6}  % VI. Phase 3 -- Platform Vision      (TODO: enable)
+%---- Part 2 -- Realisation and planned evolution ---------------------------
+\part{Realisation and planned evolution}
+\include{Chapter3/chapter3}   % III. Realisation of the CLMPilot platform (Phases 0-2)
+\include{Chapter4/chapter4}   % IV.  Improvements in the event-sourced system (planned)
+% The earlier per-phase chapters (Phase 2 enterprise features, Phase 3 platform
+% vision) are retired with the move to a theme-based realisation chapter.
+% Chapter5/ and Chapter6/ are kept on disk for history but are not included.
 
 \backmatter
 \pagestyle{fancy}
