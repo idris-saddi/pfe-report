@@ -1,0 +1,53 @@
+@startuml domain-model
+'==============================================================================
+' Figure (Chapter II): The four bounded contexts of CLMPilot.
+' Conceptual model -- business-level attributes only, no database keys.
+' Render:  plantuml -tpdf domain-model.puml      (or -tpng)
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam classAttributeIconSize 0
+hide circle
+
+package "Tenant boundary" {
+
+  class Contract <<aggregate>> {
+    counterparty
+    type, department
+    status
+    value, currency
+    start / end dates
+    renewal terms
+  }
+
+  class ApprovalWorkflow <<aggregate>> {
+    status
+    requested by / at
+    ordered steps
+    (approver, decision, comment)
+  }
+
+  class Deadline <<aggregate>> {
+    type (cancellation / renewal / expiry)
+    date
+    responsible person
+    reminder markers (90 / 60 / 30 days)
+  }
+
+  class DocumentLink <<aggregate>> {
+    provider (Drive / SharePoint / URL)
+    external reference
+    file name, MIME type
+  }
+
+  Contract "1" -- "0..*" ApprovalWorkflow
+  Contract "1" -- "0..*" Deadline
+  Contract "1" -- "0..*" DocumentLink
+}
+
+note bottom
+  Identity (who acted) and the audit log are
+  platform concerns owned by the framework,
+  not bounded contexts.
+end note
+@enduml

@@ -1,0 +1,45 @@
+@startuml topology
+'==============================================================================
+' Figure (Chapter II): CLMPilot deployment topology and external integrations.
+' Compact, designed view.
+' Render:  plantuml -tpdf topology.puml      (or -tpng)
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam componentStyle rectangle
+skinparam ranksep 20
+skinparam nodesep 16
+
+actor "User" as user
+
+node "EU-hosted server (Docker Compose)" as srv {
+  component "Reverse proxy (TLS)" as nginx
+  package "web network" {
+    component "Frontend\n(Vue 3 SPA)" as fe
+    component "Backend\n(Go + comby)" as be
+  }
+  package "internal network (private)" {
+    component "Intelligence\n(Python, stubbed)" as intel
+    database "PostgreSQL" as pg
+    database "Redis" as redis
+    queue    "NATS" as nats
+    database "MinIO" as minio
+  }
+}
+
+package "External integrations" as ext {
+  cloud "SendGrid" as sendgrid
+  cloud "Cloud Storage" as cs
+}
+
+user  --> nginx : HTTPS
+nginx --> fe
+nginx --> be    : /api
+be    --> intel
+be    --> pg
+be    --> redis
+be    --> nats
+be    --> minio
+be    --> sendgrid
+be    --> cs
+@enduml

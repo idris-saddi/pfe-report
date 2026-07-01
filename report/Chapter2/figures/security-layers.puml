@@ -1,0 +1,32 @@
+@startuml security-layers
+'==============================================================================
+' Figure (Chapter II, Security): defence in depth. Concentric controls guard
+' the immutable event log at the core; each layer holds even if an outer one is
+' bypassed. The data-layer control (database row security) is a comby v3
+' affordance that CLMPilot does not yet activate -- one of the Chapter IV seams.
+' Render:  plantuml -tpdf security-layers.puml   (or -tpng)
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam rectangle {
+  roundCorner 10
+  BorderColor #6B6B8A
+  FontColor #1A1A2A
+}
+
+rectangle "Network perimeter\nTLS edge; stores on an internal-only network" as net #EDEDF6 {
+  rectangle "Authentication\nrevocable server-side session; admin email one-time code" as auth #E0E0EE {
+    rectangle "Authorization\nper-tenant RBAC, enforced at dispatch" as rbac #D2D2E4 {
+      rectangle "Tenant isolation\ntenant context on every command, query and event" as tenant #C4C4DA {
+        rectangle "Immutable event log\nsystem of record = audit trail" as core #B0B6DE
+      }
+    }
+  }
+}
+
+note right of tenant
+  Database row security (comby v3)
+  reinforces this layer but is not
+  yet activated.
+end note
+@enduml

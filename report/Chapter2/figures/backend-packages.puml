@@ -1,0 +1,64 @@
+@startuml backend-packages
+'==============================================================================
+' Figure (Chapter II): Package (module) structure of the backend.
+' The custom packages and their dependencies; everything registers on the
+' comby framework, and the satellite domains (core and enterprise) reference
+' Contract. Reporting is a family of read-side projections over emitted
+' events, not a write-side domain package.
+' From the backend repository layout (domain/, integration/, internal/).
+' Render:  plantuml -tpdf backend-packages.puml      (or -tpng)
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam packageStyle rectangle
+skinparam ranksep 35
+skinparam nodesep 20
+
+package "comby framework" as comby <<framework>>
+
+package "domain" {
+  package "core contexts" as coregrp {
+    package "contract"     as ctr
+    package "approval"     as apr
+    package "deadline"     as ddl
+    package "documentlink" as doc
+  }
+  package "enterprise contexts" as entgrp {
+    package "signature"    as sig
+    package "obligation"   as obl
+    package "customfield"  as cf
+  }
+}
+
+note bottom of entgrp
+  Reporting is read-side projections over
+  emitted events, not a write-side context.
+end note
+
+package "integration" {
+  package "docstorage"   as ds
+  package "esignature"   as es
+  package "intelligence" as intel
+}
+
+package "internal" {
+  package "archived"     as arc
+  package "seed"         as seed
+}
+
+coregrp ..> comby : <<register>>
+entgrp  ..> comby : <<register>>
+
+apr ..> ctr : references
+ddl ..> ctr : references
+doc ..> ctr : references
+sig ..> ctr : references
+obl ..> ctr : references
+cf  ..> ctr : references
+
+doc ..> ds    : uses
+doc ..> intel : uses (enrichment)
+sig ..> es    : uses (e-signature)
+arc  ..> comby
+seed ..> comby
+@enduml

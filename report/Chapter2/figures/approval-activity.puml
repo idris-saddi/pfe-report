@@ -1,0 +1,27 @@
+@startuml approval-activity
+'==============================================================================
+' Figure (Chapter II): Activity diagram of the approval workflow.
+' From the Approval domain: an ordered set of steps; each approver either
+' approves (advance) or rejects / requests changes (interrupt, return to
+' initiator). When all steps are approved, the contract becomes Active.
+' Render:  plantuml -tpdf approval-activity.puml      (or -tpng)
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+
+start
+:Legal Manager initiates approval\n(selects a workflow template\nwith ordered steps);
+repeat
+  :Notify the current approver;
+  :Approver decides on the step;
+  if (decision?) then (approve)
+  else (reject / request changes)
+    :Return the contract to the initiator;
+    stop
+  endif
+repeat while (more steps?) is (yes)
+->no;
+:All steps approved;
+:Set the contract to Active;
+stop
+@enduml

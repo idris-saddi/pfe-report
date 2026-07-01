@@ -1,0 +1,55 @@
+@startuml cqrs-sequence
+'==============================================================================
+' Figure (Chapter II): CQRS + Event Sourcing as a temporal sequence.
+' Scenario: registering a contract, with automatic deadline creation by a
+' reactor -- illustrates the command path, the event append, and the
+' asynchronous projection + reactor reactions (eventual consistency).
+' Render:  plantuml -tpdf cqrs-sequence.puml      (or -tpng)
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam sequenceMessageAlign center
+
+actor       "Legal Manager"        as lm
+participant "REST API\n(comby)"     as api
+participant "Command bus"           as cmd
+participant "Contract\naggregate"   as agg
+database    "Event store"           as es
+queue       "Broker (NATS)"         as broker
+participant "Projection runner"     as proj
+participant "Deadline-creation\nreactor" as reactor
+
+== Command path (synchronous) ==
+lm  -> api    : POST /contracts
+activate api
+api -> cmd    : dispatch(RegisterContract)
+activate cmd
+cmd -> agg    : validate business rules + apply
+activate agg
+agg -> es     : append ContractRegisteredEvent
+activate es
+es --> agg    : ok
+deactivate es
+agg --> cmd   : ok
+deactivate agg
+cmd --> api   : contract id
+deactivate cmd
+api --> lm    : 201 Created
+deactivate api
+
+== Reactions (asynchronous) ==
+es -> broker  : publish ContractRegisteredEvent
+broker -> proj : ContractRegisteredEvent
+activate proj
+proj -> proj  : update read models
+deactivate proj
+broker -> reactor : ContractRegisteredEvent
+activate reactor
+reactor -> cmd : dispatch(SetDeadline)
+note right of reactor
+  90/60/30-day reminder markers
+  derived from the end date and
+  the cancellation-notice period
+end note
+deactivate reactor
+@enduml
