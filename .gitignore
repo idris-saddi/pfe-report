@@ -27,6 +27,9 @@
 # LaTeX package output dirs
 _minted-*/
 
+# latexmk build directory (all report intermediates land here)
+report/build/
+
 # Build PDFs (figure PDFs under figures/ subdirs stay tracked)
 *.pdf
 !**/figures/*.pdf
