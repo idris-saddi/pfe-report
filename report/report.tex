@@ -1,15 +1,15 @@
 %%==============================================================================
 %% CLMPilot -- INSAT PFE report (English).
 %%
-%% Four-chapter TOC, in two parts:
+%% Five-chapter TOC, in two parts:
 %%   PART 1 -- Project framing and design
-%%     I.  General Context and Analysis      (Chapter1/)
-%%     II. Architecture and Design           (Chapter2/)
+%%     I.   General Context and Project Scope        (Chapter1/)
+%%     II.  Analysis and Requirements Specification  (Chapter2/)
+%%     III. Architecture and Design                  (Chapter3/)
 %%   PART 2 -- Realisation and planned evolution
-%%     III. Realisation of the CLMPilot platform  (Chapter3/, Phases 0-2 by theme)
-%%     IV.  Improvements in the event-sourced system (Chapter4/, planned R&D)
-%% The earlier per-phase chapters (Phase 0/1/2/3) are retired; Chapter5/ and
-%% Chapter6/ remain on disk for history but are no longer included.
+%%     IV.  Realisation of the CLMPilot platform  (Chapter4/, Phases 0-2 by theme)
+%%     V.   Improvements in the event-sourced system (Chapter5/, planned R&D)
+%% The earlier per-phase chapters (Phase 0/1/2/3) are retired and removed.
 %% See outline.md in this folder for the rationale and section breakdown.
 %%
 %% Build:
@@ -42,6 +42,7 @@
 \usepackage[Conny]{Classes/fncychap}
 \usepackage{listings}
 \usepackage{courier}
+\usepackage{enumitem}
 % Keep figures within the section that introduces them (stops floats from
 % drifting to the end of the chapter, away from their referencing text).
 \usepackage[section]{placeins}
@@ -183,16 +184,14 @@
 
 %---- Part 1 -- Project framing and design ----------------------------------
 \part{Project framing and design}
-\include{Chapter1/chapter1}   % I.   General Context and Analysis
-\include{Chapter2/chapter2}   % II.  Architecture and Design
+\include{Chapter1/chapter1}   % I.   General Context and Project Scope
+\include{Chapter2/chapter2}   % II.  Analysis and Requirements Specification
+\include{Chapter3/chapter3}   % III. Architecture and Design
 
 %---- Part 2 -- Realisation and planned evolution ---------------------------
 \part{Realisation and planned evolution}
-\include{Chapter3/chapter3}   % III. Realisation of the CLMPilot platform (Phases 0-2)
-\include{Chapter4/chapter4}   % IV.  Improvements in the event-sourced system (planned)
-% The earlier per-phase chapters (Phase 2 enterprise features, Phase 3 platform
-% vision) are retired with the move to a theme-based realisation chapter.
-% Chapter5/ and Chapter6/ are kept on disk for history but are not included.
+\include{Chapter4/chapter4}   % IV.  Realisation of the CLMPilot platform (Phases 0-2)
+\include{Chapter5/chapter5}   % V.   Improvements in the event-sourced system (planned)
 
 \backmatter
 \pagestyle{fancy}

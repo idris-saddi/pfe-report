@@ -55,19 +55,22 @@ in a forward-looking engineering study of how that framework should evolve.
 
 % 4. REPORT OUTLINE
 The report is organised in two parts. The first frames the project and its
-design: Chapter~I sets the general context and analysis -- the hosting
-company, the market, the problem, the functional and non-functional
-requirements, the actors, and the methodology under which the work was
-carried out -- and Chapter~\ref{chap:arch} presents the architecture and
+design. Chapter~\ref{chap:context} sets the general context and the scope of
+the project: the hosting company, the market, the problem, the solution we
+propose in response, and the methodology and timeline under which the work
+was carried out. Chapter~\ref{chap:analysis} analyses and specifies the
+requirements: the actors and the use cases they initiate, then the functional
+and non-functional requirements that flow from them.
+Chapter~\ref{chap:arch} presents the architecture and
 design, justifying the choice of CQRS and Event~Sourcing on the \texttt{comby}
 framework, deriving the domain model and the system topology, setting out the
 security and compliance posture, and naming the seams the design deliberately
 leaves open for later evolution. The second part covers realisation and
 planned evolution: Chapter~\ref{chap:realisation} consolidates the work
-delivered across the realised phases, and Chapter~\ref{chap:future} sets 
-out the planned improvements to the event-sourced system, implementing updates 
-on broker communications, deepening multi-tenancy, and scaling the framework 
-and the event store. A general conclusion then recaps the contribution and 
+delivered across the realised phases, and Chapter~\ref{chap:future} sets
+out the planned improvements to the event-sourced system: extracting insight
+from broker communications, deepening multi-tenancy, and scaling the framework
+and the event store. A general conclusion then recaps the contribution and
 opens the perspectives for the work that follows.
 
 %==============================================================================
