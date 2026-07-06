@@ -25,9 +25,11 @@ scaling the framework and the event store. This work is planned and designed in
 the remaining time, not necessarily fully implemented.
 
 So the report **drops the per-phase release chapters** (the earlier III Phase 0,
-IV Phase 1, V Phase 2, VI Phase 3 layout) and adopts a **four-chapter
+IV Phase 1, V Phase 2, VI Phase 3 layout) and adopts a **five-chapter
 structure** in two parts: framing and design, then realisation and planned
-evolution.
+evolution. (Originally four chapters; on 2026-07-06 the supervisor asked for
+the old Chapter I to be split into a context/scope chapter and a dedicated
+"Analysis and Requirements Specification" chapter.)
 
 ## Two design decisions that drove this structure
 
@@ -35,7 +37,7 @@ evolution.
 
 The realised work spans three phases, but a phase-by-phase chapter would read as
 a changelog and would split cross-cutting concerns (identity, integrations,
-deployment) across chapters. Chapter III instead walks **engineering themes that
+deployment) across chapters. Chapter IV instead walks **engineering themes that
 span the stack** — the backend on comby, the contract domain, workflow and
 temporal automation, intelligence and e-signature, the web application,
 identity and multi-tenancy, deployment — and uses the realised domains as
@@ -44,15 +46,24 @@ traceability backbone behind it.
 
 ### 2 — A dedicated architecture chapter that names its seams
 
-Chapter II carries the structural narrative once (CQRS/ES, comby, the domain
+Chapter III carries the structural narrative once (CQRS/ES, comby, the domain
 model, topology, security, i18n) so the later chapters reference back instead of
 re-deriving it. Critically, it closes with **§8 "Designed seams for evolution"**,
 which names the three open seams — multi-tenancy, scalability/event-store growth,
-and the intelligence/extraction pipeline — that **Chapter IV** then develops.
+and the intelligence/extraction pipeline — that **Chapter V** then develops.
 That is what lets the forward-looking chapter build on the design rather than
 re-introduce it.
 
-## Final structure (4 chapters; 2 parts)
+## Report-wide editorial rules (2026-07-06)
+
+- **Chapter intros never reference another chapter**; they describe only what
+  the chapter itself covers. **Chapter conclusions may reference only the
+  _next_ chapter** (one-sentence lead-in). The General Introduction keeps its
+  outline paragraph; body-section cross-references are unrestricted.
+- **No figure or table directly after a heading** — every float gets one or
+  two sentences of lead-in prose that reference it by `\ref`.
+
+## Final structure (5 chapters; 2 parts)
 
 ```
 Front matter
@@ -66,16 +77,19 @@ Front matter
 
 PART 1 — PROJECT FRAMING AND DESIGN
 
-├── Chapter I — General Context and Analysis
+├── Chapter I — General Context and Project Scope        (chap:context)
 │   ├── 1.  Hosting company: Gradient Zero
 │   ├── 2.  Project context: CLM in the DACH Mittelstand
 │   ├── 3.  Problem statement
-│   ├── 4.  Functional requirements  (incl. 4.8 Enterprise capabilities)
-│   ├── 5.  Non-functional requirements
-│   ├── 6.  Actors and high-level use cases
-│   └── 7.  Methodology  (release train: Phases 0–2 realised + planned R&D)
+│   ├── 4.  Proposed solution   (short scope statement, no implementation detail)
+│   └── 5.  Methodology  (release train; planning cadence; project-timeline Gantt)
 │
-└── Chapter II — Architecture and Design
+├── Chapter II — Analysis and Requirements Specification (chap:analysis)
+│   ├── 1.  Actors and use cases  (catalogue, diagrams, detailed use-case tables)
+│   ├── 2.  Functional requirements  (incl. Enterprise capabilities)
+│   └── 3.  Non-functional requirements
+│
+└── Chapter III — Architecture and Design                (chap:arch)
     ├── 1.  Architectural drivers
     ├── 2.  Why CQRS and Event Sourcing for CLM?
     ├── 3.  The comby framework
@@ -83,11 +97,11 @@ PART 1 — PROJECT FRAMING AND DESIGN
     ├── 5.  System topology
     ├── 6.  Security and compliance model
     ├── 7.  Internationalisation strategy
-    └── 8.  Designed seams for evolution   → bridges to Chapter IV
+    └── 8.  Designed seams for evolution   → bridges to Chapter V
 
 PART 2 — REALISATION AND PLANNED EVOLUTION
 
-├── Chapter III — Realisation of the CLMPilot platform   (Phases 0–2, by theme)
+├── Chapter IV — Realisation of the CLMPilot platform    (chap:realisation; Phases 0–2, by theme)
 │   ├── 1.  Engineering foundations and the delivery process
 │   ├── 2.  Backend service architecture on comby
 │   ├── 3.  The contract domain and its lifecycle
@@ -97,7 +111,7 @@ PART 2 — REALISATION AND PLANNED EVOLUTION
 │   ├── 7.  Identity, access control and multi-tenancy in practice
 │   └── 8.  Production deployment and release operations
 │
-└── Chapter IV — Improvements in the event-sourced system   (planned R&D)
+└── Chapter V — Improvements in the event-sourced system  (chap:future; planned R&D)
     (chapter shell — no sections yet; three planned areas recorded in the
      source as intent: broker-communication insight, multi-tenancy,
      scalability of comby and the event store)
@@ -113,27 +127,28 @@ Back matter
     └── A.5  API contract excerpts + UI gallery
 ```
 
-## Current build state (2026-06-26)
+## Current build state (2026-07-06)
 
 | Chapter | State |
 |---|---|
-| I — General Context and Analysis | Written; reframed to Phases 0–2 realised + planned R&D |
-| II — Architecture and Design | Written; §8 seams added; stale facts fixed (intelligence realised, DocuSeal, EN-primary) |
-| III — Realisation of the CLMPilot platform | **Section-level skeleton** — 8 themed sections with `% intent` + `% figure` notes |
-| IV — Improvements in the event-sourced system | **Chapter shell** — intro + Conclusion stubs; planned areas in source comments |
+| I — General Context and Project Scope | Written; split from the old Ch I; new Proposed-solution section; Methodology framing aligned to the Ghassen Benali reference report, with a project-timeline Gantt |
+| II — Analysis and Requirements Specification | Written; actors/use-cases → functional → non-functional; detailed use-case description tables for contract creation, approval, audit reconstruction |
+| III — Architecture and Design | Written; §8 seams added; stale facts fixed (intelligence realised, DocuSeal, EN-primary) |
+| IV — Realisation of the CLMPilot platform | **Section-level skeleton** — 8 themed sections with `% intent` + `% figure` notes |
+| V — Improvements in the event-sourced system | **Chapter shell** — intro + Conclusion stubs; planned areas in source comments |
 
-The earlier per-phase placeholders `Chapter5/` (Phase 2) and `Chapter6/`
-(Phase 3) are **retired** — kept on disk for history, no longer `\include`-d in
-[report.tex](report.tex).
+The earlier per-phase placeholders are **retired and removed** — no longer
+`\include`-d in [report.tex](report.tex).
 
 ## Diagrams
 
 Figures are PlantUML sources in each chapter's `figures/` directory, rendered to
 vector PDF and included via a self-healing helper (`\pumlfig`, or the
 `\IfFileExists` stub) so the document compiles whether or not a diagram has been
-rendered yet. Chapters I and II carry rendered diagrams; Chapters III and IV name
-the intended UML view per section in `% figure:` comments, to be drawn as the
-prose is written. Render locally with:
+rendered yet. Chapters I to III carry rendered diagrams (the Chapter I
+project-timeline Gantt still needs its first render from `figures/gantt.puml`);
+Chapters IV and V name the intended UML view per section in `% figure:`
+comments, to be drawn as the prose is written. Render locally with:
 
 ```
 plantuml -tsvg figures/<name>.puml && rsvg-convert -f pdf -o figures/<name>.pdf figures/<name>.svg
