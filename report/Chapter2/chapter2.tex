@@ -19,7 +19,7 @@
 \section*{Introduction}
 This chapter specifies what CLMPilot is required to do. We proceed from
 the users inward: we first catalogue the actors who interact with the
-platform and expand the use cases they initiate -- from a single
+platform and expand the use cases they initiate, from a single
 high-level overview down to the individual cases of each functional
 area, with the most consequential scenarios described step by step. From
 those use cases we then derive the functional requirements, stated at
@@ -108,7 +108,7 @@ policies and custom fields.
 
 \begin{figure}[H]\centering
   \includegraphics[width=\linewidth,keepaspectratio]{uc-identity}
-  \caption{Detailed use cases -- identity and access. Every authentication
+  \caption{Detailed use cases: identity and access. Every authentication
            \emph{includes} a second factor, mandatory for administrators.}
   \label{fig:uc-identity}
 \end{figure}
@@ -120,21 +120,21 @@ link.
 
 \begin{figure}[H]\centering
   \includegraphics[width=\linewidth,keepaspectratio]{uc-contracts}
-  \caption{Detailed use cases -- contracts and documents. Archiving never
+  \caption{Detailed use cases: contracts and documents. Archiving never
            hard-deletes a record, and intelligence-assisted capture
            \emph{extends} the attachment of a document link.}
   \label{fig:uc-contracts}
 \end{figure}
 
 Approvals and deadlines (Figure~\ref{fig:uc-approvals}) combine the
-workflow -- where initiating an approval includes selecting a template,
+workflow (where initiating an approval includes selecting a template,
 and a reject or request-changes outcome returns the contract to its
-initiator -- with the time-driven reminders the system clock raises
+initiator) with the time-driven reminders the system clock raises
 before each notice window.
 
 \begin{figure}[H]\centering
   \includegraphics[width=\linewidth,keepaspectratio]{uc-approvals-deadlines}
-  \caption{Detailed use cases -- approvals and deadlines. Initiating an
+  \caption{Detailed use cases: approvals and deadlines. Initiating an
            approval \emph{includes} selecting a template; a reject or
            request-changes outcome \emph{extends} the decision by returning
            the contract to its initiator.}
@@ -149,16 +149,16 @@ retention window.
 
 \begin{figure}[H]\centering
   \includegraphics[width=\linewidth,keepaspectratio]{uc-reporting-audit}
-  \caption{Detailed use cases -- dashboard, reporting and audit. Scheduled
+  \caption{Detailed use cases: dashboard, reporting and audit. Scheduled
            reporting \emph{extends} report generation; any past contract
            state is reconstructible within the ten-year retention window.}
   \label{fig:uc-reporting}
 \end{figure}
 
 Across these areas, the enterprise capabilities of
-Section~\ref{sec:fr-enterprise} -- intelligence-assisted capture,
+Section~\ref{sec:fr-enterprise} (intelligence-assisted capture,
 electronic signature, post-signature obligation tracking, scheduled
-reporting and per-tenant custom fields -- extend the core registry rather
+reporting and per-tenant custom fields) extend the core registry rather
 than replacing it.
 
 \subsection{Detailed use-case descriptions}
@@ -169,8 +169,8 @@ platform: the creation of a contract record, the approval workflow, and
 the reconstruction of past contract state for an audit.
 Tables~\ref{tab:uc-contract-creation}--\ref{tab:uc-audit-reconstruction}
 describe each of them in the structure of a standard use-case
-description -- goal, actors, preconditions, main scenario, alternative
-and exception flows, and postconditions -- using the same actor names
+description (goal, actors, preconditions, main scenario, alternative
+and exception flows, and postconditions), using the same actor names
 and «include»/«extend» semantics as the diagrams above.
 Table~\ref{tab:uc-contract-creation} opens with the entry point of every
 other capability: the registration of a contract.
@@ -251,8 +251,8 @@ approval chain it must complete before it becomes active.
                         \item An Approver reviews the request and records
                           the decision \textit{approve}, with an optional
                           comment.
-                        \item The platform records the decision -- author,
-                          timestamp and comment -- immutably, and advances
+                        \item The platform records the decision (author,
+                          timestamp and comment) immutably, and advances
                           the workflow to the next step.
                         \item Steps 2--4 repeat until every step is
                           approved.
@@ -303,7 +303,7 @@ consultation that the compliance posture must support at any time.
                           has since changed.
                         \item The platform presents the reconstructed
                           state together with the actions recorded up to
-                          that date -- one row per action, with the actor,
+                          that date: one row per action, with the actor,
                           the timestamp, the contract identifier and the
                           action type.
                         \item The Auditor exports the audit trail as a
@@ -342,7 +342,7 @@ point for every other capability. The Legal~Manager creates a contract
 record by supplying the counterparty, the contract category, the start
 and end dates, the notice window and the contract value. The same actor
 edits these attributes over the contract's lifetime and decommissions
-the record by archiving rather than deleting it -- the immutability
+the record by archiving rather than deleting it: the immutability
 requirement of Section~\ref{sec:nfr-audit} forbids hard deletion. The
 registry supports filtering by status, category, business unit and
 counterparty, full-text search on free-form fields, and pagination over
@@ -362,7 +362,7 @@ Section~\ref{sec:competitive-landscape} is enforced at this boundary.
 
 \subsection{Deadline and renewal management}
 Every contract carries up to three temporal markers: its expiry date,
-the start of its notice window, and -- where applicable -- its
+the start of its notice window, and, where applicable, its
 auto-renewal date. The platform must surface each of these markers
 before it passes, through a reminder workflow that emits notifications
 at 90, 60 and 30~days before the notice window opens, and again on the
@@ -374,7 +374,7 @@ who triggers the use case is the system clock, not a human user.
 \subsection{Approval workflows}
 A contract under negotiation moves through a sequence of approvals
 before it is signed. The Legal~Manager initiates an approval request
-and selects a workflow template -- a sequence of approval steps, each
+and selects a workflow template: a sequence of approval steps, each
 addressed to one or several Approvers. Each Approver receives a request
 and answers with one of three decisions: approve, reject, or request
 changes. A reject or request-changes outcome interrupts the workflow
@@ -384,8 +384,8 @@ timestamp and any comment, and these records are not editable after
 the fact.
 
 \subsection{Compliance and audit trail}
-Every action that changes the state of a contract -- creation, edit,
-link attachment, approval decision, archiving -- is recorded in an
+Every action that changes the state of a contract (creation, edit,
+link attachment, approval decision, archiving) is recorded in an
 immutable audit log. The Auditor accesses the log read-only and exports
 it in a format that survives the application: a tabular file usable in
 spreadsheet software, with one row per recorded action, and columns for
@@ -400,8 +400,8 @@ portfolio at a glance: counts of active, expired and pending contracts;
 the contracts whose notice windows open in the next 30, 60 and 90~days;
 the approval requests awaiting the user's decision; and the aggregate
 value of the active portfolio. Beyond the standing dashboard, the
-platform supports parametric reports -- contracts by counterparty,
-spend by quarter, renewals by business unit -- to answer the kind of
+platform supports parametric reports (contracts by counterparty,
+spend by quarter, renewals by business unit) to answer the kind of
 question the problem statement identifies as routinely unanswered.
 
 \subsection{Identity and access management}
@@ -442,9 +442,9 @@ as requirements; their realisation is consolidated in Chapter~\ref{chap:realisat
 
 Non-functional requirements describe the qualities the platform must
 exhibit while delivering the functional capabilities of the previous
-section. We group them along seven axes -- security, compliance,
+section. We group them along seven axes (security, compliance,
 availability, performance, auditability, internationalisation and
-maintainability -- each justified by a constraint of the deployment
+maintainability), each justified by a constraint of the deployment
 context rather than by a feature in isolation.
 
 \subsection{Security}
@@ -456,8 +456,8 @@ encrypted with a key under the operator's control. Every command and
 query is authenticated; authorisation is enforced before the request
 reaches the domain layer, on the basis of the caller's role. Passwords
 are stored as salted hashes computed with a modern key-derivation
-function. A second factor of authentication -- a one-time code delivered by
-email -- is mandatory for Admin accounts and offered to every other
+function. A second factor of authentication, a one-time code delivered by
+email, is mandatory for Admin accounts and offered to every other
 role.
 
 \subsection{Compliance and data residency}
@@ -496,8 +496,8 @@ guarantees. On a contemporary EU broadband connection, median
 page-load latency aims for under one second on the dashboard and the
 contract list; search and filter operations over a portfolio of ten
 thousand contracts aim for under five hundred milliseconds; and
-document-link resolution -- the round-trip to the external store,
-plus the metadata fetch -- aims for under two seconds in the median
+document-link resolution (the round-trip to the external store,
+plus the metadata fetch) aims for under two seconds in the median
 case. Failure modes degrade to the graceful state described above
 rather than blocking the user interface.
 
@@ -539,9 +539,9 @@ help system, preventing the docs from drifting out of date.
 %--------------------------------------------------------------------
 \section*{Conclusion}
 This chapter has specified what the platform must do and how well it
-must do it. We catalogued the actors -- four per-tenant human roles
+must do it. We catalogued the actors (four per-tenant human roles
 specialising a common user, together with the system clock that drives
-scheduled actions -- and expanded the use cases they initiate from a
+scheduled actions) and expanded the use cases they initiate from a
 single high-level overview down to the individual cases of each
 functional area, describing the contract-creation, approval and
 audit-reconstruction scenarios step by step. From those use cases we
