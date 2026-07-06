@@ -1,6 +1,7 @@
 @startgantt gantt
 '==============================================================================
-' Figure (Chapter I): project timeline of the internship as a Gantt chart.
+' Figure (Chapter IV, Engineering foundations and the delivery process):
+' project timeline of the internship as a Gantt chart.
 ' Four phase bars: Phase 0 (foundations) -> Phase 1 (MVP) -> Phase 2
 ' (enterprise features) -> planned R&D on the event-sourced system.
 ' Dates grounded in the roadmap (planning-doc/clmpilot-roadmap.md):

@@ -46,7 +46,7 @@ with the architecture in Chapter~\ref{chap:arch}.
 Table~\ref{tab:actors} catalogues the four per-tenant actors and the
 use cases each one initiates.
 
-\begin{table}[!ht]
+\begin{table}[H]
   \centering
   \caption{Actors recognised by CLMPilot, with their primary use cases.}
   \footnotesize
@@ -106,7 +106,7 @@ include a second factor, mandatory for administrators, and lets the
 Admin provision users, assign roles and configure organisation-wide
 policies and custom fields.
 
-\begin{figure}[tbp]\centering
+\begin{figure}[H]\centering
   \includegraphics[width=\linewidth,keepaspectratio]{uc-identity}
   \caption{Detailed use cases -- identity and access. Every authentication
            \emph{includes} a second factor, mandatory for administrators.}
@@ -118,7 +118,7 @@ registry and its document links: archiving never hard-deletes a record,
 and intelligence-assisted capture extends the attachment of a document
 link.
 
-\begin{figure}[tbp]\centering
+\begin{figure}[H]\centering
   \includegraphics[width=\linewidth,keepaspectratio]{uc-contracts}
   \caption{Detailed use cases -- contracts and documents. Archiving never
            hard-deletes a record, and intelligence-assisted capture
@@ -132,7 +132,7 @@ and a reject or request-changes outcome returns the contract to its
 initiator -- with the time-driven reminders the system clock raises
 before each notice window.
 
-\begin{figure}[tbp]\centering
+\begin{figure}[H]\centering
   \includegraphics[width=\linewidth,keepaspectratio]{uc-approvals-deadlines}
   \caption{Detailed use cases -- approvals and deadlines. Initiating an
            approval \emph{includes} selecting a template; a reject or
@@ -147,7 +147,7 @@ report generation, with the read-only audit capabilities through which
 any past contract state can be reconstructed within the ten-year
 retention window.
 
-\begin{figure}[tbp]\centering
+\begin{figure}[H]\centering
   \includegraphics[width=\linewidth,keepaspectratio]{uc-reporting-audit}
   \caption{Detailed use cases -- dashboard, reporting and audit. Scheduled
            reporting \emph{extends} report generation; any past contract
@@ -175,7 +175,7 @@ and «include»/«extend» semantics as the diagrams above.
 Table~\ref{tab:uc-contract-creation} opens with the entry point of every
 other capability: the registration of a contract.
 
-\begin{table}[!ht]
+\begin{table}[H]
   \centering
   \caption{Use-case description: register a contract.}
   \footnotesize
@@ -227,7 +227,7 @@ other capability: the registration of a contract.
 Table~\ref{tab:uc-approval-workflow} then follows a contract through the
 approval chain it must complete before it becomes active.
 
-\begin{table}[!ht]
+\begin{table}[H]
   \centering
   \caption{Use-case description: approve a contract.}
   \footnotesize
@@ -280,7 +280,7 @@ approval chain it must complete before it becomes active.
 Finally, Table~\ref{tab:uc-audit-reconstruction} describes the audit
 consultation that the compliance posture must support at any time.
 
-\begin{table}[!ht]
+\begin{table}[H]
   \centering
   \caption{Use-case description: reconstruct past contract state for an
            audit.}

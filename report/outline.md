@@ -62,6 +62,11 @@ re-introduce it.
   outline paragraph; body-section cross-references are unrestricted.
 - **No figure or table directly after a heading** — every float gets one or
   two sentences of lead-in prose that reference it by `\ref`.
+- **Floats are pinned with `[H]`** (the `float` package, loaded by the class):
+  figures and tables appear exactly where they sit in the source; if one does
+  not fit, the page ends early and it opens the next page. Trailing white
+  space is accepted. The `\pumlfig` helper emits `[H]` too — use `[H]` for any
+  new float.
 
 ## Final structure (5 chapters; 2 parts)
 
@@ -82,7 +87,8 @@ PART 1 — PROJECT FRAMING AND DESIGN
 │   ├── 2.  Project context: CLM in the DACH Mittelstand
 │   ├── 3.  Problem statement
 │   ├── 4.  Proposed solution   (short scope statement, no implementation detail)
-│   └── 5.  Methodology  (release train; planning cadence; project-timeline Gantt)
+│   └── 5.  Methodology  (Extreme Programming: definition → practices applied →
+│           solo adaptation → release-train planning + traceability)
 │
 ├── Chapter II — Analysis and Requirements Specification (chap:analysis)
 │   ├── 1.  Actors and use cases  (catalogue, diagrams, detailed use-case tables)
@@ -102,7 +108,7 @@ PART 1 — PROJECT FRAMING AND DESIGN
 PART 2 — REALISATION AND PLANNED EVOLUTION
 
 ├── Chapter IV — Realisation of the CLMPilot platform    (chap:realisation; Phases 0–2, by theme)
-│   ├── 1.  Engineering foundations and the delivery process
+│   ├── 1.  Engineering foundations and the delivery process  (opens with the project-timeline Gantt)
 │   ├── 2.  Backend service architecture on comby
 │   ├── 3.  The contract domain and its lifecycle
 │   ├── 4.  Workflow and temporal automation
@@ -131,10 +137,10 @@ Back matter
 
 | Chapter | State |
 |---|---|
-| I — General Context and Project Scope | Written; split from the old Ch I; new Proposed-solution section; Methodology framing aligned to the Ghassen Benali reference report, with a project-timeline Gantt |
+| I — General Context and Project Scope | Written; split from the old Ch I; new Proposed-solution section; Methodology = Extreme Programming (solo-adapted, release-train release planning), structured after the Ghassen Benali reference report; cites Beck2004 + C2XPForOne |
 | II — Analysis and Requirements Specification | Written; actors/use-cases → functional → non-functional; detailed use-case description tables for contract creation, approval, audit reconstruction |
 | III — Architecture and Design | Written; §8 seams added; stale facts fixed (intelligence realised, DocuSeal, EN-primary) |
-| IV — Realisation of the CLMPilot platform | **Section-level skeleton** — 8 themed sections with `% intent` + `% figure` notes |
+| IV — Realisation of the CLMPilot platform | **Section-level skeleton** — 8 themed sections with `% intent` + `% figure` notes; §1 opens with the project-timeline Gantt |
 | V — Improvements in the event-sourced system | **Chapter shell** — intro + Conclusion stubs; planned areas in source comments |
 
 The earlier per-phase placeholders are **retired and removed** — no longer
@@ -145,10 +151,10 @@ The earlier per-phase placeholders are **retired and removed** — no longer
 Figures are PlantUML sources in each chapter's `figures/` directory, rendered to
 vector PDF and included via a self-healing helper (`\pumlfig`, or the
 `\IfFileExists` stub) so the document compiles whether or not a diagram has been
-rendered yet. Chapters I to III carry rendered diagrams (the Chapter I
-project-timeline Gantt still needs its first render from `figures/gantt.puml`);
-Chapters IV and V name the intended UML view per section in `% figure:`
-comments, to be drawn as the prose is written. Render locally with:
+rendered yet. Chapters I to III carry rendered diagrams, and Chapter IV opens
+with the rendered project-timeline Gantt (`Chapter4/figures/gantt.puml`);
+Chapters IV and V otherwise name the intended UML view per section in
+`% figure:` comments, to be drawn as the prose is written. Render locally with:
 
 ```
 plantuml -tsvg figures/<name>.puml && rsvg-convert -f pdf -o figures/<name>.pdf figures/<name>.svg

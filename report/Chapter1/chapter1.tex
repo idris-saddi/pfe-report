@@ -23,9 +23,8 @@ pressures that make this market actionable today. From that context we
 derive the four operational pain points the product responds to, and we
 state, at the level of scope rather than implementation, the solution we
 propose in answer to them. The chapter closes with the methodology under
-which the work was organised -- a release-train delivery model with a
-weekly planning cadence -- and the timeline over which its phases were
-carried out.
+which the work was organised: Extreme Programming, adapted to a solo
+build and planned as a release train of product phases.
 
 %--------------------------------------------------------------------
 \section{Hosting company: Gradient Zero}
@@ -178,7 +177,7 @@ The CLM market separates into four bands that map cleanly onto the size
 and geography of the buyer. Table~\ref{tab:clm-segmentation} summarises the
 segmentation as it presents to a DACH Mittelstand customer.
 
-\begin{table}[!ht]
+\begin{table}[H]
   \centering
   \caption{CLM market segmentation as it presents to a DACH Mittelstand
            buyer.}
@@ -219,7 +218,7 @@ a system boundary: CLMPilot owns the contract's metadata, deadlines,
 approvals and audit trail, while the document itself never leaves the
 customer's storage.
 
-\begin{figure}[!ht]\centering
+\begin{figure}[H]\centering
   \IfFileExists{Chapter1/figures/context.pdf}
     {\includegraphics[width=0.92\linewidth]{context}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
@@ -317,24 +316,77 @@ contract can be answered years after the fact.
 \label{sec:methodology}
 
 The methodology under which CLMPilot was built was shaped by a single
-operating constraint: the work was carried out by one developer
-against a fixed set of phase milestones. That constraint also fixes the
-scope of this report. The internship delivered a working pilot across
-three phases -- foundations, the MVP, and a tier of enterprise features --
-and then turned to a forward-looking engineering effort on the
-event-sourced system that underlies the product. The three
-subsections that follow describe the delivery model that produced the
-pilot -- a release train with absolute phase gates -- the planning
-cadence and traceability artefacts that supported it, and the timeline
-over which the phases were delivered.
+operating constraint: the work was carried out by one developer against
+a fixed set of phase milestones, with a scope that customer-discovery
+findings were still refining during the first weeks. That constraint
+also fixes the scope of this report. The internship delivered a working
+pilot across three phases -- foundations, the MVP, and a tier of
+enterprise features -- and then turned to a forward-looking engineering
+effort on the event-sourced system that underlies the product. For the
+build itself we adopted \textit{Extreme Programming}
+(XP)~\cite{Beck2004}, an agile methodology suited to exactly these
+conditions, in the solo variant described for a single
+developer~\cite{C2XPForOne}. The subsections that follow define the
+methodology, state how its base practices were applied, explain how its
+team-oriented practices were adapted to a solo build, and describe the
+release planning and traceability that organised the work.
 
-\subsection{Release-train delivery}
-A release train organises delivery as a sequence of scheduled releases:
-scope that is ready boards the current release, scope that is not waits
-for the next one, and every departure leaves the product in a deployable
-state. For a solo build, it replaces the ceremony of fixed-length sprints
-with a single unambiguous exit criterion per phase.
-The build was organised as a release train of three product phases, each
+\subsection{The Extreme Programming methodology}
+Extreme Programming is an agile methodology introduced by Kent~Beck,
+who defines it as a lightweight discipline of software development for
+small teams facing vague or rapidly changing
+requirements~\cite{Beck2004}. Its purpose is to lower the cost of
+change: instead of fixing every requirement up front, an XP project
+advances in short cycles, each of which leaves the product working,
+tested and deliverable, so that feedback arrives while it can still
+alter the plan. The methodology rests on five values -- communication,
+simplicity, feedback, courage and respect -- and makes them operational
+through a set of concrete practices, among them the planning game,
+small releases, testing, refactoring, simple design, coding standards,
+continuous integration, pair programming and an on-site
+customer~\cite{Beck2004}.
+
+\subsection{Base practices applied in this project}
+Rather than survey the practices, we state how the decisive ones were
+applied. \textit{Small releases} set the delivery rhythm: every release
+leaves the platform in a deployable state, and the pilot reached
+production early and was then re-released repeatedly, rather than
+delivered once at the end of the internship. \textit{Continuous
+integration} is enforced mechanically: each repository carries a
+pipeline that lints, tests and builds every change before it can reach
+a protected branch. \textit{Testing} is layered -- unit, integration
+and end-to-end -- and the pipeline runs these suites on every change.
+\textit{Simple design} translates into the deliberately narrow
+technology stack motivated by the maintainability requirement, and
+\textit{refactoring} keeps that design honest as understanding of the
+domain improves. \textit{Coding standards}, finally, are held uniform
+by linters and by conventional commit messages, which also carry the
+traceability described at the end of this section.
+
+\subsection{Extreme Programming for a solo developer}
+Extreme Programming is written for teams, and some of its practices
+presuppose a second person; the literature nonetheless describes its
+use by a single developer~\cite{C2XPForOne}, and parts of the
+discipline become simpler in that setting -- continuous integration,
+for one, proceeds without merge conflicts. Two practices required
+deliberate adaptation. \textit{Pair programming} is replaced by
+asynchronous review: every change reaches the protected branches
+through a pull request reviewed by the Gradient~Zero engineering team,
+and the continuous-integration gate stands in for the partner who
+keeps asking whether the tests still pass. The \textit{on-site
+customer} is played by the company supervisor: each week opens with a
+synchronisation meeting -- the project's planning game -- in which the
+prior week's commits are reviewed against the roadmap and the next
+items are selected, and architectural decisions are not on a fixed
+schedule but raised as they arise. There is no fixed sprint length,
+since a solo developer is best served by a continuous flow with
+explicit checkpoints; the checkpoints are the release gates described
+next.
+
+\subsection{Release planning and traceability}
+In Extreme Programming, release planning fixes what each release
+contains and when it leaves. Stretched over the internship, our release
+plan took the form of a release train of three product phases, each
 with an explicit entry gate, exit milestone and demonstrable artefact:
 \textit{Phase~0}~--~foundations (repository, CI/CD, development
 environment, planning); \textit{Phase~1}~--~the MVP itself, covering the
@@ -350,7 +402,7 @@ event-sourced framework itself.
 Figure~\ref{fig:release-train} shows the three realised phases, the gates
 between them, and the evolution that follows.
 
-\begin{figure}[!ht]\centering
+\begin{figure}[H]\centering
   \IfFileExists{Chapter1/figures/release-train.pdf}
     {\includegraphics[width=0.62\linewidth]{release-train}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
@@ -363,16 +415,6 @@ between them, and the evolution that follows.
   \label{fig:release-train}
 \end{figure}
 
-\subsection{Planning cadence and traceability}
-The planning cadence is weekly. Each week opens with a synchronisation
-meeting with the company supervisor, in which the prior week's
-commits are reviewed against the roadmap and the next items are
-selected. Architectural decisions are not on a fixed schedule: they
-are raised as they arise and discussed with the supervisor at the
-next available opportunity. There is no fixed sprint length, since a
-solo developer working to a release-train schedule is best served by
-a continuous flow with explicit checkpoints.
-
 Traceability is enforced by three artefacts. The roadmap is the single
 source of truth and is held in a Markdown document under version
 control. A spreadsheet derived from that document tracks progress at
@@ -384,27 +426,6 @@ prefix and a free-form description. Together these artefacts make it
 possible to answer, for any line of code in the repository, the three
 questions a maintainer asks first: \textit{what does it do, why is it
 there, and which phase of the project introduced it?}
-
-\subsection{Project timeline}
-\label{sec:project-timeline}
-Figure~\ref{fig:gantt} places the release train on the calendar of the
-internship. The foundations of Phase~0 were laid in the second half of
-April~2026; Phase~1 brought the MVP to production at the end of that
-month and closed its launch checklist over the following weeks; Phase~2
-delivered the enterprise tier across the remainder of May and June; and
-from late June onward the effort shifted to the planned engineering work
-on the event-sourced system.
-
-\begin{figure}[!ht]\centering
-  \IfFileExists{Chapter1/figures/gantt.pdf}
-    {\includegraphics[width=\linewidth]{gantt}}
-    {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
-      \textit{Diagram to be rendered from} \texttt{figures/gantt.puml}\vspace{2em}}}}
-  \caption{Project timeline: the three realised phases of the release
-           train, their production milestones, and the planned engineering
-           effort on the event-sourced system that follows them.}
-  \label{fig:gantt}
-\end{figure}
 
 %--------------------------------------------------------------------
 \section*{Conclusion}
@@ -419,8 +440,9 @@ deadlines, missing audit trails, absent portfolio overview, and
 unstructured approval flows -- and answered them with the scope of an
 integration-first platform that manages a contract's lifecycle while its
 documents stay in the customer's own storage. Finally, we set out the
-release-train methodology under which the work was carried out, its
-planning cadence, and the timeline its phases followed.
+Extreme Programming methodology under which the work was carried out,
+its adaptation to a solo build, and the release planning and
+traceability that supported it.
 
 With the context and the scope established,
 Chapter~\ref{chap:analysis} refines them into a specification: the

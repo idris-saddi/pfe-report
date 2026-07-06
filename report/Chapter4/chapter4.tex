@@ -53,6 +53,27 @@ the stack. \emph{(Section-level skeleton; prose to follow.)}
 % roadmap as the single source of truth; local dev mirroring production.
 % Cite [[feedback-git-workflow]]; push YAML/commands to Appendix.
 % figure: package/component diagram -- the four repositories and what each owns.
+% The project-timeline Gantt (moved here from Ch I Methodology) opens the
+% section: it places the realised release train on the internship calendar.
+
+Figure~\ref{fig:gantt} places the realised release train on the calendar
+of the internship. The foundations of Phase~0 were laid in the second
+half of April~2026; Phase~1 brought the MVP to production at the end of
+that month and closed its launch checklist over the following weeks;
+Phase~2 delivered the enterprise tier across the remainder of May and
+June; and from late June onward the effort shifted to the planned
+engineering work on the event-sourced system.
+
+\begin{figure}[H]\centering
+  \IfFileExists{Chapter4/figures/gantt.pdf}
+    {\includegraphics[width=\linewidth]{gantt}}
+    {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
+      \textit{Diagram to be rendered from} \texttt{figures/gantt.puml}\vspace{2em}}}}
+  \caption{Project timeline: the three realised phases of the release
+           train, their production milestones, and the planned engineering
+           effort on the event-sourced system that follows them.}
+  \label{fig:gantt}
+\end{figure}
 
 %--------------------------------------------------------------------
 \section{Backend service architecture on comby}

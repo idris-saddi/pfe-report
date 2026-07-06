@@ -19,7 +19,7 @@
 %   #1 = base filename   #2 = width   #3 = caption   #4 = \label key
 \makeatletter
 \newcommand{\pumlfig}[4]{%
-  \begin{figure}[!ht]\centering
+  \begin{figure}[H]\centering
     \IfFileExists{Chapter3/figures/#1.pdf}{\includegraphics[width=#2]{#1}}{%
     \IfFileExists{Chapter3/figures/#1.png}{\includegraphics[width=#2]{#1}}{%
       \fbox{\parbox{0.85\linewidth}{\centering\vspace{1.8em}%
@@ -218,7 +218,7 @@ partly to exercise it, so its authors are on hand to support it.
 Table~\ref{tab:framework-comparison} sets it against the alternatives that
 were genuinely weighed.
 
-\begin{table}[!ht]
+\begin{table}[H]
   \centering
   \caption{CQRS and Event~Sourcing platforms considered for CLMPilot,
            assessed against the project's decisive criteria.}
@@ -447,7 +447,7 @@ within a tenant (Legal, Finance, Admin); a \textbf{permission} is the right
 to run a given command or query. Access control is role-based and always
 scoped to a tenant.
 
-\pumlfig{identity-model}{0.52\textwidth}{The IAM : identity and access model.}{fig:identity-model}
+\pumlfig{identity-model}{0.5\textwidth}{The IAM : identity and access model.}{fig:identity-model}
 
 Above the per-tenant model sits the platform \textbf{system administrator}:
 a small, seeded set of operator accounts in a reserved system tenant, able
