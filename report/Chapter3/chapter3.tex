@@ -67,8 +67,8 @@ chapters as the reason for a delivery-time decision.
 
 \textbf{Auditability and immutability.} GoBD requires contract records to be
 kept immutably and recoverable as of any past date for up to ten years;
-ISO~27001 adds change tracking (Section~\ref{sec:nfr-audit}). This is the
-strongest driver. It rules out any design in which history can be mutated,
+ISO~27001 adds change tracking (Section~\ref{sec:nfr-audit}); this is the
+strongest of the five drivers, and it rules out any design in which history can be mutated,
 or in which the audit trail is reconstructed after the fact. What happened
 must be the primary record, not a by-product.
 
@@ -153,7 +153,7 @@ document database has no transactional model for a multi-step approval. A
 workflow engine would model approvals, but adds a heavy runtime and
 lock-in and still leaves the contract's own audit trail unsolved.
 
-The costs are real. Read models are eventually consistent: a new contract
+This approach carries real costs. Read models are eventually consistent: a new contract
 may show in its detail view a moment before it shows in a dashboard count.
 For CLM that is fine. Events are a long-lived schema, so they need a
 versioning convention. And the pattern has a learning curve, mitigated
@@ -254,12 +254,12 @@ were genuinely weighed.
   \label{tab:framework-comparison}
 \end{table}
 
-Three points decide it. comby is Go-native, so the backend stays one
+Three points decide it: comby is Go-native, so the backend stays one
 language. Its CQRS/ES primitives are proven, so they need not be rebuilt.
 And its defaults supply the biggest saving: the tenancy, identity, RBAC
 and invitation machinery that every other option would leave to the project.
 EventStoreDB and a bespoke build leave the whole framework to build; Axon
-and EventFlow are the wrong ecosystem. The choice is not close.
+and EventFlow are the wrong ecosystem.
 
 %--------------------------------------------------------------------
 \section{Domain model overview}
@@ -398,10 +398,10 @@ loopback only.
 
 \pumlfig{topology}{0.9\textwidth}{CLMPilot deployment topology}{fig:topology}
 
-Network isolation is by design. A public edge faces out; an internal network
-does not. Only the reverse proxy is reachable from outside; the intelligence
-service and the stores are reachable only from the backend: the most
-sensitive parts are not just access-controlled but unaddressable. Outward,
+Network isolation is built into the topology: only the reverse proxy is reachable
+from outside, while the intelligence service and the stores are reachable only from
+the backend, so the most sensitive parts are not just access-controlled but
+unaddressable. Outward,
 the system uses SendGrid for email, Users own cloud storages for documents,
 and DocuSeal for electronic signature, each behind a named interface so the
 concrete provider is interchangeable; ERP systems are designed-for but dark
@@ -411,7 +411,7 @@ until later work.
 \label{sec:repo-split}
 
 The four repositories separate by concern and release cadence, not by
-microservice~\cite{Newman2021}. There is one backend, not many. The split
+microservice~\cite{Newman2021}: there is one backend, not many. The split
 buys independence: the frontend ships without rebuilding the backend; a Go
 domain, a TypeScript UI, a Python service and a YAML operations stack stay in
 their own toolchains; a broken intelligence build cannot block a release;
@@ -494,7 +494,7 @@ exercise.
 \subsection{Defence in depth and tenant isolation}
 \label{sec:defense-in-depth}
 
-No single control is trusted to be enough. The same request crosses several
+No single control is trusted to be enough: the same request crosses several
 independent layers, each of which would hold if an outer one were bypassed
 (Figure~\ref{fig:security-layers}). The network perimeter exposes only the
 reverse proxy and keeps the stores on an internal-only network, unaddressable
