@@ -22,8 +22,8 @@ the users inward: we first catalogue the actors who interact with the
 platform and expand the use cases they initiate, from a single
 high-level overview down to the individual cases of each functional
 area, with the most consequential scenarios described step by step. From
-those use cases we then derive the functional requirements, stated at
-the level of capability rather than implementation, and we close with
+those use cases we then derive the functional requirements, stated as
+capabilities, not implementation detail, and we close with
 the non-functional requirements: the qualities the platform must exhibit
 while delivering them.
 
@@ -427,7 +427,7 @@ counterparty, dates, value and detected clauses for the Legal~Manager to
 confirm, rather than leaving every field to manual entry. The platform must
 take a contract through \textit{electronic signature} with an external
 counterparty and reflect the signed outcome on the record, so that execution
-is part of the tracked lifecycle rather than an out-of-band step.
+is part of the tracked lifecycle.
 \textit{Per-tenant custom fields} let each organisation extend the contract
 schema to its own taxonomy without a code change. \textit{Post-signature
 obligation tracking} expands standard deadline management, ensuring the
@@ -445,7 +445,7 @@ exhibit while delivering the functional capabilities of the previous
 section. We group them along seven axes (security, compliance,
 availability, performance, auditability, internationalisation and
 maintainability), each justified by a constraint of the deployment
-context rather than by a feature in isolation.
+context.
 
 \subsection{Security}
 \label{sec:nfr-security}
@@ -498,8 +498,7 @@ contract list; search and filter operations over a portfolio of ten
 thousand contracts aim for under five hundred milliseconds; and
 document-link resolution (the round-trip to the external store,
 plus the metadata fetch) aims for under two seconds in the median
-case. Failure modes degrade to the graceful state described above
-rather than blocking the user interface.
+case. Failure modes degrade to the graceful state described above.
 
 \subsection{Auditability}
 \label{sec:nfr-audit}
