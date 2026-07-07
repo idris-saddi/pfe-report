@@ -70,17 +70,16 @@ project, the same plumbing for audit trails, approval workflows, and
 temporal queries, comby makes that plumbing a shared asset reused across
 products.
 
-Around comby sits a broader engineering identity, visible across the
-privacy-first portfolio and inherited directly by CLMPilot, that concentrates
-on three threads. The first is \textit{compliance-by-architecture}: the use of
-immutable event logs to satisfy GoBD and ISO~27001 requirements without
-bolt-on audit features. The second is \textit{overlay-on-incumbents}:
-products are deliberately not built to become the system of record for
-customer data, but to layer workflow, governance and metadata on top of
-the storage and applications the customer already uses. The pattern
+Three engineering principles recur across the privacy-first portfolio, and
+CLMPilot inherits all three. The first is \textit{compliance by architecture}:
+immutable event logs satisfy GoBD and ISO~27001 requirements without
+bolt-on audit features. The second is to \textit{overlay existing systems
+rather than replace them}: the products are not built to become the system
+of record for customer data, but to layer workflow, governance and metadata
+on top of the storage and applications the customer already uses. The pattern
 runs through the company's privacy and data-governance products, and
-CLMPilot applies it to contract documents specifically. The third is
-\textit{DACH-tailored productisation}: German-first user experience,
+CLMPilot applies it to contract documents specifically. The third is a
+\textit{DACH-first product design}: German-first user experience,
 German tax-law constraints, and EU-hosted infrastructure as defaults,
 not premium add-ons.
 
@@ -90,7 +89,7 @@ report, supervised by Mr.~Artur~Susdorf, Chief Technology Officer of
 Gradient~Zero, through a weekly synchronisation meeting at the start
 of each week. The release-train cadence detailed in
 Section~\ref{sec:methodology} -- Phase~0 (foundations), Phase~1 (the MVP)
-and Phase~2 (enterprise features), followed by a forward-looking
+and Phase~2 (enterprise features), followed by a planned
 engineering effort on the event-sourced system itself -- was set jointly
 with the company supervisor at the start of the internship and
 adjusted in light of customer-discovery findings during the first
@@ -157,7 +156,7 @@ cancellation windows pass unnoticed, costing companies thousands of euros
 per incident. Consolidated reporting (\textit{``how much contract volume
 expires in Q3?''}, \textit{``which vendors have we exceeded the agreed
 thresholds with?''}) requires manual aggregation across these scattered
-sources, producing snapshots that are stale the moment they are delivered.
+sources, producing snapshots that are out of date as soon as they are delivered.
 
 The third pressure is \textbf{commercial}. The global CLM software market
 is projected to grow from USD~2.07~billion in 2026 to USD~5.09~billion by
@@ -199,8 +198,8 @@ segmentation as it presents to a DACH Mittelstand customer.
       a multi-month project that absorbs the operational budget the
       product is supposed to release. \\
     \hline
-    DIY & Excel + Outlook + file shares & Free at the surface; no
-      automation, no compliance posture, no portfolio visibility. \\
+    DIY & Excel + Outlook + file shares & Nominally free; no
+      automation, no compliance tracking, no portfolio visibility. \\
     \hline
   \end{tabularx}
   \label{tab:clm-segmentation}
@@ -208,11 +207,10 @@ segmentation as it presents to a DACH Mittelstand customer.
 
 The structural gap that CLMPilot is designed to address is in the third
 row: the DACH-niche category gets the regulatory fit right but pays for it
-with a document-migration entry fee that pushes mid-market customers back
+with an up-front document-migration cost that pushes mid-market customers back
 toward DIY. The positioning chosen for CLMPilot, to manage the lifecycle
 of contracts whose documents \textit{stay in their original storage},
-bypasses that entry fee deliberately, and is the single product decision
-that most shapes the architectural choices presented in
+avoids that cost, and drives many of the architectural choices presented in
 Chapter~\ref{chap:arch}. Figure~\ref{fig:context} draws that positioning as
 a system boundary: CLMPilot owns the contract's metadata, deadlines,
 approvals and audit trail, while the document itself never leaves the
@@ -243,7 +241,7 @@ The default outcome for a contract whose renewal window is unmonitored is
 silent auto-renewal. A typical multi-year vendor agreement triggers a
 one-year extension if it is not formally cancelled in a 30~to~90 day
 window before its expiry; in practice these windows pass unnoticed because
-no system is responsible for surfacing them. The financial cost per
+no system is responsible for flagging them. The financial cost per
 incident varies, from a few hundred euros for a low-value subscription
 to tens of thousands for a vendor lock-in that should have been
 renegotiated, but the structural cost is constant: a critical business
@@ -267,7 +265,7 @@ the next six months?''}, \textit{``which suppliers will we exceed the
 agreed thresholds with?''}) has no good answer in a file-share-based
 contract operation. The data exists, but its retrieval is a manual
 exercise that consumes a person-week of effort and produces a snapshot
-that is stale the moment it is delivered. Strategic decisions on supplier
+that is out of date the moment it is produced. Strategic decisions on supplier
 consolidation, departmental budgets and M\&A diligence are routinely taken
 with this information missing.
 
@@ -283,9 +281,9 @@ of the contract concerned.
 
 \medskip\noindent
 These four pain points are not independent. They share a common cause
-(the lack of a system that treats the contract lifecycle as a first-class
-object with its own metadata, deadlines, approvals and audit log) and
-they share a common solution shape, which the next section states as the
+(the lack of a system that treats the contract lifecycle as a managed
+entity with its own metadata, deadlines, approvals and audit log) and
+they share a common solution, which the next section states as the
 scope of this project.
 
 %--------------------------------------------------------------------
@@ -297,13 +295,12 @@ that answers the four pain points at their common root, by treating the
 contract lifecycle as a first-class object. At its centre is a contract
 registry that carries each agreement's metadata, deadlines, approvals and
 audit history, and thereby gives the organisation the consolidated
-portfolio view it lacks today. The documents themselves are deliberately
-left where they already live: the platform links to files in the
-customer's own storage rather than ingesting them, so adoption carries no
-document-migration project.
+portfolio view it lacks today. The documents stay in the customer's own
+storage: the platform links to files there rather than ingesting them,
+so adoption carries no document-migration project.
 
 Around that registry, three capabilities address the remaining pain
-points directly. Automated reminders surface every cancellation, renewal
+points directly. Automated reminders flag every cancellation, renewal
 and expiry window before it passes, returning renewal decisions to the
 people responsible for them. Enforceable approval workflows replace
 forwarded emails with an ordered sequence of recorded decisions. And a
@@ -315,13 +312,13 @@ contract can be answered years after the fact.
 \section{Methodology}
 \label{sec:methodology}
 
-The methodology under which CLMPilot was built was shaped by a single
+The methodology under which CLMPilot was built was governed by a single
 operating constraint: the work was carried out by one developer against
 a fixed set of phase milestones, with a scope that customer-discovery
 findings were still refining during the first weeks. That constraint
 also fixes the scope of this report. The internship delivered a working
 pilot across three phases (foundations, the MVP, and a tier of
-enterprise features) and then turned to a forward-looking engineering
+enterprise features) and then turned to a planned engineering
 effort on the event-sourced system that underlies the product. For the
 build itself we adopted \textit{Extreme Programming}
 (XP)~\cite{Beck2004}, an agile methodology suited to exactly these
@@ -358,8 +355,8 @@ a protected branch. \textit{Testing} is layered (unit, integration
 and end-to-end), and the pipeline runs these suites on every change.
 \textit{Simple design} translates into the deliberately narrow
 technology stack motivated by the maintainability requirement, and
-\textit{refactoring} keeps that design honest as understanding of the
-domain improves. \textit{Coding standards}, finally, are held uniform
+\textit{refactoring} keeps the design aligned with the domain as that
+understanding improves. \textit{Coding standards}, finally, are held uniform
 by linters and by conventional commit messages, which also carry the
 traceability described at the end of this section.
 
@@ -369,7 +366,7 @@ presuppose a second person; the literature nonetheless describes its
 use by a single developer~\cite{C2XPForOne}, and parts of the
 discipline become simpler in that setting: continuous integration,
 for one, proceeds without merge conflicts. Two practices required
-deliberate adaptation. \textit{Pair programming} is replaced by
+adaptation. \textit{Pair programming} is replaced by
 asynchronous review: every change reaches the protected branches
 through a pull request reviewed by the Gradient~Zero engineering team,
 and the continuous-integration gate stands in for the partner who
@@ -397,7 +394,7 @@ fields, obligation tracking and advanced reporting). Each of these phases
 advances the product to a state in which it can be deployed and used; no
 phase is internal-only, and all three were realised and shipped to
 production. The internship then moved past the product release train to a
-fourth, different kind of work: a forward-looking engineering effort on the
+fourth kind of work: a planned engineering effort on the
 event-sourced framework itself.
 Figure~\ref{fig:release-train} shows the three realised phases, the gates
 between them, and the evolution that follows.

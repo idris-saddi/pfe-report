@@ -37,7 +37,7 @@ This chapter details the architecture of CLMPilot: a structure designed
 to satisfy the platform's requirements by construction. Instead of assembling the design feature by feature, we let a few
 core forces drive the system's foundational choices.
 
-Three primary forces shape our approach. \textbf{Integration-first}: contract 
+Three primary forces drive the design. \textbf{Integration-first}: contract
 documents remain entirely within the customer’s own storage, meaning the platform 
 handles only their lifecycle management.
 \textbf{Compliance by architecture}: the storage model natively provides the immutable,
@@ -87,7 +87,7 @@ intelligence service) counts as a data-processing boundary.
 \textbf{Multi-tenant isolation.} One deployment, many tenants
 (Section~\ref{sec:actors}). Every command and query carries a tenant
 context, and cross-tenant access is blocked by construction. Isolation that
-relies on code remembering to filter by tenant will eventually fail.
+depends on every query filtering by tenant will eventually be broken by one that does not.
 
 \textbf{Maintainability under solo development.} One engineer builds and
 runs the platform (Section~\ref{sec:methodology}). This driver selects
@@ -121,9 +121,9 @@ log: there is no separate audit table to maintain or to fake.
 answered by replaying its events. That is why the pattern was chosen before
 any feature was designed.
 
-CQRS also fits the workload. Reads dominate and are aggregate-shaped: the
+CQRS also fits the workload. Reads dominate and fetch whole aggregates: the
 dashboard counts expiring contracts and sums value by quarter. Writes are
-rarer and careful: an approval or an edit must pass validation. Splitting
+rarer and guarded: an approval or an edit must pass validation. Splitting
 them lets each read model be its own projection~\cite{Fowler2003}, so a
 heavy query never blocks a write, and it expresses the domain in the terms
 of Domain-Driven Design~\cite{Evans2003,Vernon2013}.
@@ -134,7 +134,7 @@ commands validate and append immutable events; the event store is the
 system of record; projections and reactors consume events asynchronously;
 queries read from projections.}{fig:cqrs-es}
 
-Figure~\ref{fig:cqrs-seq} shows the same machinery as a sequence, for
+Figure~\ref{fig:cqrs-seq} shows the same flow as a sequence, for
 registering a contract. The command path is short and synchronous:
 validate, append an event, answer the caller. The reactions come after: a
 projection updates the read models, and a reactor turns the new event into a
@@ -188,7 +188,7 @@ additions sit on comby's CQRS/ES core and its multi-tenant defaults, which sit
 on the shared data stores.}{fig:comby-layers}
 
 What CLMPilot inherits is large: tenancy, accounts, identities, groups,
-invitations, asset storage, and the whole authentication surface. The REST
+invitations, asset storage, and the whole authentication layer. The REST
 API and its OpenAPI document are generated from the registered commands and
 queries, so the frontend uses a generated, type-safe client. What CLMPilot
 adds is small: the four core domains of Section~\ref{sec:domain-model}, the
@@ -257,7 +257,7 @@ were genuinely weighed.
 Three points decide it: comby is Go-native, so the backend stays one
 language. Its CQRS/ES primitives are proven, so they need not be rebuilt.
 And its defaults supply the biggest saving: the tenancy, identity, RBAC
-and invitation machinery that every other option would leave to the project.
+and invitation logic that every other option would leave to the project.
 EventStoreDB and a bespoke build leave the whole framework to build; Axon
 and EventFlow are the wrong ecosystem.
 
@@ -279,7 +279,7 @@ end of this section so the core spine stays legible.
 Figure~\ref{fig:domains} shows the four. Contract is central; Approval,
 Deadline and DocumentLink each reference it. All four sit inside a tenant
 boundary: every instance belongs to one tenant, and no relationship
-crosses it. Identity and the audit log are absent on purpose: they are
+crosses it. Identity and the audit log are absent here: they are
 platform concerns owned by the framework (Section~\ref{sec:comby-role}), not
 business contexts.
 
@@ -361,7 +361,7 @@ without disturbing its core.
 
 The structure has two views: a \textit{component} view (which services
 exist, and through which interfaces) and a \textit{deployment} view (where
-the code runs and the data lives). Both describe the design; the operational
+the code runs and the data is stored). Both describe the design; the operational
 detail (the host, the reverse proxy, the backups, the release process)
 is Chapter~\ref{chap:realisation}.
 
@@ -386,7 +386,7 @@ The deployment runs as a single EU-hosted Docker~Compose stack
 repositories -- the \textbf{backend} (Go, on comby), the \textbf{frontend}
 (Vue~3 SPA) and the \textbf{intelligence} service (Python, backed by a large
 language model) -- while a fourth repository carries the deployment stack
-itself. Four stores sit behind them. \textbf{PostgreSQL} is the system of
+itself. The services are backed by four stores. \textbf{PostgreSQL} is the system of
 record (the event store and the command store) and the source every read
 model is rebuilt from. \textbf{Redis} holds sessions and accelerates read
 models. \textbf{NATS} is the message broker that carries events to
@@ -404,8 +404,8 @@ the backend, so the most sensitive parts are not just access-controlled but
 unaddressable. Outward,
 the system uses SendGrid for email, Users own cloud storages for documents,
 and DocuSeal for electronic signature, each behind a named interface so the
-concrete provider is interchangeable; ERP systems are designed-for but dark
-until later work.
+concrete provider is interchangeable; ERP integration is anticipated in the
+design but not yet built.
 
 \subsection{Why a four-repository split}
 \label{sec:repo-split}
@@ -425,11 +425,11 @@ regenerated artefact that a build step keeps in sync across both.
 \label{sec:security}
 
 Security is a property of the architecture, not a subsystem beside it. The
-comby framework supplies the machinery (identity, access control and tenant
+comby framework supplies the mechanisms (identity, access control and tenant
 isolation) and CLMPilot inherits it (Section~\ref{sec:comby-role}). We
 describe the identity and access model it provides, the layered pipeline that
 enforces that model on every request, the defence in depth that keeps tenants
-apart, and finally the compliance posture, which proves to be mostly a
+apart, and finally compliance, which proves to be mostly a
 restatement of structure already in place.
 
 \subsection{Identity and access model}
@@ -458,7 +458,7 @@ user signs in with an email and a password (held only as a salted hash)
 and a second factor, a one-time code sent by email. What the browser then carries is a
 cookie backed by an opaque, server-side session, not a self-contained bearer
 token: the session holds no claims a client could read or replay, and it can
-be revoked at will. comby's account and session machinery owns this surface.
+be revoked at will. comby's account and session handling covers this.
 
 From that point, authorisation is not a gate the application must remember to
 call but a stage every request passes through. The framework resolves the
@@ -469,7 +469,7 @@ established at the edge, and authorisation runs at dispatch, within the
 caller's tenant. A request beyond the caller's authority, or one aimed at
 another tenant, is refused at the boundary; and because the tenant context
 is taken from the session rather than from the request, the ordinary API
-surface has no way to address another tenant's data at all.
+has no way to address another tenant's data at all.
 
 $$$$
 $$$$
@@ -499,9 +499,10 @@ independent layers, each of which would hold if an outer one were bypassed
 (Figure~\ref{fig:security-layers}). The network perimeter exposes only the
 reverse proxy and keeps the stores on an internal-only network, unaddressable
 from outside (Section~\ref{sec:deployment-topology}). Authentication and
-per-tenant authorisation are the two layers just described. Beneath them sits
-the isolation the whole compliance posture leans on, and at the core the
-immutable event log that is at once the system of record and the audit trail.
+per-tenant authorisation are the two layers just described. Beneath those two
+layers is the tenant isolation that all of the compliance guarantees depend on,
+and at the core the immutable event log, which serves as both the system of
+record and the audit trail.
 
 \pumlfig{security-layers}{0.8\textwidth}{Defence in depth: concentric controls
 around the immutable event log, each independent of the others. The data-layer
@@ -519,7 +520,7 @@ application layer were wrong.
 \subsection{Compliance positioning}
 \label{sec:compliance-positioning}
 
-The compliance posture falls out of the architecture. GoBD's
+The compliance controls follow directly from the architecture. GoBD's
 immutable-retention requirement is met by the event store
 (Section~\ref{sec:why-cqrs-es}): the audit trail \emph{is} the log. The
 GDPR's residency requirement is met by EU hosting; its data-minimisation
@@ -544,7 +545,7 @@ language, with German maintained alongside it from the start. Treating an
 extra language as deferred content, not deferred capability, keeps its later
 activation cheap.
 
-Human-readable text lives in two places, one per process. The single-page
+Human-readable text appears in two places, one per process. The single-page
 application carries message catalogues, one per locale, for every label and
 message; the backend renders its own outbound text, email above all, in
 the recipient's locale. The two are connected by the locale itself: a user's
@@ -566,12 +567,12 @@ open.
 The first seam is \textbf{multi-tenancy in the framework itself}. Isolation
 today rests on a tenant context carried by every command, query and event, and
 on per-tenant role-based access control (Section~\ref{sec:identity-model}); a
-single logical event store is partitioned by that context. The framework already reaches further than
+single logical event store is partitioned by that context. The framework already provides more than
 the product uses (it carries a finer workspace scope below the tenant that
 CLMPilot's own contexts do not yet exercise), and consolidation \emph{across}
 tenants, for customers that are themselves corporate groups, has no model at
 all. Deepening tenancy in the event-sourced core, without weakening the
-isolation the compliance posture depends on, is left open here fro the moment.
+isolation compliance depends on, remains open for now.
 
 The second seam is \textbf{scalability and the growth of the event store}.
 Read models are projections held in memory and rebuilt by replaying the event
@@ -580,16 +581,16 @@ compacted, and the write side assumes a single active instance. At MVP volume
 this is the right trade (it keeps operations simple), but
 it sets three clear growth points: snapshotting and projection persistence so
 that start-up does not depend on a full replay, an archival and partitioning
-strategy as the log grows without bound, and the multi-instance, broker-fanned
-topology that Section~\ref{sec:deployment-topology} already wires for but does
-not yet run.
+strategy as the log grows without bound, and the multi-instance topology,
+fanned out through the message broker, that Section~\ref{sec:deployment-topology}
+already wires for but does not yet run.
 
 The third seam is \textbf{the intelligence and extraction pipeline}. The
 intelligence service is a stateless boundary behind the \texttt{IntelligenceClient}
 interface (Section~\ref{sec:component-view}): the backend fetches a document's
 bytes and asks the service for structured metadata and clauses, which a reactor
 folds back onto the contract. That pipeline is built around \emph{contract
-documents}. The same shape (fetch, extract, event-source the result, enrich a
+documents}. The same pattern (fetch, extract, event-source the result, enrich a
 domain object) generalises to the unstructured broker communications that
 surround a contract, which the realised platform does not touch at all.
 
@@ -600,13 +601,13 @@ drivers (auditability, integration-first design, EU data residency,
 multi-tenant isolation and maintainability) led to CQRS and
 Event~Sourcing, because together they make the compliance-grade audit trail
 a property of the storage itself. The comby framework
-supplies those patterns and the multi-tenant machinery, which is what lets
-us cover the platform's requirements over a small custom surface. The
+supplies those patterns and the multi-tenant components, which is what lets
+us cover the platform's requirements with only a small amount of custom code. The
 requirements map onto a four-context core domain model (Contract, Approval,
 Deadline and DocumentLink, extended at its seams by the enterprise contexts)
 on a polyrepo, single-backend topology hosted in the EU, with tenant isolation
 and the audit trail as structural guarantees. The same design also names,
-through its open seams, where it is meant to grow.
+through its open seams.
 
 Chapter~\ref{chap:realisation} turns from this design to its realisation,
 consolidating the deliveries of the project : foundations, the contract

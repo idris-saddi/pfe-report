@@ -35,8 +35,8 @@ The actor model is intentionally narrow. CLMPilot is a multi-tenant
 platform: each customer organisation is an isolated tenant, so the
 catalogue below describes the roles \emph{within} a single tenant,
 mapping onto the functions that already exist in a Mittelstand
-legal-operations team. Above them sits a platform-level system
-administrator who provisions and isolates the tenants themselves; that
+legal-operations team. Outside the tenant, a platform-level system
+administrator provisions and isolates the tenants themselves; that
 role belongs to the operator rather than the customer, and is treated
 with the architecture in Chapter~\ref{chap:arch}.
 
@@ -172,8 +172,8 @@ describe each of them in the structure of a standard use-case
 description (goal, actors, preconditions, main scenario, alternative
 and exception flows, and postconditions), using the same actor names
 and «include»/«extend» semantics as the diagrams above.
-Table~\ref{tab:uc-contract-creation} opens with the entry point of every
-other capability: the registration of a contract.
+Table~\ref{tab:uc-contract-creation} opens with the registration of a
+contract, the first step before any other capability.
 
 \begin{table}[H]
   \centering
@@ -181,7 +181,7 @@ other capability: the registration of a contract.
   \footnotesize
   \begin{tabularx}{\linewidth}{|>{\bfseries}l|X|}
     \hline
-    Goal            & Register a new contract as a first-class record in
+    Goal            & Register a new contract as a structured record in
                       the organisation's contract registry. \\ \hline
     Actor(s)        & Legal~Manager (primary). \\ \hline
     Preconditions   & The Legal~Manager is authenticated in their tenant
@@ -278,7 +278,7 @@ approval chain it must complete before it becomes active.
 \end{table}
 
 Finally, Table~\ref{tab:uc-audit-reconstruction} describes the audit
-consultation that the compliance posture must support at any time.
+consultation that compliance must support at any time.
 
 \begin{table}[H]
   \centering
@@ -288,8 +288,8 @@ consultation that the compliance posture must support at any time.
   \begin{tabularx}{\linewidth}{|>{\bfseries}l|X|}
     \hline
     Goal            & Reconstruct the state of a contract as of any past
-                      date, and export the audit trail in a format that
-                      survives the application. \\ \hline
+                      date, and export the audit trail in a format
+                      independent of the application. \\ \hline
     Actor(s)        & Auditor (primary). \\ \hline
     Preconditions   & The Auditor is authenticated with read-only audit
                       access; the requested date lies within the ten-year
@@ -354,7 +354,7 @@ A contract record is connected to the document that materialises it
 through a \textit{link} -- a typed reference to a file held in the
 customer's own document store (Google~Drive, SharePoint, or any
 HTTP-addressable location). The Legal~Manager attaches and detaches
-links; the platform resolves them at display time, surfacing the file
+links; the platform resolves them at display time, showing the file
 name, last-modified timestamp and a click-through to the original
 location. The platform never copies the document contents into its own
 storage: the integration-first stance of
@@ -363,7 +363,7 @@ Section~\ref{sec:competitive-landscape} is enforced at this boundary.
 \subsection{Deadline and renewal management}
 Every contract carries up to three temporal markers: its expiry date,
 the start of its notice window, and, where applicable, its
-auto-renewal date. The platform must surface each of these markers
+auto-renewal date. The platform must highlight each of these markers
 before it passes, through a reminder workflow that emits notifications
 at 90, 60 and 30~days before the notice window opens, and again on the
 day the window closes. The notification target is the contract's
@@ -387,7 +387,7 @@ the fact.
 Every action that changes the state of a contract (creation, edit,
 link attachment, approval decision, archiving) is recorded in an
 immutable audit log. The Auditor accesses the log read-only and exports
-it in a format that survives the application: a tabular file usable in
+it in a format independent of the application: a tabular file usable in
 spreadsheet software, with one row per recorded action, and columns for
 the actor, the timestamp, the contract identifier and the action type.
 The log must satisfy the GoBD retention requirement of ten years and
@@ -395,7 +395,7 @@ must be reproducible at any date within that window, even after the
 underlying business state has changed.
 
 \subsection{Dashboard and reporting}
-The dashboard is the Legal~Manager's daily view. It surfaces the
+The dashboard is the Legal~Manager's daily view. It shows the
 portfolio at a glance: counts of active, expired and pending contracts;
 the contracts whose notice windows open in the next 30, 60 and 90~days;
 the approval requests awaiting the user's decision; and the aggregate
@@ -414,8 +414,8 @@ Section~\ref{sec:actors-catalogue}: the same query can return different
 projections depending on the caller's role, and any command that
 exceeds the caller's authority is refused before it reaches the domain.
 The reset, invitation and lockout flows are required at this layer
-because they are the everyday surface through which IAM is exercised
-by non-Admin users.
+because they are the flows through which non-Admin users actually
+exercise IAM.
 
 \subsection{Enterprise capabilities}
 \label{sec:fr-enterprise}
@@ -485,7 +485,7 @@ backups; Recovery-Time Objective (RTO) at 4 hours. These figures
 are MVP targets and will be tightened or relaxed based on customer
 commitments in later phases. The platform degrades gracefully when
 external document stores are unreachable: contract metadata and
-workflow remain available, and document previews surface a
+workflow remain available, and document previews show a
 transient-error state rather than failing the surrounding page.
 
 \subsection{Performance}
@@ -508,8 +508,8 @@ in-place update or destructive delete at the storage layer: a correction
 is itself an event, layered on top of the prior history. The audit log
 is exportable in a tabular format independent of the application's
 runtime and is reconstructible at any point in time within the GoBD
-retention window. This requirement aligns directly with the
-compliance-by-architecture and shapes the architectural choices
+retention window. This requirement aligns directly with the principle of
+compliance by architecture and drives the architectural choices
 presented in Chapter~\ref{chap:arch}.
 
 \subsection{Internationalisation}
@@ -526,8 +526,8 @@ the recipient's locale.
 \subsection{Maintainability}
 The platform was built by a single developer during a brief internship,
 every architectural choice had to minimize the long-term maintenance burden.
-The platform deliberately relies on a narrow, well-understood technology
-stack rather than chasing a fragmented mix of "best tools".
+The platform relies on a narrow, well-understood technology
+stack rather than a fragmented mix of specialised tools.
 To keep the project manageable for future developers, it incorporates
 conventional commit messages, a predictable release-train cadence
 (Section~\ref{sec:methodology}), and three distinct layers of automated
