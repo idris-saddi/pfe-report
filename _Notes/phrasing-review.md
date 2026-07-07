@@ -39,6 +39,27 @@ at this density they read as one generator's tics.
 
 ## 2. Findings by file
 
+> **STATUS 2026-07-07 (uncommitted):** worked through §2 in full. Applied nearly all
+> [high] and [med] findings plus the objective [low] ones; the handful left as-is are
+> deliberate keeps, noted inline below. Also cleared all of §3 (mechanical errors +
+> British/American spelling drift — "organization(s)", "center", "Modeled",
+> "internationalization", "minimize", "fulfills" all fixed). Rebuilt clean: 64 pages, 0 errors.
+> **Deliberately kept:** L249–251 (real point, delivery fine); the staged "let me search my
+> email" quote (L254, effective colour); "Security is a property of the architecture, not a
+> subsystem beside it" (Ch III, earns its place as a section thesis); the Ch II conclusion
+> chiasmus (L541, standard FR/NFR framing); the §4 defensibles (thesis sentence, seams device,
+> system-clock line).
+>
+> **FINAL READ-THROUGH 2026-07-07:** re-read all rendered prose (Intro + Ch I–III in full,
+> Ch IV–V skeletons). Caught and fixed one self-inflicted bug — a dangling "The same design
+> also names, through its open seams." left when "meant to grow" was deduped (Ch III conclusion,
+> now "Its open seams mark where the design is built to extend."). Smoothed three repeats the
+> edits had created: "worth addressing now" ×2 (Ch I intro vs conclusion), "capability, not
+> implementation" ×2 (Ch II §intro vs FR intro), "every other capability" ×2 (Ch II registry vs
+> IAM); plus one more "materialised"→"embodied" Gallicism (Ch III DocumentLink). Mechanical
+> sweep clean: no doubled words; posture/machinery/forward-looking/materialise all 0 in rendered
+> prose (remaining hits are `%` comments in the Ch IV–V skeletons). Rebuilt: 64 pages, 0 errors.
+
 ### Introduction/introduction.tex
 
 - **L7** [med · poetic] "Contracts are the connective tissue of any business" — body-metaphor opener; a very common generated-text opening move. → "Contracts record what an organisation has committed to…" (the next clause already says it).

@@ -17,11 +17,11 @@
 %==============================================================================
 
 \section*{Introduction}
-This chapter specifies what CLMPilot is required to do. We proceed from
-the users inward: we first catalogue the actors who interact with the
+This chapter specifies what CLMPilot is required to do. We start from
+the users: we first catalogue the actors who interact with the
 platform and expand the use cases they initiate, from a single
 high-level overview down to the individual cases of each functional
-area, with the most consequential scenarios described step by step. From
+area, with the most important scenarios described step by step. From
 those use cases we then derive the functional requirements, stated as
 capabilities, not implementation detail, and we close with
 the non-functional requirements: the qualities the platform must exhibit
@@ -129,7 +129,7 @@ link.
 Approvals and deadlines (Figure~\ref{fig:uc-approvals}) combine the
 workflow (where initiating an approval includes selecting a template,
 and a reject or request-changes outcome returns the contract to its
-initiator) with the time-driven reminders the system clock raises
+initiator) with the time-driven reminders the system clock issues
 before each notice window.
 
 \begin{figure}[H]\centering
@@ -164,7 +164,7 @@ than replacing it.
 \subsection{Detailed use-case descriptions}
 \label{sec:uc-descriptions}
 
-Three of these use cases carry the most consequential behaviour of the
+Three of these use cases are the most critical to the
 platform: the creation of a contract record, the approval workflow, and
 the reconstruction of past contract state for an audit.
 Tables~\ref{tab:uc-contract-creation}--\ref{tab:uc-audit-reconstruction}
@@ -194,7 +194,7 @@ contract, the first step before any other capability.
                           the contract category, the start and end dates,
                           the notice window and the contract value.
                         \item The Legal~Manager attaches a document link
-                          to the file that materialises the contract in
+                          to the file that embodies the contract in
                           the organisation's own storage («extend»:
                           intelligence-assisted capture proposes
                           counterparty, dates, value and detected clauses
@@ -330,8 +330,8 @@ consultation that compliance must support at any time.
 The functional requirements that follow flow directly from the four pain
 points of the problem statement
 (Section~\ref{sec:problem-statement}) and are exercised through the use
-cases of the previous section. They are stated at the level of capability,
-not implementation: each subsection identifies the actor that initiates
+cases of the previous section. They are stated as outcomes, not mechanisms:
+each subsection identifies the actor that initiates
 the use case, the outcome the platform must produce, and the constraints
 the surrounding context imposes. The architectural decomposition into
 domains, commands and events is deferred to Chapter~\ref{chap:arch}.
@@ -350,7 +350,7 @@ the result set. Performance targets for these operations are stated in
 Section~\ref{sec:nfr-perf}.
 
 \subsection{Document linking}
-A contract record is connected to the document that materialises it
+A contract record is connected to the document that embodies it
 through a \textit{link} -- a typed reference to a file held in the
 customer's own document store (Google~Drive, SharePoint, or any
 HTTP-addressable location). The Legal~Manager attaches and detaches
@@ -401,12 +401,12 @@ the contracts whose notice windows open in the next 30, 60 and 90~days;
 the approval requests awaiting the user's decision; and the aggregate
 value of the active portfolio. Beyond the standing dashboard, the
 platform supports parametric reports (contracts by counterparty,
-spend by quarter, renewals by business unit) to answer the kind of
-question the problem statement identifies as routinely unanswered.
+spend by quarter, renewals by business unit) to answer the portfolio
+questions raised in the problem statement.
 
 \subsection{Identity and access management}
-Identity and access management (IAM) is a precondition for every other
-capability. The Admin creates user accounts, assigns roles and revokes
+Identity and access management (IAM) gates every other capability.
+The Admin creates user accounts, assigns roles and revokes
 access; users authenticate with an email address, a password and a
 second factor delivered as a one-time code by email. The platform enforces role-based access
 control along the actor catalogue of
@@ -420,8 +420,8 @@ exercise IAM.
 \subsection{Enterprise capabilities}
 \label{sec:fr-enterprise}
 Beyond the core registry, the platform is required to support a tier of
-enterprise capabilities that deepen the response to the same four pain
-points. Document linking is expected to trigger \textit{intelligence-assisted
+enterprise capabilities that address the same four pain
+points more fully. Document linking is expected to trigger \textit{intelligence-assisted
 capture}: when a contract's document is attached, the platform proposes
 counterparty, dates, value and detected clauses for the Legal~Manager to
 confirm, rather than leaving every field to manual entry. The platform must
@@ -430,9 +430,9 @@ counterparty and reflect the signed outcome on the record, so that execution
 is part of the tracked lifecycle.
 \textit{Per-tenant custom fields} let each organisation extend the contract
 schema to its own taxonomy without a code change. \textit{Post-signature
-obligation tracking} expands standard deadline management, ensuring the
-organization monitors and fulfills all operational deliverables throughout
-the active lifecycle of the contract. And \textit{advanced, schedulable
+obligation tracking} extends standard deadline management so the
+organisation tracks the commitments a signed contract creates (payments,
+reviews, renewals) for as long as it runs. And \textit{advanced, schedulable
 reporting} answers the portfolio questions of the problem statement on a
 recurring basis rather than on demand. These capabilities are stated here
 as requirements; their realisation is consolidated in Chapter~\ref{chap:realisation}.
@@ -515,8 +515,8 @@ presented in Chapter~\ref{chap:arch}.
 \subsection{Internationalisation}
 \label{sec:nfr-i18n}
 English is the primary language of the user interface, with German
-maintained alongside it; Other languages could be targeted for a
-future expansion, with translation slots reserved in the user-interface
+maintained alongside it; other languages can be added later, with
+translation slots reserved in the user-interface
 layer from the outset. Dates, numbers and currencies are formatted
 according to the user's declared locale rather than the server's,
 and the platform stores time-stamps in Coordinated Universal Time (UTC)
@@ -524,8 +524,8 @@ and renders them in the user's time zone. Email notifications inherit
 the recipient's locale.
 
 \subsection{Maintainability}
-The platform was built by a single developer during a brief internship,
-every architectural choice had to minimize the long-term maintenance burden.
+The platform was built by a single developer during a brief internship, so
+every architectural choice had to minimise the long-term maintenance burden.
 The platform relies on a narrow, well-understood technology
 stack rather than a fragmented mix of specialised tools.
 To keep the project manageable for future developers, it incorporates
@@ -533,7 +533,7 @@ conventional commit messages, a predictable release-train cadence
 (Section~\ref{sec:methodology}), and three distinct layers of automated
 testing (unit, integration, and end-to-end). Finally, documentation is stored
 directly alongside the code and compiled straight into the running application's
-help system, preventing the docs from drifting out of date.
+help system, preventing the documentation from drifting out of date.
 
 %--------------------------------------------------------------------
 \section*{Conclusion}

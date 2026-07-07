@@ -19,7 +19,7 @@ scope the project set out to deliver. We introduce Gradient~Zero, the
 hosting company that initiated the project, and characterise the market
 the product addresses (contract lifecycle management in the DACH
 Mittelstand) together with the regulatory, operational and commercial
-pressures that make this market actionable today. From that context we
+pressures that make this market worth addressing now. From that context we
 derive the four operational pain points the product responds to, and we
 state, at the level of scope rather than implementation, the solution we
 propose in answer to them. The chapter closes with the methodology under
@@ -34,7 +34,7 @@ build and planned as a release train of product phases.
 Gradient~Zero\footnote{\url{https://gradient0.com/}}, registered as
 \textit{Gradient Zero Softwareentwicklungs~GmbH}, is a software and
 machine-learning company founded in 2018 and headquartered in Vienna,
-Austria, operating under the banner of \textit{Machine Learning Excellence}.
+Austria, whose motto is \textit{Machine Learning Excellence}.
 Its core business is privacy-first artificial intelligence: it builds
 platforms and bespoke solutions that let organisations extract value from
 highly sensitive data without exposing it, and it develops parts of that work
@@ -46,7 +46,7 @@ analysis can run over sensitive data in a GDPR-compliant way; \textit{Daiki}
 is an AI-governance platform for managing the risks of trustworthy AI; and an
 in-house private large-language-model and retrieval-augmented-generation
 stack, a Git-based data-versioning platform certified by TÜV~Austria, and a
-library of pre-trained machine-learning methods round out the offering. These
+library of pre-trained machine-learning methods complete the portfolio. These
 products are deployed chiefly in highly regulated sectors (healthcare and
 medical research, banking and financial technology, agriculture and industrial
 automation) where data-protection law is a hard constraint, not an
@@ -64,10 +64,10 @@ Of Gradient~Zero's technology assets, the one CLMPilot is built on is
 \textbf{comby}, an internal Go framework that provides the building blocks of
 a CQRS and Event~Sourcing application: command and query dispatch, an
 event-store abstraction, projection runners, and a reactor scaffold. Comby is
-the company's strategic answer to the build-versus-buy question: where each
+the company's response to the build-versus-buy question: where each
 new product would otherwise reimplement, or import from an open-source
-project, the same plumbing for audit trails, approval workflows, and
-temporal queries, comby makes that plumbing a shared asset reused across
+project, the same infrastructure for audit trails, approval workflows, and
+temporal queries, comby makes that infrastructure a shared asset reused across
 products.
 
 Three engineering principles recur across the privacy-first portfolio, and
@@ -127,7 +127,7 @@ between 20 million and 1 billion euros in annual revenue, and operating in
 industries where contracts are central to the business: finance,
 healthcare, manufacturing and professional services.
 
-This bracket has two properties that drive product design. Contract volume
+This segment has two properties that drive product design. Contract volume
 per company is substantial: typical customers manage between 200 and
 10{,}000 active contracts at any time, with churn driven by renewal cycles.
 And the operating model is mixed: most companies run on Microsoft~365 or
@@ -165,7 +165,7 @@ holding a 35\% share in 2025~\cite{FortuneBusinessInsightsCLM}.
 Penetration in the DACH Mittelstand, however, remains low: the majority
 of companies still operate on file-share-plus-spreadsheet processes.
 
-Taken together, these pressures define a moving baseline: companies that
+These pressures compound: companies that
 handled the issue informally five years ago are increasingly forced to
 formalise their contract operations, and the tools to do so are needed
 now.
@@ -174,11 +174,11 @@ now.
 \label{sec:competitive-landscape}
 The CLM market separates into four bands that map cleanly onto the size
 and geography of the buyer. Table~\ref{tab:clm-segmentation} summarises the
-segmentation as it presents to a DACH Mittelstand customer.
+segmentation as it appears to a DACH Mittelstand customer.
 
 \begin{table}[H]
   \centering
-  \caption{CLM market segmentation as it presents to a DACH Mittelstand
+  \caption{CLM market segmentation as it appears to a DACH Mittelstand
            buyer.}
   \footnotesize
   \begin{tabularx}{\linewidth}{|>{\bfseries}l|X|X|}
@@ -195,8 +195,8 @@ segmentation as it presents to a DACH Mittelstand customer.
     \hline
     DACH niche & ContractHero, Vertbase, TopLegal & Compliance fit is good,
       but adoption requires migrating documents into the vendor's storage,
-      a multi-month project that absorbs the operational budget the
-      product is supposed to release. \\
+      a multi-month project that consumes the very budget the
+      product is meant to free up. \\
     \hline
     DIY & Excel + Outlook + file shares & Nominally free; no
       automation, no compliance tracking, no portfolio visibility. \\
@@ -255,8 +255,8 @@ answer in the absence of a CLM is \textit{``let me search my email''}.
 Email threads are not designed as auditable artefacts: they are mutable,
 they degrade through deleted accounts and expired retention windows,
 and they offer no guarantee that the version of the document approved is
-the version currently on file. Under GoBD, this gap is sufficient to fail
-an audit; under ISO~27001, it is sufficient to delay a certification.
+the version currently on file. This gap is enough to fail a GoBD audit or
+delay an ISO~27001 certification.
 
 \subsection*{No portfolio overview}
 A common executive question (\textit{``how much contract volume expires
@@ -269,7 +269,7 @@ that is out of date the moment it is produced. Strategic decisions on supplier
 consolidation, departmental budgets and M\&A diligence are routinely taken
 with this information missing.
 
-\subsection*{Approval chaos}
+\subsection*{Unstructured approvals}
 Contracts that should pass through legal review, financial review and
 management sign-off, in that order, are in practice approved through
 hallway conversations and forwarded emails. There is no enforceable
@@ -315,8 +315,8 @@ contract can be answered years after the fact.
 The methodology under which CLMPilot was built was governed by a single
 operating constraint: the work was carried out by one developer against
 a fixed set of phase milestones, with a scope that customer-discovery
-findings were still refining during the first weeks. That constraint
-also fixes the scope of this report. The internship delivered a working
+findings were still refining during the first weeks. That same scope
+bounds this report. The internship delivered a working
 pilot across three phases (foundations, the MVP, and a tier of
 enterprise features) and then turned to a planned engineering
 effort on the event-sourced system that underlies the product. For the
@@ -369,9 +369,9 @@ for one, proceeds without merge conflicts. Two practices required
 adaptation. \textit{Pair programming} is replaced by
 asynchronous review: every change reaches the protected branches
 through a pull request reviewed by the Gradient~Zero engineering team,
-and the continuous-integration gate stands in for the partner who
-keeps asking whether the tests still pass. The \textit{on-site
-customer} is played by the company supervisor: each week opens with a
+and the continuous-integration gate provides the constant verification
+a pairing partner would. The role of the \textit{on-site
+customer} is filled by the company supervisor: each week opens with a
 synchronisation meeting, the project's planning game, in which the
 prior week's commits are reviewed against the roadmap and the next
 items are selected, and architectural decisions are not on a fixed
@@ -382,7 +382,7 @@ next.
 
 \subsection{Release planning and traceability}
 In Extreme Programming, release planning fixes what each release
-contains and when it leaves. Stretched over the internship, our release
+contains and when it ships. Stretched over the internship, our release
 plan took the form of a release train of three product phases, each
 with an explicit entry gate, exit milestone and demonstrable artefact:
 \textit{Phase~0}~--~foundations (repository, CI/CD, development
@@ -418,11 +418,10 @@ control. A spreadsheet derived from that document tracks progress at
 phase, section and subsection granularity, and is automatically
 regenerated from the Markdown to keep the two in lock-step. The Git
 history uses conventional commit messages, so that every change to
-the code is attached to its motivating roadmap item by a uniform
+the code is attached to the roadmap item that motivated it by a uniform
 prefix and a free-form description. Together these artefacts make it
-possible to answer, for any line of code in the repository, the three
-questions a maintainer asks first: \textit{what does it do, why is it
-there, and which phase of the project introduced it?}
+possible to answer, for any line of code in the repository, what it
+does, why it is there, and which phase of the project introduced it.
 
 %--------------------------------------------------------------------
 \section*{Conclusion}
@@ -430,8 +429,8 @@ This chapter has framed the work that the remainder of the report
 describes. We placed CLMPilot inside Gradient~Zero's portfolio of
 European mid-market products, characterised the DACH Mittelstand as a
 segment, and showed that the regulatory, operational and
-commercial pressures on that segment have made contract lifecycle
-management an actionable need rather than a deferred ambition. From
+commercial pressures on that segment have turned contract lifecycle
+management into a pressing need. From
 that context we derived four operational pain points (missed
 deadlines, missing audit trails, absent portfolio overview, and
 unstructured approval flows) and answered them with the scope of an
