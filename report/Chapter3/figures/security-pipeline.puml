@@ -9,6 +9,7 @@
 '==============================================================================
 skinparam shadowing false
 skinparam defaultFontName Helvetica
+skinparam defaultFontSize 20
 skinparam sequenceMessageAlign center
 
 actor       "User"                               as user

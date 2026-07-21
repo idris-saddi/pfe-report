@@ -1,0 +1,44 @@
+@startuml esign-webhook
+'==============================================================================
+' Figure (Chapter IV, Electronic signature): component view of the webhook
+' return path. DocuSeal reports signer progress to a verified webhook
+' endpoint; status is applied idempotently to the SignatureRequest aggregate;
+' on completion a reactor activates the contract and links the signed PDF
+' back as a DocumentLink. A reconciliation cron self-heals missed webhooks.
+' Render:  plantuml -tsvg esign-webhook.puml  then  rsvg-convert -f pdf
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam componentStyle rectangle
+skinparam ranksep 30
+skinparam nodesep 24
+
+cloud "DocuSeal\n(e-signature provider)" as ds
+
+package "CLMPilot backend" {
+  component "Webhook endpoint\n(verifies provider signature\nbefore parsing)" as hook
+  component "Command bus" as cbus
+  component "SignatureRequest\naggregate" as sig
+  component "Signature reactor\n(contract domain)" as reactor
+  component "Contract\naggregate" as contract
+  component "DocumentLink\naggregate" as doclink
+  component "ESignatureProvider\nadapter" as adapter
+  component "Reconciliation job\n(cron)" as recon
+}
+
+ds --> hook : signer / submission\nevents (webhook)
+hook --> cbus : apply-status command\n(system dispatch, idempotent)
+cbus --> sig : status events
+sig --> reactor : SignatureCompletedEvent
+reactor --> contract : mark signed,\ndraft to active
+reactor --> adapter : fetch signed PDF
+adapter --> ds : download signed\ndocument
+reactor --> doclink : link signed PDF\nto the contract
+recon --> adapter : poll requests stuck\nin a sent state
+
+note bottom of hook
+  Routing identifiers (tenant, contract,
+  request) travel in the provider's
+  submission metadata.
+end note
+@enduml

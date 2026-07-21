@@ -18,7 +18,7 @@
 %%   pdflatex report
 %%   pdflatex report
 %%
-%% Or simply:  latexmk -pdf report.tex
+%% Or simply:  latexmk -pdf report-idris.tex
 %%==============================================================================
 \documentclass[oneside,12pt]{Classes/aesm_edspia}
 
@@ -26,6 +26,10 @@
 \usepackage{amsmath}
 \usepackage{lettrine}
 \usepackage{tabularx}
+% Breakable, non-floating tables (longtable + X columns): used for the
+% page-sized use-case description tables so they sit exactly after the
+% paragraph that introduces them and continue across page breaks.
+\usepackage{xltabular}
 \usepackage{multirow}
 \usepackage{url}
 \usepackage{textcomp}
@@ -46,6 +50,15 @@
 % Keep figures within the section that introduces them (stops floats from
 % drifting to the end of the chapter, away from their referencing text).
 \usepackage[section]{placeins}
+% Never place a float BEFORE its position in the source: figures appear in
+% reading order, at or after the paragraph that introduces them.
+\usepackage{flafter}
+% Bar floats at SUBSECTION boundaries too: a figure may never drift past the
+% next \subsection heading into content it does not belong to.
+\makeatletter
+\let\clm@subsection\subsection
+\renewcommand{\subsection}{\FloatBarrier\clm@subsection}
+\makeatother
 
 % --- Small adjustments ------------------------------------------------------
 \newcommand{\ie}{i.e.~}

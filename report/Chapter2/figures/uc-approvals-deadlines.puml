@@ -1,38 +1,43 @@
 @startuml uc-approvals-deadlines
 '==============================================================================
-' Detailed use cases: Approvals (Sec. 4.4) and Deadlines & obligations (Sec. 4.3).
-' Render:  plantuml -tsvg uc-approvals-deadlines.puml && \
-'          rsvg-convert -f pdf -o uc-approvals-deadlines.pdf uc-approvals-deadlines.svg
+' Detailed use cases: Approvals and Deadlines & obligations.
+' Standard arrangement: actors LEFT, use cases in the boundary MIDDLE, the
+' secondary System clock actor RIGHT. The workflow-template step is "Define"
+' (was "Select"). No out-of-scope actor appears here, so no scope colouring
+' (supervisor feedback).
+' Render:  make figures
 '==============================================================================
 left to right direction
 skinparam shadowing false
 skinparam defaultFontName Helvetica
 skinparam packageStyle rectangle
 skinparam actorStyle awesome
-skinparam ranksep 60
-skinparam nodesep 12
+skinparam linetype polyline
+skinparam ranksep 110
+skinparam nodesep 20
 skinparam usecase {
   BorderColor      #34495E
   BackgroundColor  #FDFEFE
   ArrowColor       #5D6D7E
 }
+skinparam actor {
+  BorderColor      #34495E
+}
 
 actor "Legal Manager" as lm
 actor "Approver"      as appr
-actor "System clock"  as clock
-actor "User"          as user
-lm   --|> user
-appr --|> user
 
 rectangle "Approvals & deadlines" {
-  usecase "Send deadline\nreminder"    as UC_remind
   usecase "Initiate approval\nworkflow" as UC_initappr
-  usecase "Select workflow\ntemplate"  as UC_template
-  usecase "Decide on approval step\n(approve / reject /\nrequest changes)" as UC_decide
-  usecase "Return contract\nto initiator" as UC_return
-  usecase "Consult approval\nhistory"  as UC_apprhist
+  usecase "Define workflow\ntemplate"  as UC_template
+  usecase "Send deadline\nreminder"    as UC_remind
   usecase "Acknowledge\ndeadline reminder" as UC_ack
   usecase "Track post-signature\nobligations" as UC_oblig
+  usecase "Consult approval\nhistory"  as UC_apprhist
+  together {
+    usecase "Decide on approval step\n(approve / reject /\nrequest changes)" as UC_decide
+    usecase "Return contract\nto initiator" as UC_return
+  }
 }
 
 lm    --> UC_initappr
@@ -42,11 +47,18 @@ lm    --> UC_ack
 lm    --> UC_oblig
 appr  --> UC_decide
 appr  --> UC_apprhist
-clock --> UC_remind
+' Base use case on the left, the included / extending use case to its
+' right; «include» points at the included case, «extend» points back at
+' the base (UML standard).
 UC_initappr ..> UC_template : <<include>>
-UC_return   ..> UC_decide   : <<extend>>
+UC_decide   <.. UC_return   : <<extend>>
 
-note bottom of UC_remind
+' Secondary actor (far right; hidden edge pushes it past the inner column)
+actor "System clock" as clock
+UC_remind --> clock
+UC_template -[hidden]-> clock
+
+ note left of UC_remind
   Fires 90 / 60 / 30 days before
   the notice window, and on close
 end note

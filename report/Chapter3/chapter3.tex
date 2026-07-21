@@ -37,7 +37,7 @@ This chapter details the architecture of CLMPilot: a structure designed
 to satisfy the platform's requirements by construction. Instead of assembling the design feature by feature, we let a few
 core forces drive the system's foundational choices.
 
-Three primary forces drive the design. \textbf{Integration-first}: contract
+3 primary forces drive the design. \textbf{Integration-first}: contract
 documents remain entirely within the customer’s own storage, meaning the platform 
 handles only their lifecycle management.
 \textbf{Compliance by architecture}: the storage model natively provides the immutable,
@@ -61,14 +61,14 @@ seams left open for future evolution (Section~\ref{sec:seams}).
 \section{Architectural drivers}
 \label{sec:arch-drivers}
 
-The non-functional requirements become five drivers. Each is a
+The non-functional requirements become 5 drivers. Each is a
 constraint any acceptable design must meet, and each reappears in the later
 chapters as the reason for a delivery-time decision.
 
 \textbf{Auditability and immutability.} GoBD requires contract records to be
-kept immutably and recoverable as of any past date for up to ten years;
+kept immutably and recoverable as of any past date for up to 10 years;
 ISO~27001 adds change tracking (Section~\ref{sec:nfr-audit}); this is the
-strongest of the five drivers, and it rules out any design in which history can be mutated,
+strongest of the 5 drivers, and it rules out any design in which history can be mutated,
 or in which the audit trail is reconstructed after the fact; what happened
 is the primary record, not a by-product of the current state.
 
@@ -141,7 +141,7 @@ projection updates the read models, and a reactor turns the new event into a
 follow-up command that creates the contract's deadlines. That is the reactor
 pattern, and the point where eventual consistency becomes visible.
 
-\pumlfig{cqrs-sequence}{0.90\textwidth}{Registering a contract as a
+\pumlfig{cqrs-sequence}{\textwidth}{Registering a contract as a
 sequence: a synchronous command path that appends an event, then
 asynchronous projection updates and a reactor that derives the contract's
 deadline reminders.}{fig:cqrs-seq}
@@ -183,8 +183,8 @@ rebuilding a projection, isolating a tenant. CLMPilot owns the \emph{what}:
 what a contract is, when an approval advances, how a deadline raises
 reminders. That split is the maintainability driver in practice.
 
-\pumlfig{comby-layers}{0.9\textwidth}{Layering of CLMPilot on comby: the four
-core domains, the enterprise contexts that extend them, and two cross-cutting
+\pumlfig{comby-layers}{0.85\textwidth}{Layering of CLMPilot on comby: the 4
+core domains, the enterprise contexts that extend them, and 2 cross-cutting
 additions sit on comby's CQRS/ES core and its multi-tenant defaults, which sit
 on the shared data stores.}{fig:comby-layers}
 
@@ -192,9 +192,9 @@ What CLMPilot inherits is large: tenancy, accounts, identities, groups,
 invitations, asset storage, and the whole authentication layer. The REST
 API and its OpenAPI document are generated from the registered commands and
 queries, so the frontend uses a generated, type-safe client. What CLMPilot
-adds is small: the four core domains of Section~\ref{sec:domain-model}, the
+adds is small: the 4 core domains of Section~\ref{sec:domain-model}, the
 handful of enterprise contexts that extend them on the same pattern
-(Section~\ref{sec:extension-contexts}), and two cross-cutting pieces: a
+(Section~\ref{sec:extension-contexts}), and 2 cross-cutting pieces: a
 middleware that blocks archived tenants, and a boot-time reactor that seeds
 the system administrators.
 Figure~\ref{fig:backend-packages} shows the same split as packages: the
@@ -202,7 +202,7 @@ domains register on comby, the satellites depend on Contract, and the
 integration and internal packages keep the external services and
 cross-cutting concerns apart.
 
-\pumlfig{backend-packages}{0.82\textwidth}{Package structure of the backend:
+\pumlfig{backend-packages}{\textwidth}{Package structure of the backend:
 the core and enterprise domains register on comby, the satellites reference
 Contract, and the integration and internal packages isolate the external
 services and the cross-cutting concerns.}{fig:backend-packages}
@@ -240,7 +240,7 @@ were considered.
     \hline
     Axon Framework & Java/JVM & Mature CQRS and Event~Sourcing, but no
       multi-tenant identity layer; would require a JVM service. &
-      Open-source; adopting it would split the stack across two languages.
+      Open-source; adopting it would split the stack across 2 languages.
       \\
     \hline
     EventFlow & .NET & CQRS/ES primitives for the .NET ecosystem; tenancy
@@ -255,7 +255,7 @@ were considered.
   \label{tab:framework-comparison}
 \end{table}
 
-Three points decide it: comby is Go-native, so the backend stays one
+3 points decide it: comby is Go-native, so the backend stays one
 language. Its CQRS/ES primitives are proven, so they need not be rebuilt.
 And its defaults supply the biggest saving: the tenancy, identity, RBAC
 and invitation logic that every other option would leave to the project.
@@ -266,7 +266,7 @@ and EventFlow are the wrong ecosystem.
 \section{Domain model overview}
 \label{sec:domain-model}
 
-The requirements of Chapter~\ref{chap:analysis} decompose into four core
+The requirements of Chapter~\ref{chap:analysis} decompose into 4 core
 \textit{bounded contexts}, each with its own aggregate, events
 and rules. We give them here at the conceptual level (responsibilities and
 relationships) and their realisation in Chapter~\ref{chap:realisation}.
@@ -277,14 +277,14 @@ end of this section so the core model stays readable.
 \subsection{Bounded contexts}
 \label{sec:bounded-contexts}
 
-Figure~\ref{fig:domains} shows the four. Contract is central; Approval,
-Deadline and DocumentLink each reference it. All four sit inside a tenant
+Figure~\ref{fig:domains} shows the 4. Contract is central; Approval,
+Deadline and DocumentLink each reference it. All 4 sit inside a tenant
 boundary: every instance belongs to one tenant, and no relationship
 crosses it. Identity and the audit log are absent here: they are
 platform concerns owned by the framework (Section~\ref{sec:comby-role}), not
 business contexts.
 
-\pumlfig{domain-model}{0.85\textwidth}{The four bounded contexts and their
+\pumlfig{domain-model}{0.85\textwidth}{The 4 bounded contexts and their
 relationships, within the enclosing tenant boundary.}{fig:domains}
 
 \subsection{Aggregate responsibilities}
@@ -314,7 +314,7 @@ aggregate serves all providers, through provider-specific adapters.
 \subsection{Behavioural views: lifecycle and workflow}
 \label{sec:behavioural-views}
 
-Two contexts are clearest through their behaviour.
+2 contexts are clearest through their behaviour.
 Figure~\ref{fig:contract-states} is the Contract state machine. A contract
 starts as a \textit{draft}, goes \textit{active} once approved, may turn
 \textit{expiring} near its end date and then \textit{expire}; an active
@@ -322,8 +322,9 @@ contract can instead be \textit{terminated} early. Both paths end in
 \textit{archived}. Each transition is a command or a time-driven event, so the diagram
 is a compact summary of a contract's audit trail.
 
-\pumlfig{contract-lifecycle}{0.8\textwidth}{State machine of the Contract
-aggregate.}{fig:contract-states}
+\pumlfig{contract-lifecycle}{0.5\textwidth}{State machine of the Contract
+aggregate.\\Soft delete (tombstone) and restore are available from any state and are omitted
+ here for clarity.}{fig:contract-states}
 
 Figure~\ref{fig:approval-activity} shows the approval workflow as activity.
 The Legal~Manager starts it against a template of ordered steps. Each
@@ -352,7 +353,7 @@ allowing organisations to record their own custom attributes against contracts w
 altering the core aggregate. \textbf{Reporting and analytics}, finally, are handled by a family of read projections driven 
 by the events that other contexts already emit. 
 
-These capabilities arrived as new contexts and projections, not as edits to the four
+These capabilities arrived as new contexts and projections, not as edits to the 4
 core aggregates: the decomposition let the enterprise features extend the model at its seams,
 without disturbing its core.
 
@@ -360,7 +361,7 @@ without disturbing its core.
 \section{System topology}
 \label{sec:topology}
 
-The structure has two views: a \textit{component} view (which services
+The structure has 2 views: a \textit{component} view (which services
 exist, and through which interfaces) and a \textit{deployment} view (where
 the code runs and the data is stored). Both describe the design; the operational
 detail (the host, the reverse proxy, the backups, the release process)
@@ -373,7 +374,7 @@ The services connect through a small set of named interfaces
 (Figure~\ref{fig:component-view}). The
 backend provides one interface, the generated REST/OpenAPI contract, which
 the frontend consumes through its generated client. The backend requires
-three: \texttt{IntelligenceClient} from the intelligence service,
+3: \texttt{IntelligenceClient} from the intelligence service,
 \texttt{Email} from the mail provider, and \texttt{DocumentStore} behind
 which the cloud storage adapters sit.
 
@@ -383,11 +384,11 @@ which the cloud storage adapters sit.
 \label{sec:deployment-topology}
 
 The deployment runs as a single EU-hosted Docker~Compose stack
-(Figure~\ref{fig:topology}). Three runtime services come from their own
+(Figure~\ref{fig:topology}). 3 runtime services come from their own
 repositories -- the \textbf{backend} (Go, on comby), the \textbf{frontend}
 (Vue~3 SPA) and the \textbf{intelligence} service (Python, backed by a large
 language model) -- while a fourth repository carries the deployment stack
-itself. The services are backed by four stores. \textbf{PostgreSQL} is the system of
+itself. The services are backed by 4 stores. \textbf{PostgreSQL} is the system of
 record (the event store and the command store) and the source every read
 model is rebuilt from. \textbf{Redis} holds sessions and accelerates read
 models. \textbf{NATS} is the message broker that carries events to
@@ -408,16 +409,16 @@ and DocuSeal for electronic signature, each behind a named interface so the
 concrete provider is interchangeable; ERP integration is anticipated in the
 design but not yet built.
 
-\subsection{Why a four-repository split}
+\subsection{Why a 4-repository split}
 \label{sec:repo-split}
 
-The four repositories separate by concern and release cadence, not by
+The 4 repositories separate by concern and release cadence, not by
 microservice~\cite{Newman2021}: there is one backend, not many. The split
 buys independence: the frontend ships without rebuilding the backend; a Go
 domain, a TypeScript UI, a Python service and a YAML operations stack stay in
 their own toolchains; a broken intelligence build cannot block a release;
 and each repository carries a small, fast CI pipeline. The cost is that a
-cross-cutting change (like a new API field) touches two repositories.
+cross-cutting change (like a new API field) touches 2 repositories.
 That is accepted, because the OpenAPI contract makes the seam an explicit,
 regenerated artefact that a build step keeps in sync across both.
 
@@ -436,7 +437,7 @@ structure already in place.
 \subsection{Identity and access model}
 \label{sec:identity-model}
 
-The model has four levels from the comby defaults, shown in
+The model has 4 levels from the comby defaults, shown in
 Figure~\ref{fig:identity-model}. A \textbf{tenant} is a customer
 organisation. An \textbf{account} is a person's login, which may hold an
 \textbf{identity} in more than one tenant: the same person can act in
@@ -445,7 +446,7 @@ within a tenant (Legal, Finance, Admin); a \textbf{permission} is the right
 to run a given command or query. Access control is role-based and always
 scoped to a tenant.
 
-\pumlfig{identity-model}{0.5\textwidth}{The identity and access model.}{fig:identity-model}
+\pumlfig{identity-model}{\textwidth}{The identity and access model.}{fig:identity-model}
 
 Above the per-tenant model sits the platform \textbf{system administrator}:
 a small, seeded set of operator accounts in a reserved system tenant, able
@@ -465,15 +466,12 @@ From that point, authorisation is a stage every request passes through: the
 framework enforces it, so the application never has to invoke it explicitly. The framework resolves the
 caller's identity and tenant once, from the session, then checks each command
 or query against the caller's permissions \emph{before} it reaches a domain
-handler. Figure~\ref{fig:security-pipeline} shows the two halves: identity is
+handler. Figure~\ref{fig:security-pipeline} shows the 2 halves: identity is
 established at the edge, and authorisation runs at dispatch, within the
 caller's tenant. A request beyond the caller's authority, or one aimed at
 another tenant, is refused at the boundary; and because the tenant context
 is taken from the session rather than from the request, the ordinary API
 has no way to address another tenant's data at all.
-
-$$$$
-$$$$
 
 \pumlfig{security-pipeline}{0.88\textwidth}{The request security pipeline}
 {fig:security-pipeline}
@@ -500,7 +498,7 @@ independent layers, each of which would hold if an outer one were bypassed
 (Figure~\ref{fig:security-layers}). The network perimeter exposes only the
 reverse proxy and keeps the stores on an internal-only network, unaddressable
 from outside (Section~\ref{sec:deployment-topology}). Authentication and
-per-tenant authorisation are the two layers just described. Beneath those two
+per-tenant authorisation are the 2 layers just described. Beneath those 2
 layers is the tenant isolation that all of the compliance guarantees depend on,
 and at the core the immutable event log, which serves as both the system of
 record and the audit trail.
@@ -547,7 +545,7 @@ it from the start. The capability is present from the outset; only the
 translations themselves are deferred, which keeps activating a new language
 later cheap.
 
-Human-readable text appears in two places, one per process. The single-page
+Human-readable text appears in 2 places, one per process. The single-page
 application carries message catalogues, one per locale, for every label and
 message; the backend renders its own outbound text, email above all, in
 the recipient's locale. The two are connected by the locale itself: a user's
@@ -563,7 +561,7 @@ in the user's zone.
 \label{sec:seams}
 
 The architecture described so far is the structure the realised platform runs
-on. It also fixes where that structure is meant to grow. Three seams were left 
+on. It also fixes where that structure is meant to grow. 3 seams were left 
 open.
 
 The first seam is \textbf{multi-tenancy in the framework itself}. Isolation
@@ -581,7 +579,7 @@ Read models are projections held in memory and rebuilt by replaying the event
 log (Section~\ref{sec:why-cqrs-es}); the log is append-only and never
 compacted, and the write side assumes a single active instance. At MVP volume
 this is the right trade-off (it keeps operations simple), but
-it sets three clear growth points: snapshotting and projection persistence so
+it sets 3 clear growth points: snapshotting and projection persistence so
 that start-up does not depend on a full replay, an archival and partitioning
 strategy as the log grows without bound, and the multi-instance topology,
 fanned out through the message broker, that Section~\ref{sec:deployment-topology}
@@ -598,14 +596,14 @@ surround a contract, which the realised platform does not touch at all.
 
 %--------------------------------------------------------------------
 \section*{Conclusion}
-This chapter set out the architecture the rest of the report delivers. Five
+This chapter set out the architecture the rest of the report delivers. 5
 drivers (auditability, integration-first design, EU data residency,
 multi-tenant isolation and maintainability) led to CQRS and
 Event~Sourcing, because together they make the compliance-grade audit trail
 a property of the storage itself. The comby framework
 supplies those patterns and the multi-tenant components, which is what lets
 us cover the platform's requirements with only a small amount of custom code. The
-requirements map onto a four-context core domain model (Contract, Approval,
+requirements map onto a 4-context core domain model (Contract, Approval,
 Deadline and DocumentLink, extended at its seams by the enterprise contexts)
 on a multi-repository, single-backend topology hosted in the EU, with tenant isolation
 and the audit trail as structural guarantees. Its open seams mark where the

@@ -1,0 +1,74 @@
+@startuml contract-domain
+'==============================================================================
+' Figure (Chapter IV, The contract domain and its lifecycle): the realised
+' Contract + DocumentLink model with its events, the per-tenant custom-field
+' definitions the contract validates against, and the provider adapters
+' behind the DocumentStore interface.
+' Render:  plantuml -tsvg contract-domain.puml  then  rsvg-convert -f pdf
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam classAttributeIconSize 0
+hide circle
+hide methods
+
+package "Contract context" {
+  class Contract <<aggregate>> {
+    counterparty
+    type, department
+    status : lifecycle
+    value, currency
+    start / end dates
+    renewal terms
+    custom-field values : typed
+    detected clauses
+  }
+  class "Contract events" as CEv <<event>> {
+    Registered / Updated
+    Terminated / Archived / Restored
+    ClausesDetected
+    AuditReportRequested
+  }
+  Contract .right.> CEv : emits
+}
+
+package "CustomField context" {
+  class CustomFieldDefinition <<aggregate>> {
+    key : immutable
+    type : immutable
+    label, required
+    options, order
+  }
+}
+
+package "DocumentLink context" {
+  class DocumentLink <<aggregate>> {
+    provider
+    external reference
+    file name, MIME type
+    last synchronised
+  }
+  class "DocumentLink events" as DEv <<event>> {
+    Linked / Unlinked
+    MetadataRefreshed
+  }
+  DocumentLink .right.> DEv : emits
+
+  interface DocumentStore <<interface>>
+  class GoogleDriveAdapter <<adapter>>
+  class SharePointAdapter <<adapter>>
+  class UrlAdapter <<adapter>>
+  DocumentStore <|.. GoogleDriveAdapter
+  DocumentStore <|.. SharePointAdapter
+  DocumentStore <|.. UrlAdapter
+  DocumentLink ..> DocumentStore : metadata at\nlink / refresh
+}
+
+Contract "1" -- "0..*" DocumentLink
+Contract ..> CustomFieldDefinition : values validated\nagainst definitions
+
+note bottom of DocumentLink
+  A typed reference only: the platform
+  never stores the document's contents.
+end note
+@enduml

@@ -1,0 +1,47 @@
+@startuml enrichment-flow
+'==============================================================================
+' Figure (Chapter IV, Document intelligence): a document link fires the
+' enrichment reactor, which downloads the bytes, calls the intelligence
+' service (extraction + clause detection behind the LLM gateway) and folds
+' the results onto the contract, filling only fields the user left empty.
+' Render:  plantuml -tsvg enrichment-flow.puml  then  rsvg-convert -f pdf
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam sequenceMessageAlign center
+
+queue "Broker (NATS)" as broker
+participant "Enrichment\nreactor" as enrich
+participant "DocumentStore\nadapter" as store
+participant "Intelligence\nservice (Python)" as intel
+participant "LLM gateway\n(hosted model + cache)" as llm
+participant "Contract\naggregate" as agg
+database "Event store\n(PostgreSQL)" as es
+
+broker -> enrich : DocumentLinkedEvent
+activate enrich
+note right of enrich
+  Runs detached from the linking
+  request: five-minute ceiling,
+  panic guard.
+end note
+enrich -> store : download document bytes\n(50 MiB cap)
+store --> enrich : bytes
+enrich -> intel : extract metadata
+activate intel
+intel -> llm : prompt (typed output schema)
+llm --> intel : structured metadata\n(content-addressed cache)
+intel --> enrich : counterparty, dates,\nvalue, type
+deactivate intel
+enrich -> intel : detect clauses
+activate intel
+intel -> llm : prompt (14-clause taxonomy)
+llm --> intel : candidate clauses
+intel -> intel : verbatim-snippet guard:\ndiscard unquoted clauses
+intel --> enrich : validated clauses
+deactivate intel
+enrich -> agg : dispatch ContractCommandUpdate\n(fill empty fields only)
+enrich -> agg : record detected clauses
+deactivate enrich
+agg -> es : append ContractUpdatedEvent,\nContractClausesDetectedEvent
+@enduml

@@ -20,7 +20,7 @@ hosting company that initiated the project, and characterise the market
 the product addresses (contract lifecycle management in the DACH
 Mittelstand) together with the regulatory, operational and commercial
 pressures that make this market worth addressing now. From that context we
-derive the four operational pain points the product responds to, and we
+derive the 4 operational pain points the product responds to, and we
 state, at the level of scope rather than implementation, the solution we
 propose in answer to them. The chapter closes with the methodology under
 which the work was organised: Extreme Programming, adapted to a solo
@@ -52,17 +52,12 @@ medical research, banking and financial technology, agriculture and industrial
 automation) where data-protection law is a hard constraint, not an
 afterthought.
 
-CLMPilot, the subject of this report, belongs to the products-and-ventures
-side of that portfolio. It is Gradient~Zero's contract-management offering,
-and the most recent product built end-to-end on \textbf{comby}, the company's
-in-house Command-Query Responsibility Segregation (CQRS) and Event~Sourcing
-backend~\cite{Young2010,FowlerCQRS,FowlerEventSourcing}. The platform is
-publicly available at \url{https://clmpilot.com}.
-
 \subsection{Areas of expertise}
 Of Gradient~Zero's technology assets, the one CLMPilot is built on is
 \textbf{comby}, an internal Go framework that provides the building blocks of
-a CQRS and Event~Sourcing application: command and query dispatch, an
+a Command-Query Responsibility Segregation (CQRS) and Event~Sourcing
+application~\cite{Young2010,FowlerCQRS,FowlerEventSourcing}: command and
+query dispatch, an
 event-store abstraction, projection runners, and a reactor scaffold. Comby is
 the company's response to the build-versus-buy question: where each
 new product would otherwise reimplement, or import from an open-source
@@ -70,8 +65,8 @@ project, the same infrastructure for audit trails, approval workflows, and
 temporal queries, comby makes that infrastructure a shared asset reused across
 products.
 
-Three engineering principles recur across the privacy-first portfolio, and
-CLMPilot inherits all three. The first is \textit{compliance by architecture}:
+3 engineering principles recur across the privacy-first portfolio, and
+CLMPilot inherits all 3. The first is \textit{compliance by architecture}:
 immutable event logs satisfy GoBD and ISO~27001 requirements without
 bolt-on audit features. The second is to \textit{overlay existing systems
 rather than replace them}: the products are not built to become the system
@@ -82,23 +77,6 @@ CLMPilot applies it to contract documents specifically. The third is a
 \textit{DACH-first product design}: German-first user experience,
 German tax-law constraints, and EU-hosted infrastructure as defaults,
 not premium add-ons.
-
-\subsection{Team and supervision}
-The CLMPilot project was carried out as a solo build by the author of this
-report, supervised by Mr.~Artur~Susdorf, Chief Technology Officer of
-Gradient~Zero, through a weekly synchronisation meeting at the start
-of each week. The release-train cadence detailed in
-Section~\ref{sec:methodology} -- Phase~0 (foundations), Phase~1 (the MVP)
-and Phase~2 (enterprise features), followed by a planned
-engineering effort on the event-sourced system itself -- was set jointly
-with the company supervisor at the start of the internship and
-adjusted in light of customer-discovery findings during the first
-weeks.
-
-Academic supervision was provided by Dr.~Aymen~SELLAOUTI, whose role
-focused on the academic framing of the project: the soundness of the
-architectural choices, the rigour of the methodology, and the structure of
-this report.
 
 %--------------------------------------------------------------------
 \section{Project context: CLM in the DACH Mittelstand}
@@ -127,16 +105,16 @@ between 20 million and 1 billion euros in annual revenue, and operating in
 industries where contracts are central to the business: finance,
 healthcare, manufacturing and professional services.
 
-This segment has two properties that drive product design. Contract volume
+This segment has 2 properties that drive product design. Contract volume
 per company is substantial: typical customers manage between 200 and
 10{,}000 active contracts at any time, with churn driven by renewal cycles.
 And the operating model is mixed: most companies run on Microsoft~365 or
 Google~Workspace for daily work, retain a small in-house IT function, and
-have neither the budget nor the appetite for a six-month enterprise
+have neither the budget nor the appetite for a 6-month enterprise
 software rollout.
 
 \subsection{Market and compliance pressure}
-Three structural pressures make CLM a present concern for Mittelstand
+3 structural pressures make CLM a present concern for Mittelstand
 decision-makers.
 
 The first pressure is \textbf{regulatory}. The German \textit{Grundsätze
@@ -144,7 +122,7 @@ zur ordnungsmäßigen Führung und Aufbewahrung von Büchern, Aufzeichnungen
 und Unterlagen in elektronischer Form sowie zum Datenzugriff} (GoBD)
 requires that electronic business records, contracts among them, be
 retained immutably, with a verifiable audit trail, for periods of up to
-ten years. ISO~27001 certification, increasingly demanded by customers in
+10 years. ISO~27001 certification, increasingly demanded by customers in
 B2B sales, imposes parallel requirements on access control and change
 tracking. The European General Data Protection Regulation (GDPR) adds
 data-residency and processing-record obligations on top of both.
@@ -166,13 +144,13 @@ Penetration in the DACH Mittelstand, however, remains low: the majority
 of companies still operate on file-share-plus-spreadsheet processes.
 
 These pressures compound: companies that
-handled the issue informally five years ago are increasingly forced to
+handled the issue informally 5 years ago are increasingly forced to
 formalise their contract operations, and the tools to do so are needed
 now.
 
 \subsection{Competitive landscape}
 \label{sec:competitive-landscape}
-The CLM market separates into four bands that map cleanly onto the size
+The CLM market separates into 4 bands that map cleanly onto the size
 and geography of the buyer. Table~\ref{tab:clm-segmentation} summarises the
 segmentation as it appears to a DACH Mittelstand customer.
 
@@ -211,35 +189,21 @@ with an up-front document-migration cost that pushes mid-market customers back
 toward DIY. The positioning chosen for CLMPilot, to manage the lifecycle
 of contracts whose documents \textit{stay in their original storage},
 avoids that cost, and drives many of the architectural choices presented in
-Chapter~\ref{chap:arch}. Figure~\ref{fig:context} draws that positioning as
-a system boundary: CLMPilot owns the contract's metadata, deadlines,
-approvals and audit trail, while the document itself never leaves the
-customer's storage.
-
-\begin{figure}[H]\centering
-  \IfFileExists{Chapter1/figures/context.pdf}
-    {\includegraphics[width=0.92\linewidth]{context}}
-    {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
-      \textit{Diagram to be rendered from} \texttt{figures/context.puml}\vspace{2em}}}}
-  \caption{System context: CLMPilot manages the contract lifecycle
-           (metadata, deadlines, approvals and the audit trail) while the
-           documents stay in the customer's own storage.}
-  \label{fig:context}
-\end{figure}
+Chapter~\ref{chap:arch}.
 
 %--------------------------------------------------------------------
 \section{Problem statement}
 \label{sec:problem-statement}
 
-From customer-discovery interviews with target Mittelstand companies, four
+From customer-discovery interviews with target Mittelstand companies, 4
 pain points recur consistently, each with a distinct operational and
 financial cost. The platform this report presents can be read as a
-structured response to these four problems.
+structured response to these 4 problems.
 
 \subsection*{Missed deadlines}
 The default outcome for a contract whose renewal window is unmonitored is
 silent auto-renewal. A typical multi-year vendor agreement triggers a
-one-year extension if it is not formally cancelled in a 30~to~90 day
+1-year extension if it is not formally cancelled in a 30~to~90 day
 window before its expiry; in practice these windows pass unnoticed because
 no system is responsible for flagging them. The financial cost per
 incident varies, from a few hundred euros for a low-value subscription
@@ -261,7 +225,7 @@ delay an ISO~27001 certification.
 \subsection*{No portfolio overview}
 A common executive question (\textit{``how much contract volume expires
 in Q3?''}, \textit{``what is our renegotiation leverage with vendor~X over
-the next six months?''}, \textit{``which suppliers will we exceed the
+the next 6 months?''}, \textit{``which suppliers will we exceed the
 agreed thresholds with?''}) has no good answer in a file-share-based
 contract operation. The data exists, but its retrieval is a manual
 exercise that consumes a person-week of effort and produces a snapshot
@@ -280,7 +244,7 @@ chain is, by itself, sufficient grounds for fines or for the invalidation
 of the contract concerned.
 
 \medskip\noindent
-These four pain points are not independent. They share a common cause
+These 4 pain points are not independent. They share a common cause
 (the lack of a system that treats the contract lifecycle as a managed
 entity with its own metadata, deadlines, approvals and audit log) and
 they share a common solution, which the next section states as the
@@ -291,15 +255,30 @@ scope of this project.
 \label{sec:proposed-solution}
 
 We propose an integration-first contract lifecycle management platform
-that answers the four pain points at their common root, by treating the
+that answers the 4 pain points at their common root, by treating the
 contract lifecycle as a first-class object. At its centre is a contract
 registry that carries each agreement's metadata, deadlines, approvals and
 audit history, and thereby gives the organisation the consolidated
 portfolio view it lacks today. The documents stay in the customer's own
 storage: the platform links to files there rather than ingesting them,
 so adoption carries no document-migration project.
+Figure~\ref{fig:context} draws this positioning as
+a system boundary: CLMPilot owns the contract's metadata, deadlines,
+approvals and audit trail, while the document itself never leaves the
+customer's storage.
 
-Around that registry, three capabilities address the remaining pain
+\begin{figure}[H]\centering
+  \IfFileExists{Chapter1/figures/context.pdf}
+    {\includegraphics[width=0.8\linewidth]{context}}
+    {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
+      \textit{Diagram to be rendered from} \texttt{figures/context.puml}\vspace{2em}}}}
+  \caption{System context: CLMPilot manages the contract lifecycle
+           (metadata, deadlines, approvals and the audit trail) while the
+           documents stay in the customer's own storage.}
+  \label{fig:context}
+\end{figure}
+
+Around that registry, 3 capabilities address the remaining pain
 points directly. Automated reminders flag every cancellation, renewal
 and expiry window before it passes, returning renewal decisions to the
 people responsible for them. Enforceable approval workflows replace
@@ -317,16 +296,34 @@ operating constraint: the work was carried out by one developer against
 a fixed set of phase milestones, with a scope that customer-discovery
 findings were still refining during the first weeks. That same scope
 bounds this report. The internship delivered a working
-pilot across three phases (foundations, the MVP, and a tier of
+pilot across 3 phases (foundations, the MVP, and a tier of
 enterprise features) and then turned to a planned engineering
 effort on the event-sourced system that underlies the product. For the
 build itself we adopted \textit{Extreme Programming}
 (XP)~\cite{Beck2004}, an agile methodology suited to exactly these
 conditions, in the solo variant described for a single
-developer~\cite{C2XPForOne}. The subsections that follow define the
+developer~\cite{C2XPForOne}. The subsections that follow describe the
+team and supervision under which the work ran, define the
 methodology, state how its base practices were applied, explain how its
 team-oriented practices were adapted to a solo build, and describe the
 release planning and traceability that organised the work.
+
+\subsection{Team and supervision}
+The CLMPilot project was carried out as a solo build by the author of this
+report, supervised by Mr.~Artur~Susdorf, Chief Technology Officer of
+Gradient~Zero, through a weekly synchronisation meeting at the start
+of each week. The release-train cadence detailed at the end of this
+section -- Phase~0 (foundations), Phase~1 (the MVP)
+and Phase~2 (enterprise features), followed by a planned
+engineering effort on the event-sourced system itself -- was set jointly
+with the company supervisor at the start of the internship and
+adjusted in light of customer-discovery findings during the first
+weeks.
+
+Academic supervision was provided by Dr.~Aymen~SELLAOUTI, whose role
+focused on the academic framing of the project: the soundness of the
+architectural choices, the rigour of the methodology, and the structure of
+this report.
 
 \subsection{The Extreme Programming methodology}
 Extreme Programming is an agile methodology introduced by Kent~Beck,
@@ -336,7 +333,7 @@ requirements~\cite{Beck2004}. Its purpose is to lower the cost of
 change: instead of fixing every requirement up front, an XP project
 advances in short cycles, each of which leaves the product working,
 tested and deliverable, so that feedback arrives while it can still
-alter the plan. The methodology rests on five values (communication,
+alter the plan. The methodology rests on 5 values (communication,
 simplicity, feedback, courage and respect) and makes them operational
 through a set of concrete practices, among them the planning game,
 small releases, testing, refactoring, simple design, coding standards,
@@ -365,7 +362,7 @@ Extreme Programming is written for teams, and some of its practices
 presuppose a second person; the literature nonetheless describes its
 use by a single developer~\cite{C2XPForOne}, and parts of the
 discipline become simpler in that setting: continuous integration,
-for one, proceeds without merge conflicts. Two practices required
+for one, proceeds without merge conflicts. 2 practices required
 adaptation. \textit{Pair programming} is replaced by
 asynchronous review: every change reaches the protected branches
 through a pull request reviewed by the Gradient~Zero engineering team,
@@ -383,7 +380,7 @@ next.
 \subsection{Release planning and traceability}
 In Extreme Programming, release planning fixes what each release
 contains and when it ships. Stretched over the internship, our release
-plan took the form of a release train of three product phases, each
+plan took the form of a release train of 3 product phases, each
 with an explicit entry gate, exit milestone and demonstrable artefact:
 \textit{Phase~0}~--~foundations (repository, CI/CD, development
 environment, planning); \textit{Phase~1}~--~the MVP itself, covering the
@@ -392,11 +389,11 @@ IAM; and \textit{Phase~2}~--~enterprise features on top of the MVP
 (intelligence-assisted extraction, electronic signature, per-tenant custom
 fields, obligation tracking and advanced reporting). Each of these phases
 advances the product to a state in which it can be deployed and used; no
-phase is internal-only, and all three were realised and shipped to
+phase is internal-only, and all 3 were realised and shipped to
 production. The internship then moved past the product release train to a
 fourth kind of work: a planned engineering effort on the
 event-sourced framework itself.
-Figure~\ref{fig:release-train} shows the three realised phases, the gates
+Figure~\ref{fig:release-train} shows the 3 realised phases, the gates
 between them, and the evolution that follows.
 
 \begin{figure}[H]\centering
@@ -404,7 +401,7 @@ between them, and the evolution that follows.
     {\includegraphics[width=0.62\linewidth]{release-train}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
       \textit{Diagram to be rendered from} \texttt{figures/release-train.puml}\vspace{2em}}}}
-  \caption{The release-train delivery model: three scope-sized product
+  \caption{The release-train delivery model: 3 scope-sized product
            phases with absolute gates, all realised in this report
            (Chapter~\ref{chap:realisation}), followed by the
            evolution of the event-sourced system
@@ -412,7 +409,30 @@ between them, and the evolution that follows.
   \label{fig:release-train}
 \end{figure}
 
-Traceability is enforced by three artefacts. The roadmap is the single
+Figure~\ref{fig:gantt} places the release train on the calendar of the
+internship, together with the sub-phases each phase carried. The
+foundations of Phase~0 occupied the second half of April~2026. Phase~1
+delivered the MVP across May and the first half of June, its backend,
+web application and launch hardening overlapping as the roadmap
+sections completed, and with the platform in production and re-released
+continuously well before the phase gate. Phase~2 delivered the
+enterprise tier over the remainder of June and the first half of July,
+and the rest of the internship, to the end of September, carries the
+planned engineering work on the event-sourced system.
+
+\begin{figure}[H]\centering
+  \IfFileExists{Chapter1/figures/gantt.pdf}
+    {\includegraphics[width=0.92\linewidth]{gantt}}
+    {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
+      \textit{Diagram to be rendered from} \texttt{figures/gantt.puml}\vspace{2em}}}}
+  \caption{Project timeline: the 3 realised phases of the release
+           train with their sub-phases and gates, and the planned
+           engineering effort on the event-sourced system that follows
+           them.}
+  \label{fig:gantt}
+\end{figure}
+
+Traceability is enforced by 3 artefacts. The roadmap is the single
 source of truth and is held in a Markdown document under version
 control. A spreadsheet derived from that document tracks progress at
 phase, section and subsection granularity, and is automatically
@@ -431,19 +451,20 @@ European mid-market products, characterised the DACH Mittelstand as a
 segment, and showed that the regulatory, operational and
 commercial pressures on that segment have turned contract lifecycle
 management into a pressing need. From
-that context we derived four operational pain points (missed
+that context we derived 4 operational pain points (missed
 deadlines, missing audit trails, absent portfolio overview, and
 unstructured approval flows) and answered them with the scope of an
-integration-first platform that manages a contract's lifecycle while its
-documents stay in the customer's own storage. Finally, we set out the
-Extreme Programming methodology under which the work was carried out,
-its adaptation to a solo build, and the release planning and
+integration-first platform that manages a contract's lifecycle while
+its documents stay in the customer's own storage. Finally, we set out
+the Extreme Programming methodology under which the work was carried
+out, its adaptation to a solo build, and the release planning and
 traceability that supported it.
 
 With the context and the scope established,
 Chapter~\ref{chap:analysis} refines them into a specification: the
-actors the platform serves, the use cases they initiate, and the
-functional and non-functional requirements the solution must satisfy.
+actors the platform serves, the functional and non-functional
+requirements the solution must satisfy, and the use cases through
+which they are exercised.
 
 %==============================================================================
 \end{spacing}

@@ -9,6 +9,7 @@
 '==============================================================================
 skinparam shadowing false
 skinparam defaultFontName Helvetica
+skinparam defaultFontSize 20
 skinparam activity {
   BackgroundColor #F4F4F8
   BorderColor #6B6B8A

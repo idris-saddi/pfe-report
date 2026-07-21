@@ -1,0 +1,47 @@
+@startuml repos
+'==============================================================================
+' Figure (Chapter IV, Engineering foundations): the four repositories and what
+' each owns. Grounded in Phase 0 (repository setup, CI/CD) and the realised
+' split: backend (Go on comby), frontend (Vue 3 + Quasar SPA), intelligence
+' (Python extraction service), deployment (operations stack).
+' Render:  plantuml -tsvg repos.puml  then  rsvg-convert -f pdf
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+skinparam linetype ortho
+skinparam ranksep 40
+skinparam nodesep 30
+
+package "clmpilot-backend" as be {
+  [Domain contexts\n(Go on comby)] as bedom
+  [REST API and\nOpenAPI export] as beapi
+}
+
+package "clmpilot-frontend" as fe {
+  [Single-page application\n(Vue 3 + Quasar)] as fespa
+  [Generated API client] as fecli
+}
+
+package "clmpilot-intelligence" as intel {
+  [Extraction service\n(Python)] as intsvc
+}
+
+package "clmpilot-deployment" as dep {
+  [Compose stack, reverse proxy\nand service-unit configuration] as depstack
+  [Operational scripts\nand runbooks] as depops
+}
+
+fecli .up.> beapi : OpenAPI contract\n(client regenerated)
+bedom .right.> intsvc : IntelligenceClient (HTTP)
+dep .up.> fe : deploys\nversion-pinned images
+dep .up.> intel : deploys\nversion-pinned images
+
+note right of dep
+  Each repository carries its own CI pipeline
+  (lint + test + build); the three application
+  pipelines end in a version-tagged Docker
+  image published to the container registry.
+end note
+@enduml

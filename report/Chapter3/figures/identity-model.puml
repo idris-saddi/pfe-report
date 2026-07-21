@@ -7,6 +7,8 @@
 '==============================================================================
 skinparam shadowing false
 skinparam defaultFontName Helvetica
+skinparam defaultFontSize 20
+left to right direction
 hide circle
 hide methods
 hide empty members
@@ -22,7 +24,7 @@ Tenant   "1" --> "0..*" Identity : scopes
 Identity "*" --> "*"    Group    : member of
 Group    "1" --> "1..*" Permission : grants
 
-note bottom of Tenant
+note top of Tenant
   One customer organisation per tenant.
   A reserved system tenant holds the
   platform's system administrators.

@@ -1,25 +1,29 @@
 @startuml uc-contracts
 '==============================================================================
-' Detailed use cases: Contracts & documents (Sec. 4.1-4.2, enterprise 4.8).
-' Render:  plantuml -tsvg uc-contracts.puml && \
-'          rsvg-convert -f pdf -o uc-contracts.pdf uc-contracts.svg
+' Detailed use cases: Contracts & documents.
+' Standard arrangement: actor LEFT, use cases in the boundary MIDDLE, the
+' external LLM (intelligence service) actor RIGHT. No out-of-scope actor
+' appears here, so no scope colouring (supervisor feedback).
+' Render:  make figures
 '==============================================================================
 left to right direction
 skinparam shadowing false
 skinparam defaultFontName Helvetica
 skinparam packageStyle rectangle
 skinparam actorStyle awesome
-skinparam ranksep 60
-skinparam nodesep 12
+skinparam linetype polyline
+skinparam ranksep 110
+skinparam nodesep 20
 skinparam usecase {
   BorderColor      #34495E
   BackgroundColor  #FDFEFE
   ArrowColor       #5D6D7E
 }
+skinparam actor {
+  BorderColor      #34495E
+}
 
 actor "Legal Manager" as lm
-actor "User"          as user
-lm --|> user
 
 rectangle "Contracts & documents" {
   usecase "Register contract"     as UC_register
@@ -39,7 +43,13 @@ lm --> UC_search
 lm --> UC_attach
 lm --> UC_detach
 lm --> UC_esign
-UC_intel ..> UC_attach : <<extend>>
+' Base use case on the left; the extending use case sits to its right,
+' with the «extend» arrowhead still pointing at the base (UML standard).
+UC_attach <.. UC_intel : <<extend>>
+
+' External actor (far right)
+actor "LLM\n(intelligence service)" as llm
+UC_intel --> llm
 
 note bottom of UC_archive
   Archive only — no hard

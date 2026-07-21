@@ -1,64 +1,75 @@
 @startuml backend-packages
 '==============================================================================
-' Figure (Chapter II): Package (module) structure of the backend.
-' The custom packages and their dependencies; everything registers on the
-' comby framework, and the satellite domains (core and enterprise) reference
-' Contract. Reporting is a family of read-side projections over emitted
-' events, not a write-side domain package.
-' From the backend repository layout (domain/, integration/, internal/).
-' Render:  plantuml -tpdf backend-packages.puml      (or -tpng)
+' Figure (Chapter III): Package (module) structure of the backend.
+' Layout: hierarchical so the dependency structure is visible at a glance —
+' satellites gridded 2 rows deep ABOVE contract, every "references" arrow
+' fanning downward into it (contract is the hub, tinted for emphasis);
+' comby at the bottom (the layer the groups register on) with internal
+' beside it; integration below the enterprise group, next to its consumers.
+' Hidden node-to-node edges pin the ranks (cluster-to-cluster hidden edges
+' do not constrain ranks). Reporting note: read-side projections only.
+' Shared look from puml-style.iuml (injected by the Makefile).
+' Render:  make figures
 '==============================================================================
-skinparam shadowing false
-skinparam defaultFontName Helvetica
 skinparam packageStyle rectangle
-skinparam ranksep 35
-skinparam nodesep 20
+skinparam ranksep 44
+skinparam nodesep 26
 
-package "comby framework" as comby <<framework>>
-
-package "domain" {
+package "domain" as dom {
   package "core contexts" as coregrp {
-    package "contract"     as ctr
-    package "approval"     as apr
-    package "deadline"     as ddl
-    package "documentlink" as doc
+    package approval
+    package deadline
+    package documentlink
+    package contract #DCE8F7
+    approval -[hidden]-> deadline
+    approval     .[#AC0D0D].> contract : references
+    deadline     .[#AC0D0D].> contract : references
+    documentlink .[#AC0D0D].> contract : references
   }
   package "enterprise contexts" as entgrp {
-    package "signature"    as sig
-    package "obligation"   as obl
-    package "customfield"  as cf
+    package customfield
+    package signature
+    package obligation
+    customfield -[hidden]-> obligation
   }
+  signature   .[#AC0D0D].> contract : references
+  obligation  .[#AC0D0D].> contract : references
+  customfield .[#AC0D0D].> contract : references
 }
 
-note bottom of entgrp
-  Reporting is read-side projections over
-  emitted events, not a write-side context.
+note left of customfield
+  Reporting is read-side
+  projections over emitted
+  events, not a write-side
+  context.
 end note
 
-package "integration" {
-  package "docstorage"   as ds
-  package "esignature"   as es
-  package "intelligence" as intel
-}
-
+package "comby framework" as comby <<framework>>
 package "internal" {
-  package "archived"     as arc
-  package "seed"         as seed
+  package archived
+  package seed
 }
 
-coregrp ..> comby : <<register>>
-entgrp  ..> comby : <<register>>
+contract   .[#4C7FB0].> comby : <<register>>
+obligation .[#4C7FB0].> comby : <<register>>
+archived .[#4C7FB0].> comby
+seed     .[#4C7FB0].> comby
+' internal sits BELOW the domain hub (node-level rank anchor).
+contract -[hidden]-> archived
 
-apr ..> ctr : references
-ddl ..> ctr : references
-doc ..> ctr : references
-sig ..> ctr : references
-obl ..> ctr : references
-cf  ..> ctr : references
+package "integration" {
+  package docstorage
+  package esignature
+  package intelligence
+  docstorage -[hidden]-> intelligence
+}
 
-doc ..> ds    : uses
-doc ..> intel : uses (enrichment)
-sig ..> es    : uses (e-signature)
-arc  ..> comby
-seed ..> comby
+documentlink .[#B8912E].> docstorage   : uses
+documentlink .[#B8912E].> intelligence : uses (enrichment)
+signature    .[#B8912E].> esignature   : uses (e-signature)
+legend bottom right
+  |<#AC0D0D>| references |
+  |<#4C7FB0>| «register» |
+  |<#B8912E>| uses |
+endlegend
 @enduml

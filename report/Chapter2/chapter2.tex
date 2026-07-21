@@ -19,32 +19,42 @@
 \section*{Introduction}
 This chapter specifies what CLMPilot is required to do. We start from
 the users: we first catalogue the actors who interact with the
-platform and expand the use cases they initiate, from a single
-high-level overview down to the individual cases of each functional
-area, with the most important scenarios described step by step. From
-those use cases we then derive the functional requirements, stated as
-capabilities, not implementation detail, and we close with
-the non-functional requirements: the qualities the platform must exhibit
-while delivering them.
+platform. From the problem statement and the actors we then derive the
+functional requirements, stated as capabilities, not implementation
+detail, and the non-functional requirements: the qualities the platform
+must exhibit while delivering them. We close by expanding the use cases
+the actors initiate, from a single high-level overview down to the
+individual cases of each functional area, with the most important
+scenarios described step by step.
 
 %--------------------------------------------------------------------
-\section{Actors and use cases}
+\section{Actors}
 \label{sec:actors}
 
 The actor model is intentionally narrow. CLMPilot is a multi-tenant
 platform: each customer organisation is an isolated tenant, so the
-catalogue below describes the roles \emph{within} a single tenant,
+catalogue below centres on the roles \emph{within} a single tenant,
 mapping onto the functions that already exist in a Mittelstand
-legal-operations team. Outside the tenant, a platform-level system
-administrator provisions and isolates the tenants themselves; that
-role belongs to the operator rather than the customer, and is treated
-with the architecture in Chapter~\ref{chap:arch}.
+legal-operations team. Outside the tenant, a platform-level
+\emph{Super~Admin} provisions and isolates the tenants themselves; that
+role belongs to the operator rather than the customer, and lies outside
+the scope of this project's contribution, but it is catalogued here so
+the actor model is complete.
 
 \subsection{Actor catalogue}
 \label{sec:actors-catalogue}
 
-Table~\ref{tab:actors} catalogues the four per-tenant actors and the
-use cases each one initiates.
+Table~\ref{tab:actors} catalogues the 4 per-tenant actors, together
+with the platform-level Super~Admin, and the use cases each one
+initiates.
+
+2 non-human actors complete the catalogue. The system clock is the
+trigger for the scheduled use cases of the deadline-management
+subsystem; we treat it separately to make the provenance of
+system-initiated actions explicit in the audit log. And the LLM (the
+intelligence service) is an external secondary actor: it supports the
+intelligence-assisted capture of contract metadata and clauses when a
+document is linked.
 
 \begin{table}[H]
   \centering
@@ -69,268 +79,21 @@ use cases each one initiates.
       trail; reconstruct the state of any contract at any past date
       within the retention window. \\
     \hline
+    Super~Admin & Provision and archive tenants; issue the first
+      administrator invitation of a tenant; operate the platform across
+      tenants. A platform-operator role, outside the scope of this
+      project's contribution. \\
+    \hline
   \end{tabularx}
   \label{tab:actors}
-\end{table}
-
-The system clock is the fifth actor. It is the trigger for the scheduled use cases of the
-deadline-management subsystem. We treat it separately to make the
-provenance of system-initiated actions explicit in the audit log.
-
-\subsection{Use-case diagram}
-Figure~\ref{fig:usecase} gives a high-level view of the platform: each
-use case inside the system boundary names one functional area, and every
-actor is linked to the areas it drives. The four human roles specialise a
-common \emph{User} and inherit the shared authentication case from it,
-while the \emph{System clock} is a secondary actor that drives the
-scheduled deadline and renewal reminders. The individual use
-cases inside each area, with their relationships and constraints, are
-expanded one subsystem per figure in
-Figures~\ref{fig:uc-identity}--\ref{fig:uc-reporting}.
-
-\begin{figure}[H]\centering
-  \IfFileExists{Chapter2/figures/usecase-overview.pdf}
-    {\includegraphics[width=0.92\linewidth,keepaspectratio]{usecase-overview}}
-    {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
-      \textit{Diagram to be rendered from} \texttt{figures/usecase-overview.puml}\vspace{2em}}}}
-  \caption{High-level use-case diagram for CLMPilot: each use case names one
-           functional area, the human roles specialise a common \emph{User},
-           and the \emph{System clock} is the secondary actor that drives the
-           scheduled reminders.}
-  \label{fig:usecase}
-\end{figure}
-
-Each area is then expanded into its individual use cases. Identity and
-access (Figure~\ref{fig:uc-identity}) requires every authentication to
-include a second factor, mandatory for administrators, and lets the
-Admin provision users, assign roles and configure organisation-wide
-policies and custom fields.
-
-\begin{figure}[H]\centering
-  \includegraphics[width=\linewidth,keepaspectratio]{uc-identity}
-  \caption{Detailed use cases: identity and access. Every authentication
-           \emph{includes} a second factor, mandatory for administrators.}
-  \label{fig:uc-identity}
-\end{figure}
-
-Contracts and documents (Figure~\ref{fig:uc-contracts}) covers the
-registry and its document links: archiving never hard-deletes a record,
-and intelligence-assisted capture extends the attachment of a document
-link.
-
-\begin{figure}[H]\centering
-  \includegraphics[width=\linewidth,keepaspectratio]{uc-contracts}
-  \caption{Detailed use cases: contracts and documents. Archiving never
-           hard-deletes a record, and intelligence-assisted capture
-           \emph{extends} the attachment of a document link.}
-  \label{fig:uc-contracts}
-\end{figure}
-
-Approvals and deadlines (Figure~\ref{fig:uc-approvals}) combine the
-workflow (where initiating an approval includes selecting a template,
-and a reject or request-changes outcome returns the contract to its
-initiator) with the time-driven reminders the system clock issues
-before each notice window.
-
-\begin{figure}[H]\centering
-  \includegraphics[width=\linewidth,keepaspectratio]{uc-approvals-deadlines}
-  \caption{Detailed use cases: approvals and deadlines. Initiating an
-           approval \emph{includes} selecting a template; a reject or
-           request-changes outcome \emph{extends} the decision by returning
-           the contract to its initiator.}
-  \label{fig:uc-approvals}
-\end{figure}
-
-Dashboard, reporting and audit (Figure~\ref{fig:uc-reporting}) groups
-the portfolio views and reports, where scheduled reporting extends
-report generation, with the read-only audit capabilities through which
-any past contract state can be reconstructed within the ten-year
-retention window.
-
-\begin{figure}[H]\centering
-  \includegraphics[width=\linewidth,keepaspectratio]{uc-reporting-audit}
-  \caption{Detailed use cases: dashboard, reporting and audit. Scheduled
-           reporting \emph{extends} report generation; any past contract
-           state is reconstructible within the ten-year retention window.}
-  \label{fig:uc-reporting}
-\end{figure}
-
-Across these areas, the enterprise capabilities of
-Section~\ref{sec:fr-enterprise} (intelligence-assisted capture,
-electronic signature, post-signature obligation tracking, scheduled
-reporting and per-tenant custom fields) extend the core registry rather
-than replacing it.
-
-\subsection{Detailed use-case descriptions}
-\label{sec:uc-descriptions}
-
-Three of these use cases are the most critical to the
-platform: the creation of a contract record, the approval workflow, and
-the reconstruction of past contract state for an audit.
-Tables~\ref{tab:uc-contract-creation}--\ref{tab:uc-audit-reconstruction}
-describe each of them in the structure of a standard use-case
-description (goal, actors, preconditions, main scenario, alternative
-and exception flows, and postconditions), using the same actor names
-and «include»/«extend» semantics as the diagrams above.
-Table~\ref{tab:uc-contract-creation} opens with the registration of a
-contract, the first step before any other capability.
-
-\begin{table}[H]
-  \centering
-  \caption{Use-case description: register a contract.}
-  \footnotesize
-  \begin{tabularx}{\linewidth}{|>{\bfseries}l|X|}
-    \hline
-    Goal            & Register a new contract as a structured record in
-                      the organisation's contract registry. \\ \hline
-    Actor(s)        & Legal~Manager (primary). \\ \hline
-    Preconditions   & The Legal~Manager is authenticated in their tenant
-                      and holds a role authorised to create contract
-                      records. \\ \hline
-    Main scenario   & \begin{enumerate}[nosep,leftmargin=*]
-                        \item The Legal~Manager opens the contract
-                          registry and starts a new record.
-                        \item The Legal~Manager supplies the counterparty,
-                          the contract category, the start and end dates,
-                          the notice window and the contract value.
-                        \item The Legal~Manager attaches a document link
-                          to the file that embodies the contract in
-                          the organisation's own storage («extend»:
-                          intelligence-assisted capture proposes
-                          counterparty, dates, value and detected clauses
-                          for confirmation).
-                        \item The Legal~Manager confirms the record; the
-                          platform validates it.
-                        \item The platform creates the contract in
-                          \textit{draft} status, records the creation in
-                          the audit log, and derives the contract's
-                          deadline reminders from its dates.
-                      \end{enumerate} \\ \hline
-    Alternative /   & \textit{3a.} No document is attached: the record is
-                      created without a link, and one can be attached
-                      later. \textit{3b.} The intelligence proposal is
-                      absent or wrong: the Legal~Manager fills or corrects
-                      the fields manually. \textit{4a.} Validation fails
-                      (missing mandatory attribute, inconsistent dates):
-                      the platform rejects the submission and returns the
-                      Legal~Manager to the form. \\
-    exception flows & \\ \hline
-    Postconditions  & The contract exists in the registry in
-                      \textit{draft} status; its creation is immutably
-                      recorded in the audit log; its deadline reminders
-                      are scheduled against its notice window and
-                      expiry. \\ \hline
-  \end{tabularx}
-  \label{tab:uc-contract-creation}
-\end{table}
-
-Table~\ref{tab:uc-approval-workflow} then follows a contract through the
-approval chain it must complete before it becomes active.
-
-\begin{table}[H]
-  \centering
-  \caption{Use-case description: approve a contract.}
-  \footnotesize
-  \begin{tabularx}{\linewidth}{|>{\bfseries}l|X|}
-    \hline
-    Goal            & Take a contract through an ordered chain of recorded
-                      approval decisions before it becomes active. \\ \hline
-    Actor(s)        & Legal~Manager (initiator); Approver (decides on the
-                      steps addressed to them). \\ \hline
-    Preconditions   & The contract record exists and is not yet active; a
-                      workflow template describing the ordered approval
-                      steps is available; the Legal~Manager is authorised
-                      to initiate approvals. \\ \hline
-    Main scenario   & \begin{enumerate}[nosep,leftmargin=*]
-                        \item The Legal~Manager initiates an approval
-                          request on the contract («include»: selecting
-                          the workflow template that defines the ordered
-                          steps and their Approvers).
-                        \item The platform opens the first step and
-                          notifies its Approver(s).
-                        \item An Approver reviews the request and records
-                          the decision \textit{approve}, with an optional
-                          comment.
-                        \item The platform records the decision (author,
-                          timestamp and comment) immutably, and advances
-                          the workflow to the next step.
-                        \item Steps 2--4 repeat until every step is
-                          approved.
-                        \item The workflow completes and the contract
-                          becomes \textit{active}.
-                      \end{enumerate} \\ \hline
-    Alternative /   & \textit{3a.} The Approver records \textit{reject}:
-                      the workflow is interrupted and the contract returns
-                      to its initiator («extend»: return contract to
-                      initiator), with the decision and its comment
-                      recorded. \textit{3b.} The Approver records
-                      \textit{request changes}: as 3a, with the requested
-                      changes recorded for the initiator. \\
-    exception flows & \\ \hline
-    Postconditions  & Every decision is immutably recorded with its
-                      author, timestamp and comment, and is not editable
-                      after the fact; on full approval the contract is
-                      active; on interruption the contract is back with
-                      its initiator and the workflow's record is
-                      preserved. \\ \hline
-  \end{tabularx}
-  \label{tab:uc-approval-workflow}
-\end{table}
-
-Finally, Table~\ref{tab:uc-audit-reconstruction} describes the audit
-consultation that compliance must support at any time.
-
-\begin{table}[H]
-  \centering
-  \caption{Use-case description: reconstruct past contract state for an
-           audit.}
-  \footnotesize
-  \begin{tabularx}{\linewidth}{|>{\bfseries}l|X|}
-    \hline
-    Goal            & Reconstruct the state of a contract as of any past
-                      date, and export the audit trail in a format
-                      independent of the application. \\ \hline
-    Actor(s)        & Auditor (primary). \\ \hline
-    Preconditions   & The Auditor is authenticated with read-only audit
-                      access; the requested date lies within the ten-year
-                      GoBD retention window. \\ \hline
-    Main scenario   & \begin{enumerate}[nosep,leftmargin=*]
-                        \item The Auditor selects a contract and a past
-                          date of interest.
-                        \item The platform reconstructs the contract's
-                          state as of that date from its immutable
-                          history, even where the current business state
-                          has since changed.
-                        \item The platform presents the reconstructed
-                          state together with the actions recorded up to
-                          that date: one row per action, with the actor,
-                          the timestamp, the contract identifier and the
-                          action type.
-                        \item The Auditor exports the audit trail as a
-                          tabular file usable in spreadsheet software.
-                      \end{enumerate} \\ \hline
-    Alternative /   & \textit{1a.} The Auditor consults the full event log
-                      across the portfolio instead of a single contract:
-                      the same read-only view and export apply to every
-                      recorded action in scope. \\
-    exception flows & \\ \hline
-    Postconditions  & The Auditor holds a reproducible view of the
-                      contract as of the requested date and, where
-                      exported, a tabular audit file independent of the
-                      application's runtime; no record was altered by the
-                      consultation. \\ \hline
-  \end{tabularx}
-  \label{tab:uc-audit-reconstruction}
 \end{table}
 
 %--------------------------------------------------------------------
 \section{Functional requirements}
 \label{sec:functional-requirements}
 
-The functional requirements that follow flow directly from the four pain
-points of the problem statement
-(Section~\ref{sec:problem-statement}) and are exercised through the use
-cases of the previous section. They are stated as outcomes, not mechanisms:
+The functional requirements that follow flow directly from the 4 pain
+points of the problem statement. They are stated as outcomes, not mechanisms:
 each subsection identifies the actor that initiates
 the use case, the outcome the platform must produce, and the constraints
 the surrounding context imposes. The architectural decomposition into
@@ -361,7 +124,7 @@ storage: the integration-first stance of
 Section~\ref{sec:competitive-landscape} is enforced at this boundary.
 
 \subsection{Deadline and renewal management}
-Every contract carries up to three temporal markers: its expiry date,
+Every contract carries up to 3 temporal markers: its expiry date,
 the start of its notice window, and, where applicable, its
 auto-renewal date. The platform must highlight each of these markers
 before it passes, through a reminder workflow that emits notifications
@@ -376,7 +139,7 @@ A contract under negotiation moves through a sequence of approvals
 before it is signed. The Legal~Manager initiates an approval request
 and selects a workflow template: a sequence of approval steps, each
 addressed to one or several Approvers. Each Approver receives a request
-and answers with one of three decisions: approve, reject, or request
+and answers with one of 3 decisions: approve, reject, or request
 changes. A reject or request-changes outcome interrupts the workflow
 and returns the contract to the initiator; an approval advances it to
 the next step. The platform records every decision, its author, its
@@ -390,7 +153,7 @@ immutable audit log. The Auditor accesses the log read-only and exports
 it in a format independent of the application: a tabular file usable in
 spreadsheet software, with one row per recorded action, and columns for
 the actor, the timestamp, the contract identifier and the action type.
-The log must satisfy the GoBD retention requirement of ten years and
+The log must satisfy the GoBD retention requirement of 10 years and
 must be reproducible at any date within that window, even after the
 underlying business state has changed.
 
@@ -417,10 +180,10 @@ The reset, invitation and lockout flows are required at this layer
 because they are the flows through which non-Admin users actually
 exercise IAM.
 
-\subsection{Enterprise capabilities}
+\subsection{Advanced capabilities extending the core registry}
 \label{sec:fr-enterprise}
 Beyond the core registry, the platform is required to support a tier of
-enterprise capabilities that address the same four pain
+enterprise capabilities that address the same 4 pain
 points more fully. Document linking is expected to trigger \textit{intelligence-assisted
 capture}: when a contract's document is attached, the platform proposes
 counterparty, dates, value and detected clauses for the Legal~Manager to
@@ -442,7 +205,7 @@ as requirements; their realisation is consolidated in Chapter~\ref{chap:realisat
 
 Non-functional requirements describe the qualities the platform must
 exhibit while delivering the functional capabilities of the previous
-section. We group them along seven axes (security, compliance,
+section. We group them along 7 axes (security, compliance,
 availability, performance, auditability, internationalisation and
 maintainability), each justified by a constraint of the deployment
 context.
@@ -462,10 +225,10 @@ role.
 
 \subsection{Compliance and data residency}
 \label{sec:nfr-compliance}
-The platform must satisfy three regulatory baselines simultaneously.
+The platform must satisfy 3 regulatory baselines simultaneously.
 GoBD requires that contract records be retained immutably and
 recoverable in their state as of any past date, for a period of up to
-ten years. The GDPR requires that
+10 years. The GDPR requires that
 personal data be processed under documented purposes, subject to access
 and erasure requests, and stored within the European Union. ISO~27001
 imposes a documented information-security management system, with
@@ -493,12 +256,44 @@ transient-error state rather than failing the surrounding page.
 The performance budget for the MVP is expressed as engineering
 targets to be measured and tuned against, not as contractual
 guarantees. On a contemporary EU broadband connection, median
-page-load latency aims for under one second on the dashboard and the
-contract list; search and filter operations over a portfolio of ten
-thousand contracts aim for under five hundred milliseconds; and
+page-load latency aims for under 1 second on the dashboard and the
+contract list; search and filter operations over a portfolio of 10{,}000
+contracts aim for under 500 milliseconds; and
 document-link resolution (the round-trip to the external store,
-plus the metadata fetch) aims for under two seconds in the median
+plus the metadata fetch) aims for under 2 seconds in the median
 case. Failure modes degrade to the graceful state described above.
+Table~\ref{tab:perf-metrics} states these budgets as the metrics
+against which the performance tests measure the platform; each row can
+be exercised by an automated test against a seeded environment. The
+availability and recovery objectives of the previous subsection are
+not testable this way: they are validated operationally, through the
+uptime probe and the periodic restore drill.
+
+\begin{table}[H]
+  \centering
+  \caption{Performance test metrics: the measured operation, the metric
+           observed, the test condition, and the MVP target.}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{|X|l|l|l|}
+    \hline
+    \textbf{Operation under test} & \textbf{Metric} & \textbf{Condition}
+      & \textbf{Target} \\
+    \hline\hline
+    Dashboard page load & Median latency & EU broadband client
+      & $<$ 1~s \\
+    \hline
+    Contract-list page load & Median latency & EU broadband client
+      & $<$ 1~s \\
+    \hline
+    Search / filter over the registry & Latency & 10{,}000-contract
+      portfolio & $<$ 500~ms \\
+    \hline
+    Document-link resolution & Median latency & external store
+      round-trip & $<$ 2~s \\
+    \hline
+  \end{tabularx}
+  \label{tab:perf-metrics}
+\end{table}
 
 \subsection{Auditability}
 \label{sec:nfr-audit}
@@ -530,23 +325,284 @@ The platform relies on a narrow, well-understood technology
 stack rather than a fragmented mix of specialised tools.
 To keep the project manageable for future developers, it incorporates
 conventional commit messages, a predictable release-train cadence
-(Section~\ref{sec:methodology}), and three distinct layers of automated
+(Section~\ref{sec:methodology}), and 3 distinct layers of automated
 testing (unit, integration, and end-to-end). Finally, documentation is stored
 directly alongside the code and compiled straight into the running application's
 help system, preventing the documentation from drifting out of date.
 
 %--------------------------------------------------------------------
+\section{Use cases}
+\label{sec:usecases}
+
+The requirements above are exercised through the use cases the actors
+initiate. This section expands them from a single high-level overview
+down to the individual cases of each functional area, and closes with
+the most critical scenarios described step by step. Where a diagram
+contains actors outside the scope of this project's contribution (the
+platform-level Super~Admin and the default \emph{User} parent supplied
+by the framework), the actors carry a colour code for identification:
+red marks the out-of-scope actors, yellow the actors within scope.
+
+\subsection{Use-case diagram}
+Figure~\ref{fig:usecase} gives a high-level view of the platform: each
+use case inside the system boundary names one functional area, and every
+actor is linked to the areas it drives. The 4 human roles specialise a
+common \emph{User} and inherit the shared authentication case from it,
+and the platform-level \emph{Super~Admin} administers the tenants
+themselves. 2 secondary actors complete the picture: the \emph{System
+clock} drives the scheduled deadline and renewal reminders, and the
+\emph{LLM} (the intelligence service) supports the intelligence-assisted
+capture of contract data. The individual use
+cases inside each area, with their relationships and constraints, are
+expanded one subsystem per figure in
+Figures~\ref{fig:uc-identity}--\ref{fig:uc-reporting}.
+
+\begin{figure}[H]\centering
+  \IfFileExists{Chapter2/figures/usecase-overview.pdf}
+    {\includegraphics[width=0.9\linewidth,keepaspectratio]{usecase-overview}}
+    {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
+      \textit{Diagram to be rendered from} \texttt{figures/usecase-overview.puml}\vspace{2em}}}}
+  \caption{High-level use-case diagram for CLMPilot.}
+  \label{fig:usecase}
+\end{figure}
+
+\subsection{Authentication use cases}
+Authentication is deliberately identical for every role: each human
+actor signs in through the same use case, which \emph{includes} the
+verification of a second factor (a one-time code by email), mandatory
+for administrators and offered to every role; password reset and
+invitation acceptance follow the same shared rails.
+Figure~\ref{fig:uc-auth} makes that symmetry explicit: a single
+\emph{Client~User} actor stands for the 4 tenant roles (Admin,
+Legal~Manager, Approver and Auditor), which all share the same
+authentication cases with the Super~Admin.
+
+\begin{figure}[H]\centering
+  \includegraphics[width=0.9\linewidth,keepaspectratio]{uc-authentication}
+  \caption{Detailed use cases: authentication.}
+  \label{fig:uc-auth}
+\end{figure}
+
+\subsection{Use cases by functional area}
+Each functional area is then expanded into its individual use cases.
+Identity and access (Figure~\ref{fig:uc-identity}) covers the
+administration of identities: the Admin provisions users, invites them,
+assigns roles, revokes access, and configures organisation-wide
+policies and custom fields; the authentication cases shared by every
+role were expanded in Figure~\ref{fig:uc-auth}.
+
+\begin{figure}[H]\centering
+  \includegraphics[width=0.4\linewidth,keepaspectratio]{uc-identity}
+  \caption{Detailed use cases: identity and access administration.}
+  \label{fig:uc-identity}
+\end{figure}
+
+Contracts and documents (Figure~\ref{fig:uc-contracts}) covers the
+registry and its document links: archiving never hard-deletes a record,
+and intelligence-assisted capture, supported by the LLM, extends the
+attachment of a document link.
+
+\begin{figure}[H]\centering
+  \includegraphics[width=\linewidth,keepaspectratio]{uc-contracts}
+  \caption{Detailed use cases: contracts and documents.}
+  \label{fig:uc-contracts}
+\end{figure}
+
+Approvals and deadlines (Figure~\ref{fig:uc-approvals}) combine the
+workflow (where initiating an approval includes defining the workflow
+template, and a reject or request-changes outcome returns the contract
+to its initiator) with the time-driven reminders the system clock issues
+before each notice window.
+
+\begin{figure}[H]\centering
+  \includegraphics[width=\linewidth,keepaspectratio]{uc-approvals-deadlines}
+  \caption{Detailed use cases: approvals and deadlines.}
+  \label{fig:uc-approvals}
+\end{figure}
+
+Dashboard, reporting and audit (Figure~\ref{fig:uc-reporting}) groups
+the portfolio views and reports, where scheduled reporting extends
+report generation, with the read-only audit capabilities through which
+any past contract state can be reconstructed within the 10-year
+retention window.
+
+\begin{figure}[H]\centering
+  \includegraphics[width=\linewidth,keepaspectratio]{uc-reporting-audit}
+  \caption{Detailed use cases: dashboard, reporting and audit.}
+  \label{fig:uc-reporting}
+\end{figure}
+
+Across these areas, the enterprise capabilities of
+Section~\ref{sec:fr-enterprise} (intelligence-assisted capture,
+electronic signature, post-signature obligation tracking, scheduled
+reporting and per-tenant custom fields) extend the core registry rather
+than replacing it.
+
+\subsection{Detailed use-case descriptions}
+\label{sec:uc-descriptions}
+
+The most critical use cases to the
+platform are: the creation of a contract record, the approval workflow, and
+the reconstruction of past contract state for an audit.
+Tables~\ref{tab:uc-contract-creation}--\ref{tab:uc-audit-reconstruction}
+describe each of them in the structure of a standard use-case
+description (goal, actors, preconditions, main scenario, alternative
+and exception flows, and postconditions).
+Table~\ref{tab:uc-contract-creation} opens with the registration of a
+contract, the first step before any other capability.
+
+{\footnotesize
+  \begin{xltabular}{\linewidth}{|>{\bfseries}l|X|}
+    \caption{Use-case description: register a contract.}
+    \label{tab:uc-contract-creation}\\
+    \hline
+    Goal            & Register a new contract as a structured record in
+                      the organisation's contract registry. \\ \hline
+    Actor(s)        & Legal~Manager (primary). \\ \hline
+    Preconditions   & The Legal~Manager is authenticated in their tenant
+                      and holds a role authorised to create contract
+                      records. \\ \hline
+    Main scenario   & \begin{enumerate}[nosep,leftmargin=*]
+                        \item The Legal~Manager opens the contract
+                          registry and starts a new record.
+                        \item The Legal~Manager supplies the counterparty,
+                          the contract category, the start and end dates,
+                          the notice window and the contract value.
+                        \item The Legal~Manager attaches a document link
+                          to the file that embodies the contract in
+                          the organisation's own storage («extend»:
+                          intelligence-assisted capture proposes
+                          counterparty, dates, value and detected clauses
+                          for confirmation).
+                        \item The Legal~Manager confirms the record; the
+                          platform validates it.
+                        \item The platform creates the contract in
+                          \textit{draft} status, records the creation in
+                          the audit log, and derives the contract's
+                          deadline reminders from its dates.
+                      \end{enumerate} \\ \hline
+    \shortstack[l]{Alternative /\\exception flows}
+                    & \textit{3a.} No document is attached: the record is
+                      created without a link, and one can be attached
+                      later. \textit{3b.} The intelligence proposal is
+                      absent or wrong: the Legal~Manager fills or corrects
+                      the fields manually. \textit{4a.} Validation fails
+                      (missing mandatory attribute, inconsistent dates):
+                      the platform rejects the submission and returns the
+                      Legal~Manager to the form. \\ \hline
+    Postconditions  & The contract exists in the registry in
+                      \textit{draft} status; its creation is immutably
+                      recorded in the audit log; its deadline reminders
+                      are scheduled against its notice window and
+                      expiry. \\ \hline
+  \end{xltabular}}
+
+Table~\ref{tab:uc-approval-workflow} then follows a contract through the
+approval chain it must complete before it becomes active.
+
+{\footnotesize
+  \begin{xltabular}{\linewidth}{|>{\bfseries}l|X|}
+    \caption{Use-case description: approve a contract.}
+    \label{tab:uc-approval-workflow}\\
+    \hline
+    Goal            & Take a contract through an ordered chain of recorded
+                      approval decisions before it becomes active. \\ \hline
+    Actor(s)        & Legal~Manager (initiator); Approver (decides on the
+                      steps addressed to them). \\ \hline
+    Preconditions   & The contract record exists and is not yet active; a
+                      workflow template describing the ordered approval
+                      steps is available; the Legal~Manager is authorised
+                      to initiate approvals. \\ \hline
+    Main scenario   & \begin{enumerate}[nosep,leftmargin=*]
+                        \item The Legal~Manager initiates an approval
+                          request on the contract («include»: defining
+                          the workflow template that fixes the ordered
+                          steps and their Approvers).
+                        \item The platform opens the first step and
+                          notifies its Approver(s).
+                        \item An Approver reviews the request and records
+                          the decision \textit{approve}, with an optional
+                          comment.
+                        \item The platform records the decision (author,
+                          timestamp and comment) immutably, and advances
+                          the workflow to the next step.
+                        \item Steps 2--4 repeat until every step is
+                          approved.
+                        \item The workflow completes and the contract
+                          becomes \textit{active}.
+                      \end{enumerate} \\ \hline
+    \shortstack[l]{Alternative /\\exception flows}
+                    & \textit{3a.} The Approver records \textit{reject}:
+                      the workflow is interrupted and the contract returns
+                      to its initiator («extend»: return contract to
+                      initiator), with the decision and its comment
+                      recorded. \textit{3b.} The Approver records
+                      \textit{request changes}: as 3a, with the requested
+                      changes recorded for the initiator. \\ \hline
+    Postconditions  & Every decision is immutably recorded with its
+                      author, timestamp and comment, and is not editable
+                      after the fact; on full approval the contract is
+                      active; on interruption the contract is back with
+                      its initiator and the workflow's record is
+                      preserved. \\ \hline
+  \end{xltabular}}
+
+Finally, Table~\ref{tab:uc-audit-reconstruction} describes the audit
+consultation that compliance must support at any time.
+
+{\footnotesize
+  \begin{xltabular}{\linewidth}{|>{\bfseries}l|X|}
+    \caption{Use-case description: reconstruct past contract state for an
+             audit.}
+    \label{tab:uc-audit-reconstruction}\\
+    \hline
+    Goal            & Reconstruct the state of a contract as of any past
+                      date, and export the audit trail in a format
+                      independent of the application. \\ \hline
+    Actor(s)        & Auditor (primary). \\ \hline
+    Preconditions   & The Auditor is authenticated with read-only audit
+                      access; the requested date lies within the 10-year
+                      GoBD retention window. \\ \hline
+    Main scenario   & \begin{enumerate}[nosep,leftmargin=*]
+                        \item The Auditor selects a contract and a past
+                          date of interest.
+                        \item The platform reconstructs the contract's
+                          state as of that date from its immutable
+                          history, even where the current business state
+                          has since changed.
+                        \item The platform presents the reconstructed
+                          state together with the actions recorded up to
+                          that date: one row per action, with the actor,
+                          the timestamp, the contract identifier and the
+                          action type.
+                        \item The Auditor exports the audit trail as a
+                          tabular file usable in spreadsheet software.
+                      \end{enumerate} \\ \hline
+    \shortstack[l]{Alternative /\\exception flows}
+                    & \textit{1a.} The Auditor consults the full event log
+                      across the portfolio instead of a single contract:
+                      the same read-only view and export apply to every
+                      recorded action in scope. \\ \hline
+    Postconditions  & The Auditor holds a reproducible view of the
+                      contract as of the requested date and, where
+                      exported, a tabular audit file independent of the
+                      application's runtime; no record was altered by the
+                      consultation. \\ \hline
+  \end{xltabular}}
+
+%--------------------------------------------------------------------
 \section*{Conclusion}
 This chapter has specified what the platform must do and how well it
-must do it. We catalogued the actors (four per-tenant human roles
-specialising a common user, together with the system clock that drives
-scheduled actions) and expanded the use cases they initiate from a
-single high-level overview down to the individual cases of each
+must do it. We catalogued the actors: 4 per-tenant human roles
+specialising a common user, the platform-level Super~Admin outside this
+project's scope, and the system clock and the LLM as non-human actors.
+From the problem statement we derived the functional requirements, from
+the core contract registry to the tier of enterprise capabilities, and
+the 7 axes of non-functional requirements that constrain how they
+must be delivered. We then expanded the use cases the actors initiate
+from a single high-level overview down to the individual cases of each
 functional area, describing the contract-creation, approval and
-audit-reconstruction scenarios step by step. From those use cases we
-derived the functional requirements, from the core contract registry to
-the tier of enterprise capabilities, and the seven axes of
-non-functional requirements that constrain how they must be delivered.
+audit-reconstruction scenarios step by step.
 
 With the requirements specified, Chapter~\ref{chap:arch} presents the
 structural response: the architecture through which these requirements

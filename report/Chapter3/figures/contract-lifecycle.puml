@@ -6,8 +6,11 @@
 ' are labelled with the command or event that triggers them.
 ' Render:  plantuml -tpdf contract-lifecycle.puml      (or -tpng)
 '==============================================================================
+
 skinparam shadowing false
 skinparam defaultFontName Helvetica
+skinparam FontSize 20
+
 hide empty description
 
 [*]        --> Draft       : RegisterContract
@@ -20,8 +23,4 @@ Terminated --> Archived    : ArchiveContract
 Expired    --> Archived    : ArchiveContract
 Archived   --> [*]
 
-note as N
-  Soft delete (tombstone) and restore are available
-  from any state and are omitted here for clarity.
-end note
 @enduml

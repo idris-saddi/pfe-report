@@ -1,0 +1,60 @@
+@startuml uc-authentication
+'==============================================================================
+' Detailed use cases: Authentication, shared identically by every user role.
+' Standard arrangement: actors LEFT, use cases in the boundary MIDDLE.
+' The single "Client User" actor stands for the 4 tenant roles (Admin,
+' Legal Manager, Approver, Auditor) -- authentication is identical for each,
+' so drawing them separately would only multiply identical edges.
+' Colour legend (this diagram contains an out-of-scope actor):
+' RED = out of the project's scope; YELLOW = in scope.
+' Render:  make figures
+'==============================================================================
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam linetype polyline
+skinparam ranksep 120
+skinparam nodesep 40
+skinparam usecase {
+  BorderColor      #34495E
+  BackgroundColor  #FDFEFE
+  ArrowColor       #5D6D7E
+}
+skinparam actor {
+  BorderColor      #34495E
+}
+
+actor "Super Admin" as sa #E74C3C
+actor "Client User" as cu #F1C40F
+
+note bottom of cu
+  Client User stands for the
+  4 tenant roles: Admin,
+  Legal Manager, Approver
+  and Auditor; authentication
+  is identical for each.
+end note
+
+rectangle "Authentication" {
+  usecase "Authenticate\n(password + email OTP)" as UC_auth
+  usecase "Verify second factor\n(email OTP)"    as UC_mfa
+  usecase "Reset password"                       as UC_reset
+  usecase "Accept invitation"                    as UC_acceptinv
+}
+
+sa --> UC_auth
+sa --> UC_reset
+cu --> UC_auth
+cu --> UC_reset
+cu --> UC_acceptinv
+
+UC_auth ..> UC_mfa : <<include>>
+
+note bottom of UC_mfa
+  Mandatory for Admin and
+  Super Admin, offered to all
+end note
+
+@enduml

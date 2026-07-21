@@ -1,0 +1,41 @@
+@startuml auth-journey
+'==============================================================================
+' Figure (Chapter IV, Identity, access control and multi-tenancy): the
+' authentication journey across the full stack. Two-step login (credentials,
+' then an email one-time code), opaque session + identity cookies, and the
+' authorisation stage every later request passes at dispatch.
+' Render:  plantuml -tsvg auth-journey.puml  then  rsvg-convert -f pdf
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam sequenceMessageAlign center
+
+actor "User" as u
+participant "Login page +\nauth store (SPA)" as spa
+participant "Account endpoints\n(comby)" as acc
+participant "MFA provider" as mfa
+participant "Email sender\n(SendGrid)" as mail
+database "Session store\n(Redis)" as sess
+participant "Auth\nmiddleware" as auth
+
+== Sign-in (two steps) ==
+u -> spa : email + password
+spa -> acc : login with credentials
+acc -> acc : verify salted\npassword hash
+acc -> mfa : issue one-time code
+mfa -> mail : send code\n(recipient's locale)
+mail --> u : one-time code by email
+acc --> spa : second factor required
+u -> spa : enter code
+spa -> acc : confirm login\n(email + one-time code)
+acc -> mfa : validate code
+acc -> sess : create opaque session
+acc --> spa : Set-Cookie: session +\nidentity (tenant scope)
+spa -> spa : persist identity, schedule\npre-expiry session refresh
+spa --> u : dashboard
+
+== Every later request ==
+spa -> auth : command / query\n(cookies attached)
+auth -> sess : resolve session:\nidentity + tenant
+auth -> auth : permission check\nat dispatch
+@enduml

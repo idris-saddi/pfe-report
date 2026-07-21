@@ -43,27 +43,26 @@ lifecycle management platform for the DACH Mittelstand, built during an
 end-of-studies internship at Gradient~Zero. Its defining decision is to
 manage the lifecycle of a contract (its metadata, deadlines, approvals and
 audit trail) while the document itself stays in the customer's own storage,
-so adoption carries no migration fee. The platform is built on \texttt{comby},
-the company's in-house Go framework for Command-Query Responsibility
-Segregation and Event~Sourcing, which makes the compliance-grade audit trail
-a property of the storage model itself. CLMPilot
-was delivered as a release train, and the realised pilot (foundations, a
-full-stack minimum viable product, and a tier of enterprise features) runs
-in production at \url{https://clmpilot.com}. The remaining internship effort
-then shifts from the product to the event-sourced system beneath it,
-in an engineering study of how that framework should evolve.
+so adoption carries no migration fee. The platform is designed so that the
+compliance-grade audit trail is a property of its storage model itself.
+CLMPilot was delivered as a release train, and the realised pilot covers
+foundations, a full-stack minimum viable product, and a tier of enterprise
+features. The remaining internship effort
+then shifts from the product to the system beneath it,
+in an engineering study of how that system should evolve.
 
 % 4. REPORT OUTLINE
-The report is organised in two parts. The first frames the project and its
+The report is organised in 2 parts. The first frames the project and its
 design. Chapter~\ref{chap:context} sets the general context and the scope of
-the project: the hosting company, the market, the problem, the solution we
-propose in response, and the methodology under which the work
-was carried out. Chapter~\ref{chap:analysis} analyses and specifies the
-requirements: the actors and the use cases they initiate, then the functional
-and non-functional requirements that flow from them.
+the project: the hosting company, the market, the problem, the
+solution we propose in response, and the methodology under which the
+work was carried out. Chapter~\ref{chap:analysis} analyses and specifies the
+requirements: the actors, then the functional
+and non-functional requirements, and finally the use cases through which
+they are exercised.
 Chapter~\ref{chap:arch} presents the architecture and
-design, justifying the choice of CQRS and Event~Sourcing on the \texttt{comby}
-framework, deriving the domain model and the system topology, setting out the
+design, justifying the choice of CQRS and Event~Sourcing,
+deriving the domain model and the system topology, setting out the
 security and compliance model, and naming the points at which the design is
 left open for later evolution. The second part covers realisation and
 planned evolution: Chapter~\ref{chap:realisation} consolidates the work
