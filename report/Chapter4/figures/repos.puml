@@ -10,10 +10,13 @@ skinparam shadowing false
 skinparam defaultFontName Helvetica
 skinparam packageStyle rectangle
 skinparam componentStyle rectangle
-skinparam linetype ortho
 skinparam ranksep 40
 skinparam nodesep 30
 
+
+package "clmpilot-intelligence" as intel {
+  [Extraction service\n(Python)] as intsvc
+}
 package "clmpilot-backend" as be {
   [Domain contexts\n(Go on comby)] as bedom
   [REST API and\nOpenAPI export] as beapi
@@ -24,10 +27,6 @@ package "clmpilot-frontend" as fe {
   [Generated API client] as fecli
 }
 
-package "clmpilot-intelligence" as intel {
-  [Extraction service\n(Python)] as intsvc
-}
-
 package "clmpilot-deployment" as dep {
   [Compose stack, reverse proxy\nand service-unit configuration] as depstack
   [Operational scripts\nand runbooks] as depops
@@ -35,7 +34,7 @@ package "clmpilot-deployment" as dep {
 
 fecli .up.> beapi : OpenAPI contract\n(client regenerated)
 bedom .right.> intsvc : IntelligenceClient (HTTP)
-dep .up.> fe : deploys\nversion-pinned images
+dep .up.> fe : deploys version-pinned images
 dep .up.> intel : deploys\nversion-pinned images
 
 note right of dep

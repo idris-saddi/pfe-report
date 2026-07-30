@@ -8,6 +8,7 @@
 '==============================================================================
 skinparam shadowing false
 skinparam defaultFontName Helvetica
+skinparam linetype ortho
 skinparam packageStyle rectangle
 skinparam componentStyle rectangle
 skinparam ranksep 28

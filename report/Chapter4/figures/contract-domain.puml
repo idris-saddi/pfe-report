@@ -4,11 +4,12 @@
 ' Contract + DocumentLink model with its events, the per-tenant custom-field
 ' definitions the contract validates against, and the provider adapters
 ' behind the DocumentStore interface.
-' Render:  plantuml -tsvg contract-domain.puml  then  rsvg-convert -f pdf
 '==============================================================================
 skinparam shadowing false
 skinparam defaultFontName Helvetica
-skinparam classAttributeIconSize 0
+' Changed from ortho to polyline to fix horizontal text centering and line rendering
+skinparam linetype ortho
+left to right direction
 hide circle
 hide methods
 
@@ -29,7 +30,8 @@ package "Contract context" {
     ClausesDetected
     AuditReportRequested
   }
-  Contract .right.> CEv : emits
+  ' Added extra dashes to make the arrow longer and prevent text overlap
+  Contract .right....> CEv : emits
 }
 
 package "CustomField context" {
@@ -52,7 +54,8 @@ package "DocumentLink context" {
     Linked / Unlinked
     MetadataRefreshed
   }
-  DocumentLink .right.> DEv : emits
+  ' Added extra dashes to make the arrow longer and prevent text overlap
+  DocumentLink .right....> DEv : emits
 
   interface DocumentStore <<interface>>
   class GoogleDriveAdapter <<adapter>>
@@ -61,13 +64,14 @@ package "DocumentLink context" {
   DocumentStore <|.. GoogleDriveAdapter
   DocumentStore <|.. SharePointAdapter
   DocumentStore <|.. UrlAdapter
-  DocumentLink ..> DocumentStore : metadata at\nlink / refresh
+  DocumentLink ...> DocumentStore : metadata at link/refresh
 }
 
-Contract "1" -- "0..*" DocumentLink
-Contract ..> CustomFieldDefinition : values validated\nagainst definitions
+' Explicit right/down positioning keeps the graph clean and wide
+Contract "1" -right- "0..*" DocumentLink
+Contract ...> CustomFieldDefinition : values validated against definitions
 
-note bottom of DocumentLink
+note left of DocumentLink
   A typed reference only: the platform
   never stores the document's contents.
 end note

@@ -9,7 +9,6 @@
 '==============================================================================
 skinparam shadowing false
 skinparam defaultFontName Helvetica
-skinparam componentStyle rectangle
 skinparam ranksep 22
 skinparam nodesep 16
 
