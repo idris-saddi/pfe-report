@@ -17,7 +17,7 @@ skinparam nodesep 22
 package "Single-page application (Vue 3 + Quasar)" {
   [pages] as pages
   [components] as comps
-  [composables\n(useContracts, usePermissions,\nuseDeadlines, useApprovals)] as compos
+  [composables\n(useContracts, usePermissions, useDeadlines, useApprovals)] as compos
   [stores (Pinia)] as stores
   [utils\n(pure functions)] as utils
   package "boot" as boot {
@@ -39,8 +39,8 @@ compos --> stores
 stores --> utils
 stores --> gen
 stores --> http
-http --> be : /api (same origin,\nsession cookies)
-gen ..> be : types regenerated from\nthe OpenAPI document
+http --> be : /api (same origin, session cookies)
+gen ..> be : types regenerated from the OpenAPI document
 
 note bottom of utils
   Unit tests target stores, composables

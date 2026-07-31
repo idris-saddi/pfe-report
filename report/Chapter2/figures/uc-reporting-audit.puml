@@ -37,13 +37,13 @@ rectangle "Dashboard, reporting & audit" {
   usecase "Reconstruct past\ncontract state" as UC_reconstruct
 }
 
-lm    --> UC_report
-lm    --> UC_dash
-admin --> UC_dash
-admin --> UC_sysaudit
-aud   --> UC_readlog
-aud   --> UC_export
-aud   --> UC_reconstruct
+lm    -- UC_report
+lm    -- UC_dash
+admin -- UC_dash
+admin -- UC_sysaudit
+aud   -- UC_readlog
+aud   -- UC_export
+aud   -- UC_reconstruct
 ' Base use case on the left; the extending use case sits to its right,
 ' with the «extend» arrowhead still pointing at the base (UML standard).
 UC_report <.. UC_schedule : <<extend>>

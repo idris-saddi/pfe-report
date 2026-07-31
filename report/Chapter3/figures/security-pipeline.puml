@@ -1,6 +1,8 @@
 @startuml security-pipeline
 '==============================================================================
-' Figure (Chapter II, Security): the request security pipeline.
+' Figure (Chapter III, Security): the request security pipeline.
+' The caller lifeline is the Browser, not "User" (supervisor feedback): what
+' talks to the edge is the user agent carrying the session cookie.
 ' How comby secures a request -- authentication is established once at the edge
 ' from the session, then every command or query is authorised at dispatch,
 ' within the caller's tenant, before any domain code runs. Two outcomes are
@@ -12,7 +14,7 @@ skinparam defaultFontName Helvetica
 skinparam defaultFontSize 20
 skinparam sequenceMessageAlign center
 
-actor       "User"                               as user
+participant "Browser"                            as user
 participant "Reverse proxy\n(TLS edge)"          as edge
 participant "Authentication\nmiddleware (comby)" as authn
 participant "Identity & access\nread model"      as arm

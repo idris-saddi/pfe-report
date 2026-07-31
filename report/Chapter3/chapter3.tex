@@ -46,22 +46,15 @@ reconstructable audit trails demanded by GoBD, GDPR, and ISO~27001.
 can securely serve multiple customer organisations, keeping each tenant's data
 strictly isolated.
 
-The remainder of this chapter is structured as follows. We first restate these 
-concerns as formal architectural drivers (Section~\ref{sec:arch-drivers}) and 
-justify our choice of CQRS and Event~Sourcing to address them 
-(Section~\ref{sec:why-cqrs-es}). Next, we introduce the \emph{comby} framework 
-that implements these patterns (Section~\ref{sec:comby}). From there, we map out 
-the domain model (Section~\ref{sec:domain-model}), system topology 
-(Section~\ref{sec:topology}), and our approaches to security and internationalisation
-(Sections~\ref{sec:security}--\ref{sec:i18n}). Finally, we highlight the architectural 
-seams left open for future evolution (Section~\ref{sec:seams}).
-
-
 %--------------------------------------------------------------------
 \section{Architectural drivers}
 \label{sec:arch-drivers}
 
-The non-functional requirements become 5 drivers. Each is a
+To solve the problem set out in Chapter~\ref{chap:analysis} and shape the
+solution, we did start from the requirements where
+any acceptable design must be satisfied, and then promoted to \emph{drivers}
+that arbitrate every architectural decision in this chapter. The
+non-functional requirements thus become 5 drivers. Each is a
 constraint any acceptable design must meet, and each reappears in the later
 chapters as the reason for a delivery-time decision.
 
@@ -102,6 +95,66 @@ Chapter~\ref{chap:realisation} takes them up where they can be measured.
 \section{Why CQRS and Event Sourcing for CLM?}
 \label{sec:why-cqrs-es}
 
+The drivers of Section~\ref{sec:arch-drivers} now have to select the
+platform's foundational pattern: how state is stored, changed and queried.
+Because that choice is the hardest one to revisit later, we make it
+explicitly rather than by habit: we fix the selection criteria, present
+the candidate architectures, and justify the choice
+(Section~\ref{sec:arch-choice}); the retained pattern is then presented in
+detail (Section~\ref{sec:cqrs-es-pattern}).
+
+\subsection{Architectural choice}
+\label{sec:arch-choice}
+
+\textbf{Selection criteria.} 4 criteria follow from the drivers. The
+first is \emph{compliance-grade history}: the record must be immutable
+and attributable, and any past state must be reconstructable on demand;
+this is the auditability driver, and the decisive criterion. The second
+is \emph{domain fit}: contract management is a read-heavy workload
+(dashboards, expiry counts, sums by quarter) punctuated by rare, guarded
+writes (an approval, an edit) that must pass multi-step validation. The
+third is \emph{tenant isolation by construction}: whatever the storage
+model, every record and every access must carry the tenant it belongs to.
+The fourth is \emph{maintainability}: the result must stay operable by a
+single engineer, without a heavy runtime beside the application.
+
+\textbf{Candidate architectures.} 4 candidate families could carry a CLM
+platform. \emph{Classic CRUD}, first, is the default 3-tier
+architecture~\cite{Fowler2003}: the current state lives in mutable rows
+and every update overwrites the previous one; its usual refinement bolts
+an audit trail beside the data (audit columns, history tables, triggers)
+to log the changes. \emph{A document-oriented store} models each contract
+as a self-contained document with a flexible schema, which suits
+heterogeneous metadata. \emph{A workflow (BPM) engine} makes the process
+the first-class citizen and models approval chains natively. \emph{CQRS
+with Event~Sourcing}, finally, stores what happened rather than what is:
+an append-only sequence of events is the primary record, the current
+state is derived from it, and reads are served by models kept separate
+from the writes~\cite{FowlerEventSourcing,FowlerCQRS,Young2010}.
+
+\textbf{Justification of the choice.} The first criterion eliminates most
+of the field. Classic CRUD keeps no history at all; with audit columns
+the trail becomes a side-structure that can be forgotten or edited, and
+it still cannot reconstruct a past state, exactly the guarantee that the
+regulator wants. A document database inherits the same weakness and adds
+one of its own: it has no transactional model for a multi-step approval.
+A workflow engine would model approvals natively, but it adds a heavy
+runtime and vendor lock-in, against the maintainability criterion, and
+still leaves the contract's own audit trail unsolved. CQRS with
+Event~Sourcing is the only candidate that meets the first criterion by
+construction (the history is not kept beside the data, it \emph{is} the
+data) while fitting the split read/write workload and carrying a tenant
+context naturally on every event. Its price falls on the fourth
+criterion: eventual consistency, long-lived event schemas, and a learning
+curve. That price is accepted knowingly, and
+Section~\ref{sec:cqrs-es-pattern} returns to it: state can always be
+re-derived later, but a history that was never recorded cannot be
+retrofitted. CQRS and Event~Sourcing were therefore chosen before any
+feature was designed.
+
+\subsection{CQRS and Event Sourcing}
+\label{sec:cqrs-es-pattern}
+
 A contract's life is a sequence of events: registered, document linked,
 approval granted or refused, deadline passed, terminated. These are facts
 that accumulate, not states that overwrite one another.
@@ -118,8 +171,7 @@ Event~Sourcing the immutable, time-stamped, actor-attributed record that
 GoBD and ISO~27001 demand (Section~\ref{sec:nfr-audit}) \emph{is} the event
 log: there is no separate audit table to maintain or to fall out of sync.
 \textit{Who approved this contract, when, and against which version} is
-answered by replaying its events. That is why the pattern was chosen before
-any feature was designed.
+answered by replaying its events.
 
 CQRS also fits the workload. Reads dominate and fetch whole aggregates: the
 dashboard counts expiring contracts and sums value by quarter. Writes are
@@ -146,27 +198,32 @@ sequence: a synchronous command path that appends an event, then
 asynchronous projection updates and a reactor that derives the contract's
 deadline reminders.}{fig:cqrs-seq}
 
-The alternatives are ruled out by the same driver. CRUD with audit columns makes the
-trail a side-structure that can be forgotten or edited, and it cannot
-reconstruct a past state, exactly the guarantee the regulator wants. A
-document database has no transactional model for a multi-step approval. A
-workflow engine would model approvals, but adds a heavy runtime and
-lock-in and still leaves the contract's own audit trail unsolved.
-
-This approach carries real costs. Read models are eventually consistent: a new contract
+The costs anticipated in Section~\ref{sec:arch-choice} are now concrete.
+Read models are eventually consistent: a new contract
 may show in its detail view a moment before it shows in a dashboard count,
 which for CLM is acceptable. Events are a long-lived schema, so they need a
 versioning convention. And the pattern has a learning curve, mitigated
-here because a framework supplies the mechanics; that framework is the subject
-of the next section.
+here because an existing framework can supply the mechanics; the choice of
+that framework is the subject of the next section.
 
 
 %--------------------------------------------------------------------
 \section{The comby framework}
 \label{sec:comby}
 
-comby is Gradient~Zero's in-house Go framework
-(Section~\ref{sec:gradient-zero}). It supplies the CQRS/ES building blocks
+The framework that carries the patterns of
+Section~\ref{sec:why-cqrs-es} did not appear for this project: it comes
+out of Gradient~Zero's own history. The company builds compliance-first
+products for regulated sectors
+(Section~\ref{sec:areas-expertise}), and each new product kept running
+into the same problems: an audit trail to guarantee, approval workflows
+to model, temporal queries to answer: infrastructure that would
+otherwise be reimplemented, or imported from an open-source project, once
+per product. Its response was to consolidate that recurring
+infrastructure into an in-house Go framework, maintained as a strategic
+asset and reused across the portfolio.
+
+comby is that framework. It supplies the CQRS/ES building blocks
 (command and query buses, an append-only event store, a projection runner,
 a reactor scaffold, and a message broker) and a set of \textit{defaults}:
 tenants, accounts and identities, group-based access control, invitations,
@@ -183,7 +240,7 @@ rebuilding a projection, isolating a tenant. CLMPilot owns the \emph{what}:
 what a contract is, when an approval advances, how a deadline raises
 reminders. That split is the maintainability driver in practice.
 
-\pumlfig{comby-layers}{0.85\textwidth}{Layering of CLMPilot on comby: the 4
+\pumlfig{comby-layers}{0.80\textwidth}{Layering of CLMPilot on comby: the 4
 core domains, the enterprise contexts that extend them, and 2 cross-cutting
 additions sit on comby's CQRS/ES core and its multi-tenant defaults, which sit
 on the shared data stores.}{fig:comby-layers}
@@ -230,20 +287,24 @@ were considered.
     comby~v3 & Go & Command/query buses, append-only event store,
       projection runner and reactors, \emph{plus} tenant, account,
       identity, group and invitation defaults out of the box. & Authored
-      in-house; the framework team supports the product directly; reused
-      across the company's portfolio. \\
+      in-house (Section~\ref{sec:areas-expertise}); the framework team
+      supports the product directly; reused across the company's
+      portfolio. \\
     \hline
-    EventStoreDB + Go & Go & A mature event store only; the command and
+    EventStoreDB + Go~\cite{EventStoreDB} & Go & A mature event store
+      only; the command and
       query buses, projection wiring, multi-tenancy, identity and RBAC
       must all be hand-built. & External product; the entire application
       framework remains the project's burden. \\
     \hline
-    Axon Framework & Java/JVM & Mature CQRS and Event~Sourcing, but no
+    Axon Framework~\cite{AxonFramework} & Java/JVM & Mature CQRS and
+      Event~Sourcing, but no
       multi-tenant identity layer; would require a JVM service. &
       Open-source; adopting it would split the stack across 2 languages.
       \\
     \hline
-    EventFlow & .NET & CQRS/ES primitives for the .NET ecosystem; tenancy
+    EventFlow~\cite{EventFlow} & .NET & CQRS/ES primitives for the .NET
+      ecosystem; tenancy
       and identity not provided. & Open-source, but the wrong ecosystem
       for a Go house. \\
     \hline
@@ -277,7 +338,8 @@ end of this section so the core model stays readable.
 \subsection{Bounded contexts}
 \label{sec:bounded-contexts}
 
-Figure~\ref{fig:domains} shows the 4. Contract is central; Approval,
+Figure~\ref{fig:domains} shows the 4 bounded contexts and how they
+relate. Contract is central; Approval,
 Deadline and DocumentLink each reference it. All 4 sit inside a tenant
 boundary: every instance belongs to one tenant, and no relationship
 crosses it. Identity and the audit log are absent here: they are
@@ -383,44 +445,32 @@ which the cloud storage adapters sit.
 \subsection{Deployment topology}
 \label{sec:deployment-topology}
 
-The deployment runs as a single EU-hosted Docker~Compose stack
-(Figure~\ref{fig:topology}). 3 runtime services come from their own
-repositories -- the \textbf{backend} (Go, on comby), the \textbf{frontend}
-(Vue~3 SPA) and the \textbf{intelligence} service (Python, backed by a large
-language model) -- while a fourth repository carries the deployment stack
-itself. The services are backed by 4 stores. \textbf{PostgreSQL} is the system of
+The deployment runs as a single EU-hosted, containerised stack
+(Figure~\ref{fig:topology}) of 3 runtime services: the \textbf{backend},
+the \textbf{frontend} (a single-page application running in the user's
+browser) and the \textbf{intelligence} service (backed by a large
+language model). We name the parts by their role; the concrete products
+behind them are a realisation decision
+(Chapter~\ref{chap:realisation}). The services are backed by 4 stores.
+A \textbf{relational database} is the system of
 record (the event store and the command store) and the source every read
-model is rebuilt from. \textbf{Redis} holds sessions and accelerates read
-models. \textbf{NATS} is the message broker that carries events to
+model is rebuilt from. A \textbf{cache database} holds sessions and
+accelerates read models. A \textbf{message broker} carries events to
 projections and reactors and is designed to distribute them across backend
 instances: the seam on which horizontal scaling depends
-(Section~\ref{sec:seams}). \textbf{MinIO} stores exports, signed documents
-and other assets. One reverse proxy terminates TLS, and the services bind to
-loopback only.
+(Section~\ref{sec:seams}). An \textbf{object store} keeps exports, signed
+documents and other assets. One reverse proxy terminates TLS in front of
+them.
 
 \pumlfig{topology}{0.9\textwidth}{CLMPilot deployment topology}{fig:topology}
 
 Network isolation is built into the topology: only the reverse proxy is reachable
 from outside, while the intelligence service and the stores are reachable only from
 the backend, so the most sensitive parts are not just access-controlled but
-unaddressable. Outward,
-the system uses SendGrid for email, the users' own cloud storage for documents,
-and DocuSeal for electronic signature, each behind a named interface so the
-concrete provider is interchangeable; ERP integration is anticipated in the
-design but not yet built.
-
-\subsection{Why a 4-repository split}
-\label{sec:repo-split}
-
-The 4 repositories separate by concern and release cadence, not by
-microservice~\cite{Newman2021}: there is one backend, not many. The split
-buys independence: the frontend ships without rebuilding the backend; a Go
-domain, a TypeScript UI, a Python service and a YAML operations stack stay in
-their own toolchains; a broken intelligence build cannot block a release;
-and each repository carries a small, fast CI pipeline. The cost is that a
-cross-cutting change (like a new API field) touches 2 repositories.
-That is accepted, because the OpenAPI contract makes the seam an explicit,
-regenerated artefact that a build step keeps in sync across both.
+unaddressable. Outward, the system depends on an email provider, on the
+users' own cloud storage for documents, and on an e-signature provider,
+each behind a named interface so the concrete provider is interchangeable;
+ERP integration is anticipated in the design but not yet built.
 
 %--------------------------------------------------------------------
 \section{Security and compliance model}
@@ -605,7 +655,7 @@ supplies those patterns and the multi-tenant components, which is what lets
 us cover the platform's requirements with only a small amount of custom code. The
 requirements map onto a 4-context core domain model (Contract, Approval,
 Deadline and DocumentLink, extended at its seams by the enterprise contexts)
-on a multi-repository, single-backend topology hosted in the EU, with tenant isolation
+on a single-backend topology hosted in the EU, with tenant isolation
 and the audit trail as structural guarantees. Its open seams mark where the
 design is built to extend.
 

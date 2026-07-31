@@ -35,10 +35,10 @@ rectangle "Identity & access administration" {
   usecase "Define per-tenant\ncustom fields"  as UC_custom
 }
 
-admin --> UC_users
-admin --> UC_invite
-admin --> UC_roles
-admin --> UC_revoke
-admin --> UC_policy
-admin --> UC_custom
+admin -- UC_users
+admin -- UC_invite
+admin -- UC_roles
+admin -- UC_revoke
+admin -- UC_policy
+admin -- UC_custom
 @enduml

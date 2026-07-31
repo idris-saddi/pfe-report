@@ -64,14 +64,14 @@ package "DocumentLink context" {
   DocumentStore <|.. GoogleDriveAdapter
   DocumentStore <|.. SharePointAdapter
   DocumentStore <|.. UrlAdapter
-  DocumentLink ...> DocumentStore : metadata at link/refresh
+  DocumentLink ....> DocumentStore : metadata at link/refresh
 }
 
 ' Explicit right/down positioning keeps the graph clean and wide
 Contract "1" -right- "0..*" DocumentLink
-Contract ...> CustomFieldDefinition : values validated against definitions
+Contract ....> CustomFieldDefinition : values validated against definitions
 
-note left of DocumentLink
+note top of DocumentLink
   A typed reference only: the platform
   never stores the document's contents.
 end note

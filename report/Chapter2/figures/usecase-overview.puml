@@ -55,22 +55,22 @@ rectangle "CLMPilot" {
 }
 
 ' ---------------- Associations ----------------
-sa    --> UC_tenants
-admin --> UC_iam
-admin --> UC_audit
-user  --> UC_auth
-lm    --> UC_contracts
-lm    --> UC_approvals
-lm    --> UC_deadlines
-lm    --> UC_reporting
-appr  --> UC_approvals
-aud   --> UC_audit
+sa    -- UC_tenants
+admin -- UC_iam
+admin -- UC_audit
+user  -- UC_auth
+lm    -- UC_contracts
+lm    -- UC_approvals
+lm    -- UC_deadlines
+lm    -- UC_reporting
+appr  -- UC_approvals
+aud   -- UC_audit
 
 ' ---------------- Secondary / external actors (right) ----------------
 actor "System clock"                as clock #F1C40F
 actor "LLM\n(intelligence service)" as llm   #F1C40F
-UC_deadlines --> clock
-UC_contracts --> llm
+UC_deadlines -- clock
+UC_contracts -- llm
 
 legend right
   |<#E74C3C>| Out of project scope |

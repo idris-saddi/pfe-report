@@ -55,10 +55,10 @@ package "CLMPilot backend service (Go)" {
 }
 
 ' ---------------- Data stores: one row below comby --------------------------
-database "PostgreSQL\n(event / command / data store)" as pg
-queue    "NATS\n(event distribution)" as nats
-database "Redis\n(sessions, cache)" as redis
-database "MinIO\n(assets, exports)" as minio
+database "Relational DB\n(event / command / data store)" as pg
+queue    "Message broker\n(event distribution)" as nats
+database "Cache DB\n(sessions, cache)" as redis
+database "Object store\n(assets, exports)" as minio
 
 ' All 4 stores form one row BELOW the comby stack (rank anchors from its
 ' bottom element)…

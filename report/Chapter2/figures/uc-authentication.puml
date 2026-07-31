@@ -44,11 +44,11 @@ rectangle "Authentication" {
   usecase "Accept invitation"                    as UC_acceptinv
 }
 
-sa --> UC_auth
-sa --> UC_reset
-cu --> UC_auth
-cu --> UC_reset
-cu --> UC_acceptinv
+sa -- UC_auth
+sa -- UC_reset
+cu -- UC_auth
+cu -- UC_reset
+cu -- UC_acceptinv
 
 UC_auth ..> UC_mfa : <<include>>
 

@@ -40,13 +40,13 @@ rectangle "Approvals & deadlines" {
   }
 }
 
-lm    --> UC_initappr
-lm    --> UC_remind
-lm    --> UC_apprhist
-lm    --> UC_ack
-lm    --> UC_oblig
-appr  --> UC_decide
-appr  --> UC_apprhist
+lm    -- UC_initappr
+lm    -- UC_remind
+lm    -- UC_apprhist
+lm    -- UC_ack
+lm    -- UC_oblig
+appr  -- UC_decide
+appr  -- UC_apprhist
 ' Base use case on the left, the included / extending use case to its
 ' right; «include» points at the included case, «extend» points back at
 ' the base (UML standard).
@@ -55,7 +55,7 @@ UC_decide   <.. UC_return   : <<extend>>
 
 ' Secondary actor (far right; hidden edge pushes it past the inner column)
 actor "System clock" as clock
-UC_remind --> clock
+UC_remind -- clock
 UC_template -[hidden]-> clock
 
  note left of UC_remind

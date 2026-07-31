@@ -12,11 +12,11 @@ skinparam defaultFontSize 20
 skinparam sequenceMessageAlign center
 
 actor       "Legal Manager"        as lm
-participant "REST API\n(comby)"     as api
+participant "REST API"              as api
 participant "Command bus"           as cmd
 participant "Contract\naggregate"   as agg
 database    "Event store"           as es
-queue       "Broker (NATS)"         as broker
+queue       "Message broker"        as broker
 participant "Projection runner"     as proj
 participant "Deadline-creation\nreactor" as reactor
 

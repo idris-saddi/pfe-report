@@ -36,20 +36,20 @@ rectangle "Contracts & documents" {
   usecase "Send for electronic\nsignature"    as UC_esign
 }
 
-lm --> UC_register
-lm --> UC_edit
-lm --> UC_archive
-lm --> UC_search
-lm --> UC_attach
-lm --> UC_detach
-lm --> UC_esign
+lm -- UC_register
+lm -- UC_edit
+lm -- UC_archive
+lm -- UC_search
+lm -- UC_attach
+lm -- UC_detach
+lm -- UC_esign
 ' Base use case on the left; the extending use case sits to its right,
 ' with the «extend» arrowhead still pointing at the base (UML standard).
 UC_attach <.. UC_intel : <<extend>>
 
 ' External actor (far right)
 actor "LLM\n(intelligence service)" as llm
-UC_intel --> llm
+UC_intel -- llm
 
 note bottom of UC_archive
   Archive only — no hard

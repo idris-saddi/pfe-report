@@ -1,7 +1,8 @@
 @startuml topology
 '==============================================================================
-' Figure (Chapter II): CLMPilot deployment topology and external integrations.
-' Compact, designed view.
+' Figure (Chapter III): CLMPilot deployment topology and external integrations.
+' Compact, designed view. Conceptual on purpose (supervisor feedback): roles,
+' not products -- the concrete tools behind each node are named in Chapter IV.
 ' Render:  plantuml -tpdf topology.puml      (or -tpng)
 '==============================================================================
 skinparam shadowing false
@@ -12,24 +13,25 @@ skinparam nodesep 16
 
 actor "User" as user
 
-node "EU-hosted server (Docker Compose)" as srv {
+node "EU-hosted server (container stack)" as srv {
   component "Reverse proxy (TLS)" as nginx
   package "web network" {
-    component "Frontend\n(Vue 3 SPA)" as fe
-    component "Backend\n(Go + comby)" as be
+    component "Frontend\n(SPA)" as fe
+    component "Backend" as be
   }
   package "internal network (private)" {
-    component "Intelligence\n(Python, stubbed)" as intel
-    database "PostgreSQL" as pg
-    database "Redis" as redis
-    queue    "NATS" as nats
-    database "MinIO" as minio
+    component "Intelligence\nservice" as intel
+    database "Relational DB\n(system of record)" as pg
+    database "Cache DB\n(sessions, read models)" as redis
+    queue    "Message\nbroker" as nats
+    database "Object\nstore" as minio
   }
 }
 
 package "External integrations" as ext {
-  cloud "SendGrid" as sendgrid
-  cloud "Cloud Storage" as cs
+  cloud "Email\nprovider" as sendgrid
+  cloud "Cloud\nstorage" as cs
+  cloud "E-signature\nprovider" as esign
 }
 
 user  --> nginx : HTTPS
@@ -42,4 +44,5 @@ be    --> nats
 be    --> minio
 be    --> sendgrid
 be    --> cs
+be    --> esign
 @enduml

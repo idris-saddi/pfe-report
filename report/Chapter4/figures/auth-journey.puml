@@ -8,7 +8,7 @@
 '==============================================================================
 skinparam shadowing false
 skinparam defaultFontName Helvetica
-skinparam defaultFontSize 20
+skinparam defaultFontSize 18
 skinparam sequenceMessageAlign center
 
 actor "User" as u
@@ -22,21 +22,21 @@ participant "Auth\nmiddleware" as auth
 == Sign-in (two steps) ==
 u -> spa : email + password
 spa -> acc : login with credentials
-acc -> acc : verify salted\npassword hash
-acc -> mfa : issue one-time code
-mfa -> mail : send code\n(recipient's locale)
-mail --> u : one-time code by email
-acc --> spa : second factor required
+acc -> acc : verify salted password hash
+acc -> mfa : issue OTP
+mfa -> mail : send code
+mail --> u : OTP by email
+acc --> spa : 2FA required
 u -> spa : enter code
-spa -> acc : confirm login\n(email + one-time code)
+spa -> acc : confirm login (email + OTP)
 acc -> mfa : validate code
 acc -> sess : create opaque session
-acc --> spa : Set-Cookie: session +\nidentity (tenant scope)
-spa -> spa : persist identity, schedule\npre-expiry session refresh
+acc --> spa : Set-Cookie: session + identity
+spa -> spa : persist identity, schedule pre-expiry session refresh
 spa --> u : dashboard
 
 == Every later request ==
-spa -> auth : command / query\n(cookies attached)
+spa -> auth : command / query (cookies attached)
 auth -> sess : resolve session:\nidentity + tenant
-auth -> auth : permission check\nat dispatch
+auth -> auth : permission check at dispatch
 @enduml

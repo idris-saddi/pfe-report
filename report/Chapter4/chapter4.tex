@@ -36,24 +36,17 @@
 % domains, never a per-tier or per-phase tour. Per the report-wide rule, the
 % chapter intro must not reference other chapters.
 This chapter presents the CLMPilot platform as it was built and shipped:
-a multi-tenant pilot live in production at \url{https://clmpilot.com},
-covering the full contract lifecycle together with the enterprise tier of
+a multi-tenant pilot, live in production at \url{https://clmpilot.com},
+covering the full contract lifecycle together with the enterprise tier of feutures :
 intelligence-assisted extraction, electronic signature, per-tenant custom
-fields, obligation tracking and advanced reporting. The work was delivered
-across Phases~0 to~2, but we do not recount it phase by phase; each section
-of this chapter follows one engineering theme across the stack and uses the
-realised domains to illustrate it. We open with the foundations and the
-delivery process that carried every later release
-(Section~\ref{sec:found}), then follow the backend dispatch model
-(Section~\ref{sec:backend-comby}), the contract domain and its lifecycle
-(Section~\ref{sec:contract-domain}), the workflow and temporal automation
-built on reactors and a scheduler (Section~\ref{sec:workflow-temporal}),
-the document-intelligence and electronic-signature subsystems
-(Section~\ref{sec:intel-esign}), the web application and its
-internationalised user experience (Section~\ref{sec:webapp}), identity,
-access control and multi-tenancy as they operate in production
-(Section~\ref{sec:iam-practice}), and the deployment and release
-operations that keep the pilot running (Section~\ref{sec:deployment-ops}).
+fields, obligation tracking and advanced reporting. Each
+section of the chapter follows one engineering theme across the whole
+stack and uses the realised domains to illustrate it, starting from the
+foundations and the delivery process, through the backend dispatch model,
+the contract domain, the workflow and temporal automation, the
+intelligence and signature subsystems, the web application, and identity
+and tenancy in production, down to the deployment and release operations
+that keep the pilot running.
 
 %--------------------------------------------------------------------
 \section{Engineering foundations and the delivery process}
@@ -69,17 +62,16 @@ operations that keep the pilot running (Section~\ref{sec:deployment-ops}).
 % feedback; Figure~\ref{fig:gantt} references resolve there.)
 
 Phase~0 produced little product code, but it fixed the decisions every
-later phase relied on. The first was the split of the codebase into 4
-repositories, each owning one concern and one release cadence; the
-architectural reasoning behind that split was given in
-Section~\ref{sec:repo-split}, and Figure~\ref{fig:repos} shows what each
-repository owns in the realised platform. The backend repository carries
-the Go service and its domain contexts~\cite{GoDocs}; the frontend
-repository carries the single-page application; the intelligence
-repository carries the Python extraction service; and the deployment
-repository carries the operational stack itself: the Compose files, the
-reverse-proxy and service-unit configuration, the release and backup
-scripts, and the runbooks that document how to operate them.
+later phase relied on. The first of them was to split the codebase into 4
+repositories, each owning one concern and one release cadence;
+Figure~\ref{fig:repos} shows what each repository owns in the realised
+platform. The backend repository carries the Go service and its domain
+contexts~\cite{GoDocs}. The frontend repository carries the single-page
+application, and the intelligence repository the Python extraction
+service. The fourth, the deployment repository, holds the operational
+stack itself: the Compose files, the reverse-proxy and service-unit
+configuration, the release and backup scripts, and the runbooks that
+explain how to operate them.
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/repos.pdf}
@@ -93,44 +85,52 @@ scripts, and the runbooks that document how to operate them.
   \label{fig:repos}
 \end{figure}
 
-Every repository follows the same branching discipline. Day-to-day work
-happens on short-lived feature branches that merge into \texttt{develop}
-through a reviewed pull request; \texttt{main} receives merges only from
-\texttt{develop}, as explicit release promotions. The convention keeps
-\texttt{main} deployable at all times and makes each release a reviewable
-event with a diff of its own. Conventional commit messages tie every
-change to the roadmap item that motivated it
-(Section~\ref{sec:methodology}), and each repository versions its
-releases independently under semantic versioning, so a defective release
-is rolled back by re-pinning a single version number.
+The split is by concern, not by microservice~\cite{Newman2021}: there is
+one backend, not many. Each repository keeps its own toolchain and its
+own release pace, so the frontend can ship without rebuilding the
+backend, and a broken intelligence build never blocks a release. Each
+also carries a small CI pipeline that runs in minutes. The price is that
+a cross-cutting change, a new API field for instance, touches 2
+repositories at once. We accepted that cost because the OpenAPI contract
+makes the seam explicit: the client is regenerated from the
+specification, and a build step keeps the 2 sides in sync.
 
-A continuous-integration pipeline guards both branches in every
-repository, and each pipeline is specific to what it protects. The
-backend pipeline lints the Go code and runs its test suites against
-disposable PostgreSQL, Redis and NATS service
-containers~\cite{PostgreSQL,NATS}; the frontend pipeline lints, runs the
-unit suite and builds the production bundle; the intelligence pipeline
-runs its own linter and tests; and the deployment pipeline validates the
-Compose files and shell scripts it ships. The 3 application
-pipelines end by building the repository's Docker image and publishing
-it, tagged with the commit, the branch and the release version, to the
-container registry the production host pulls from
-(Section~\ref{sec:deployment-ops}). Dependency
-updates arrive as automated weekly pull requests that pass the same gate.
-The pipeline and stack definitions are configuration, and are reproduced
-in Appendix~A.3.
+Every repository follows the same branching rules. Day-to-day work
+happens on short-lived feature branches merged into \texttt{develop}
+through a reviewed pull request, and \texttt{main} receives merges only
+from \texttt{develop}, one per release. This keeps \texttt{main}
+deployable at all times, and it gives each release a diff of its own
+that can be reviewed. Commit messages follow the conventional format and
+name the roadmap item behind the change (Section~\ref{sec:methodology}).
+Each repository is versioned independently under semantic versioning, so
+rolling back a defective release means re-pinning a single version
+number.
+
+Continuous integration guards both branches in all 4 repositories, and
+each pipeline is specific to what it protects. The backend pipeline
+lints the Go code and runs the test suites against disposable
+PostgreSQL, Redis and NATS containers~\cite{PostgreSQL,NATS}. The
+frontend pipeline lints, runs the unit suite and builds the production
+bundle; the intelligence pipeline runs its own linter and tests; the
+deployment pipeline validates the Compose files and shell scripts it
+ships. The 3 application pipelines end by building the repository's
+Docker image and publishing it to the container registry the production
+host pulls from, tagged with the commit, the branch and the release
+version (Section~\ref{sec:deployment-ops}). Dependency updates arrive as
+weekly automated pull requests and pass the same gate. The pipeline and
+stack definitions are configuration; they are reproduced in
+Appendix~A.3.
 
 2 further foundations complete the delivery process. The local
 development environment reproduces the production backing services
 (PostgreSQL, Redis, NATS and MinIO, plus a local mail catcher) in a
-Compose file of its own, brought up by an idempotent setup script, so the
-code on a developer's machine exercises the same backing services that
-production runs. And the roadmap remained the single source of truth for
-scope throughout: a versioned Markdown document from which a progress
-tracker is regenerated automatically at phase, section and task
-granularity (Section~\ref{sec:methodology}). Under this process the 4
-repositories accumulated more than 40 tagged releases over the
-internship, each one traceable from its version number back through the
+Compose file of its own, brought up by an idempotent setup script, so
+code is developed against the same services it will run on. And scope
+was tracked in one place throughout: a versioned Markdown roadmap, from
+which a progress tracker is regenerated automatically at phase, section
+and task granularity (Section~\ref{sec:methodology}). Under this process
+the 4 repositories accumulated more than 40 tagged releases over the
+internship, each traceable from its version number back through the
 release pull request to the roadmap items it delivered.
 
 %--------------------------------------------------------------------
@@ -148,84 +148,79 @@ release pull request to the roadmap items it delivered.
 The backend is a single Go process. At start-up it constructs the comby
 facade and connects the backing services (the PostgreSQL event and
 command stores, the Redis cache, the MinIO object store and the NATS
-broker), then registers the framework's default domains (tenant, account,
-identity, group, invitation, asset and webhook) followed by CLMPilot's
-own contexts, and finally restores state by replaying the event log into
-the in-memory projections before it begins serving requests. The comby
-layering of Section~\ref{sec:comby-role} is visible in the code layout:
-the domain packages hold aggregates, commands, events, read models and
-reactors, and everything else (dispatch, persistence, tenancy,
-authentication) is the framework's.
+broker). It then registers the framework's default domains (tenant,
+account, identity, group, invitation, asset and webhook), registers
+CLMPilot's own contexts after them, and finally restores its state by
+replaying the event log into the in-memory projections. Only then does
+it serve requests. The comby layering of Section~\ref{sec:comby-role} is
+visible in the code layout: the domain packages hold aggregates,
+commands, events, read models and reactors, while dispatch, persistence,
+tenancy and authentication all belong to the framework.
 
-This boot sequence is ordered, and the order carries rules the
+The boot sequence is ordered, and the order carries rules the
 realisation had to respect. A command can be dispatched only once its
-domain's handlers are registered: a boot-time action placed after the
-facade exists but before domain registration completes fails, because
+domain's handlers are registered; a boot-time action placed after the
+facade exists but before registration completes simply fails, because
 nothing routes the command yet. The platform's 2 seeding actions
 therefore hook into fixed points of the sequence. Administrator seeding
-(Section~\ref{sec:iam-practice}) runs inside domain registration,
-immediately after the framework defaults are in place; demo-data
-seeding runs only after state restoration, because it depends on
-reactors, and reactors begin processing live events only once the
-projections are restored. The first point was found by hitting the
-failure once; the second follows from the framework's restore
-semantics. Both are now fixed conventions of the codebase.
+(Section~\ref{sec:iam-practice}) runs inside domain registration, right
+after the framework defaults are in place. Demo-data seeding runs only
+after state restoration, because it depends on reactors, and reactors
+begin processing live events once the projections are restored. We found
+the first rule by hitting the failure; the second follows from the
+framework's restore semantics. Both are now conventions of the codebase.
 
 HTTP enters through a thin REST layer. comby generates handlers and an
 OpenAPI document for every registered default, and CLMPilot's own routes
 follow the same discipline: a handler validates the request's syntax,
 translates it into a command or a query, dispatches it, and translates
-the result back into a response. No handler contains a business rule;
-every rule is enforced in an aggregate or a command handler, where the
-event log records its outcome. The exported specification counted 133
-endpoints when the backend was first containerised, and grew with each
-later context; the
-frontend consumes it through a generated, type-safe client
-(Section~\ref{sec:webapp}).
+the result back into a response. No handler contains a business rule.
+Every rule lives in an aggregate or a command handler, where the event
+log records its outcome. The exported specification counted +133
+endpoints when the backend was first containerised and grew with each
+later context; the frontend consumes it through a generated, type-safe
+client (Section~\ref{sec:webapp}).
 
 Figure~\ref{fig:backend-paths} shows the 2 request paths side by side,
 as they are realised. A command (here, updating a contract) passes the
 authorisation stage, reaches the aggregate, is validated against the
 current state, and appends an event; the response returns once the event
 is durable. A query (listing contracts) passes the same authorisation
-stage and then reads a projection; nothing is written. The projections
-behind the query path are either the framework's generic per-aggregate
-projection, which covers retrieval and listing without custom code, or
-purpose-built read models where a view has its own access pattern:
-expiring contracts sorted by end date, portfolio volume rolled up by
-quarter, department or type at query time, and a case-insensitive search
-over the free-form fields.
+stage, then reads a projection and writes nothing. Most views are served
+by the framework's generic per-aggregate projection, which covers
+retrieval and listing without custom code. Where a view has its own
+access pattern, we built a dedicated read model: expiring contracts
+sorted by end date, portfolio volume rolled up by quarter, department or
+type at query time, and a case-insensitive search over the free-form
+fields.
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/backend-paths.pdf}
     {\includegraphics[width=0.95\linewidth]{backend-paths}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
       \textit{Diagram to be rendered from} \texttt{figures/backend-paths.puml}\vspace{2em}}}}
-  \caption{The realised command path and query path, side by side. Both
-           pass the same authorisation stage at dispatch; the command
-           path validates on the aggregate and appends an event, while
-           the query path reads a projection and writes nothing.}
+  \caption{The realised command path and query path, side by side.}
   \label{fig:backend-paths}
 \end{figure}
 
 Authorisation is attached to dispatch, and only to dispatch
-(Section~\ref{sec:security-pipeline}); the practical weight of this
-property was learned during operations. Every command and every query is
-checked against the caller's permissions when the bus routes it; an
-endpoint that read a store directly, without dispatching, would silently
-bypass the check. The convention in the realised codebase is therefore
-to route reads through dispatch even where a handler could reach a store
-directly: the audit-export download of
-Section~\ref{sec:contract-domain} dispatches the contract-retrieve
-query before serving a byte for exactly this reason, and the
-unauthenticated endpoints that remain (the inbound signature webhook,
-the OAuth callback) verify their callers by other means. The same
-property also produces an asymmetry between the 2 paths: a session that
-satisfies the query path can still be refused on the command path, which
-is why administrative data corrections against production are written as
-small system-dispatched routines executed at boot instead of hand-issued
-API calls. The framework's command, query and event catalogue, including
-the system-dispatch convention, is summarised in Appendix~A.2.
+(Section~\ref{sec:security-pipeline}); we learned the practical weight
+of this during operations. Every command and every query is checked
+against the caller's permissions when the bus routes it, so an endpoint
+that read a store directly, without dispatching, would silently bypass
+the check. The convention in the codebase is therefore to route reads
+through dispatch even where a handler could reach a store directly. The
+audit-export download of Section~\ref{sec:contract-domain} dispatches
+the contract-retrieve query before serving a single byte for exactly
+this reason, and the few endpoints that remain unauthenticated (the
+inbound signature webhook, the OAuth callback) verify their callers by
+other means. The same property produces an asymmetry between the 2
+paths: a session that satisfies the query path can still be refused on
+the command path. This is why administrative data corrections against
+production are written as small system-dispatched routines executed at
+boot, not as hand-issued API calls. The framework's command, query and
+event catalogue, including the system-dispatch convention, is summarised
+in Appendix~A.2.
 
 %--------------------------------------------------------------------
 \section{The contract domain and its lifecycle}
@@ -244,63 +239,61 @@ value and currency, start and end dates, renewal terms) and a status
 that moves only along the transitions of the state machine designed in
 Section~\ref{sec:behavioural-views}: a draft becomes active, an active
 contract may pass through expiring to expired, and an active or expiring
-contract can be terminated early. The aggregate exposes 7
-intentions (register, update, terminate, archive, soft-delete, restore,
-and request an audit export), each guarding its own preconditions. An
-update is expressed as a set of patched fields, so the emitted event
-records exactly what changed; deletion is a flag, never a removal,
-because the immutability requirement of Section~\ref{sec:nfr-audit}
-forbids destroying history; and the command handler enforces the
-uniqueness of the contract number within the tenant before a
-registration is accepted.
+contract can be terminated early. The aggregate exposes 7 intentions
+(register, update, terminate, archive, soft-delete, restore, and request
+an audit export), and each guards its own preconditions. An update is
+expressed as a set of patched fields, so the emitted event records
+exactly what changed. Deletion is a flag rather than a removal, since
+the immutability requirement of Section~\ref{sec:nfr-audit} forbids
+destroying history. And a registration is only accepted after the
+command handler has checked that the contract number is unique within
+the tenant.
 
-Because every state change is an event appended to the contract's
-stream, the audit trail demanded by the compliance drivers exists by
-construction, and the platform exposes it in 3 forms. The raw event
-list of a contract is rendered in the application's audit-log view, with
-the actor, timestamp and payload of each entry. An exportable report is
-produced asynchronously by a reactor that replays the contract's events
-into a tabular file and stores it in the object store. And a download
-endpoint serves that file after first dispatching the contract-retrieve
-query, so the export inherits exactly the access control of the record
-it describes.
+Every state change is an event appended to the contract's stream, so the
+audit trail demanded by the compliance drivers exists by construction.
+The platform exposes it in 3 forms. The application renders the raw
+event list of a contract in its audit-log view, with the actor,
+timestamp and payload of each entry. A reactor produces an exportable
+report asynchronously, by replaying the contract's events into a tabular
+file kept in the object store. And a download endpoint serves that file
+after first dispatching the contract-retrieve query, so the export
+inherits exactly the access control of the record it describes.
 
 Phase~2 extended the aggregate with per-tenant custom fields without
 touching its core. A separate \texttt{CustomFieldDefinition} aggregate
 lets each tenant's administrator define typed fields (text, number,
-date, selection and boolean); a definition's key and type are immutable
+date, selection and boolean). A definition's key and type are immutable
 after creation, because changing either would orphan or mistype the
 values already recorded on contracts. The contract stores its custom
 values as typed values with a canonical string encoding, chosen so that
-replaying old events stays deterministic, and the events kept their
-earlier plain-string form alongside the typed one so that history
-recorded before the change replays losslessly. Validation crosses the
-2 contexts: the Contract command handlers accept an injected validator
-that checks each value against the tenant's definitions (required fields
-present, values parse for their type, selections among the allowed
-options) and ignores values whose definitions have since been deleted,
+replaying old events stays deterministic; the events also kept their
+earlier plain-string form alongside the typed one, so history recorded
+before the change replays losslessly. Validation crosses the 2 contexts.
+The Contract command handlers accept an injected validator that checks
+each value against the tenant's definitions: required fields are
+present, values parse for their type, selections stay among the allowed
+options. Values whose definitions have since been deleted are ignored,
 so re-saving an old record never fails on removed configuration.
 
 \texttt{DocumentLink} realises the integration boundary as a domain
-object, exactly as designed in
-Section~\ref{sec:aggregate-responsibilities}. One aggregate serves all
-providers: linking records a typed reference (provider, external
-identifier, file name and MIME type) and overlays metadata fetched from
-the provider at link time; unlinking and metadata refresh complete its
-3 intentions. The provider-specific work is confined to adapters
-behind a single \texttt{DocumentStore} interface: one for Google~Drive,
-one for SharePoint through the Microsoft~Graph API, and a pass-through
-for arbitrary URLs. The adapters authenticate with per-tenant OAuth
-tokens held encrypted in the object store, the connect flow is
-restricted to tenant administrators, and the operator-facing setup for
-each provider is walked through in Appendix~A.4. The integration-first
-rule (a reference, never the contents) is enforced at this boundary:
-no type in the domain model can hold document bytes, so the claim that
-the platform does not ingest customer documents can be verified in the
-model itself. Figure~\ref{fig:contract-domain} draws the realised model:
-the 2 aggregates, the definitions the contract validates against, the
-adapter family behind the storage interface, and the events each
-aggregate emits.
+object, as designed in Section~\ref{sec:aggregate-responsibilities}. One
+aggregate serves all providers. Linking records a typed reference
+(provider, external identifier, file name and MIME type) and overlays
+metadata fetched from the provider at link time; unlinking and metadata
+refresh complete its 3 intentions. The provider-specific work stays in
+adapters behind a single \texttt{DocumentStore} interface: one for
+Google~Drive, one for SharePoint through the Microsoft~Graph API, and a
+pass-through for arbitrary URLs. The adapters authenticate with
+per-tenant OAuth tokens held encrypted in the object store, only tenant
+administrators may run the connect flow, and Appendix~A.4 walks through
+the operator-facing setup for each provider. The integration-first rule
+(a reference, never the contents) is enforced at this seam: no type in
+the domain model can hold document bytes, so the claim that the platform
+does not ingest customer documents can be checked in the model itself.
+Figure~\ref{fig:contract-domain} draws the realised model, with the 2
+aggregates, the definitions the contract validates against, the adapter
+family behind the storage interface, and the events each aggregate
+emits.
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/contract-domain.pdf}
@@ -326,14 +319,15 @@ aggregate emits.
 % figure: sequence diagram -- contract registration fires the deadline-creation
 % reactor; or activity diagram for obligation recurrence.
 
-3 contexts give the platform its behaviour over time: Approval, the
-ordered review a contract passes before activation; Deadline, the
-temporal markers the platform watches on the contract's behalf; and
-Obligation, the recurring commitments a signed contract creates. All
-3 are built from the same 2 mechanisms. Reactors turn one domain's
-event into another domain's command, and an in-process scheduler turns
-the passage of time into commands on a fixed calendar, realising the
-system-clock actor of Section~\ref{sec:actors}.
+3 contexts give the platform its behaviour over time. Approval is the
+ordered review a contract passes before activation; Deadline covers the
+temporal markers the platform watches on the contract's behalf;
+Obligation covers the recurring commitments a signed contract creates.
+All 3 are built from the same 2 mechanisms: reactors, which turn one
+domain's event into another domain's command, and an in-process
+scheduler, which turns the passage of time into commands on a fixed
+calendar and so realises the system-clock actor of
+Section~\ref{sec:actors}.
 
 The approval workflow is an aggregate of ordered steps, each addressed
 to a designated approver. Steps complete strictly in order, only the
@@ -342,71 +336,68 @@ whole workflow to rejected, matching the rules of
 Table~\ref{tab:uc-approval-workflow}. Completion is recorded in 2
 stages: each step completion is its own event, and a separate
 finalisation event closes the workflow. The separation exists for the
-reactor that watches the chain: when the last step completes, the chain
+reactor that watches the chain. When the last step completes, that
 reactor dispatches the finalisation and then the contract update that
-flips the target contract to active, closing the draft-to-active loop of
-Section~\ref{sec:behavioural-views}. A second reactor owns every
-notification email the workflow sends. Splitting state transitions from
-side effects means a mail failure can never interfere with the
-workflow's state, and each reactor's failure modes stay isolated.
+flips the target contract to active, which closes the draft-to-active
+loop of Section~\ref{sec:behavioural-views}. A second reactor owns every
+notification email the workflow sends. We kept state transitions and
+side effects apart on purpose: a mail failure can never interfere with
+the workflow's state, and each reactor fails on its own.
 
-Deadlines are created by automation more than by hand.
-Figure~\ref{fig:deadline-automation} follows the realised chain: a
+Most deadlines are created by automation rather than by hand.
+Figure~\ref{fig:deadline-automation} follows the realised chain. A
 cross-domain reactor listens for contract registration and derives up to
-3 deadlines from the record itself (expiry at the end date, the
-cancellation window at the end date minus the notice period when that
-window still lies ahead, and renewal when the contract auto-renews),
-each carrying reminder markers at 90, 60 and 30~days. The same reactor
-gained a second trigger in Phase~2: when the intelligence pipeline
-extracts dates from a linked document
+3 deadlines from the record itself: expiry at the end date, the
+cancellation window at the end date minus the notice period (when that
+window still lies ahead), and renewal when the contract auto-renews.
+Each deadline carries reminder markers at 90, 60 and 30~days. In
+Phase~2 the same reactor gained a second trigger: when the intelligence
+pipeline extracts dates from a linked document
 (Section~\ref{sec:intel-esign}), the resulting contract update seeds the
-corresponding deadlines if they do not already exist, while a deadline a
-user has edited is never touched.
+corresponding deadlines if they do not exist yet. A deadline the user
+has edited is never touched.
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/deadline-automation.pdf}
     {\includegraphics[width=0.95\linewidth]{deadline-automation}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
       \textit{Diagram to be rendered from} \texttt{figures/deadline-automation.puml}\vspace{2em}}}}
-  \caption{Temporal automation in the Deadline context: contract
-           registration fires the deadline-creation reactor, and the cron
-           scheduler later promotes due reminder markers, whose events
-           the reminder reactor turns into email.}
+  \caption{Temporal automation in the Deadline context.}
   \label{fig:deadline-automation}
 \end{figure}
 
-Time-driven behaviour enters through the scheduler, an in-process cron
-runner with UTC-anchored jobs. An hourly job dispatches a batch command that
+Time enters through the scheduler, an in-process cron runner with
+UTC-anchored jobs. An hourly job dispatches a batch command that
 promotes every due reminder marker; a nightly job flips overdue
 deadlines to missed. The batch commands are dispatched once per tenant,
 so a failure in one tenant's batch cannot halt the others, and every job
 logs its tenant count and duration. Reminder mail is opt-in per user:
-before sending, the reminder reactors consult a per-identity preference
-whose absence means no mail. The scheduling pattern was reused unchanged
-as later phases added temporal behaviour: obligation checks run on the
-same scheduler at offset minutes so the batches do not contend,
-scheduled report exports run hourly against each configuration's
-next-run date (Section~\ref{sec:webapp}), and a reconciliation job polls
-the signature provider for requests whose webhooks were missed
-(Section~\ref{sec:intel-esign}).
+before sending, the reminder reactors consult a per-identity preference,
+and its absence means no mail. Later phases reused the pattern
+unchanged. Obligation checks run on the same scheduler at offset minutes
+so the batches do not contend; scheduled report exports run hourly
+against each configuration's next-run date (Section~\ref{sec:webapp});
+and a reconciliation job polls the signature provider for requests whose
+webhooks were missed (Section~\ref{sec:intel-esign}).
 
 Obligations, added in Phase~2, reuse the deadline mechanics but model a
-different concept: a deadline is a date the platform watches, while an
-obligation is a task a person owns and completes. Obligations are
-created by users and are not derived from contract fields; their reminder
-markers sit at 14, 7 and 1~days, the shorter horizon of operational
-tasks; and their lifecycle ends in completed or missed, with re-opening
-excluded (a fresh occurrence is created instead). Recurrence is a third
-reactor: completing a recurring obligation emits an event from which the
-reactor spawns the next occurrence, computed by calendar arithmetic
-anchored to the original due date (a monthly task due on the 15th stays
-on the 15th) and rolled forward past the present, so completing a task
-late never schedules an occurrence that is already overdue.
+different thing: a deadline is a date the platform watches, while an
+obligation is a task a person owns and completes. Users create
+obligations themselves; nothing derives them from contract fields. Their
+reminder markers sit at 14, 7 and 1~days, the shorter horizon of
+operational tasks, and their lifecycle ends in completed or missed. There
+is no re-opening; a fresh occurrence is created instead. Recurrence is a
+third reactor: completing a recurring obligation emits an event, and the
+reactor spawns the next occurrence from it. The next due date is
+computed by calendar arithmetic anchored to the original one (a monthly
+task due on the 15th stays on the 15th) and rolled forward past the
+present, so completing a task late never schedules an occurrence that is
+already overdue.
 
 Idempotency in these contexts is a designed property, checked case by
 case. Every reactor overrides its restore behaviour to skip replayed
 events, so a restart, which replays the whole log to rebuild the
-projections, re-sends no email and re-creates no record. Where
+projections, re-sends no email and re-creates no record. And where
 automation and users can race, the aggregate arbitrates: a reminder
 event cannot overwrite an acknowledgement that arrived ahead of the
 scheduler.
@@ -429,56 +420,56 @@ The 2 most substantial subsystems of the enterprise tier are built
 around the linked document: the intelligence service reads it, and the
 signature integration carries it through signing. Both were specified as
 requirements in Section~\ref{sec:fr-enterprise}; this section presents
-their realisation.
+how they were built.
 
 \subsection{Document intelligence}
 \label{sec:doc-intel}
 
 The intelligence service is a stateless Python service behind the
 \texttt{IntelligenceClient} interface named in the architecture's
-component view (Chapter~\ref{chap:arch}). It offers 3 operations: metadata
-extraction, contract-type classification and clause detection, each
-implemented as a prompt against a hosted large-language
-model~\cite{AnthropicClaude} behind a small internal gateway. The
-gateway concentrates the cross-cutting concerns: extraction responses
-are cached in Redis under a content-addressed key, so re-extracting an
-unchanged document costs nothing; outputs are constrained to typed
-schemas instead of free text; and the model choice and cache lifetime
-are configuration. The service parses DOCX, plain-text, Markdown and
-text-layer PDF documents itself, and passes a PDF to the model as a
-document input only when it finds no text layer, with a language
-heuristic separating German from English so that German legal-entity
-forms are preserved verbatim in extracted names.
+component view (Chapter~\ref{chap:arch}). It offers 3 operations
+(metadata extraction, contract-type classification and clause
+detection), each implemented as a prompt against a hosted
+large-language model~\cite{AnthropicClaude} behind a small internal
+gateway. The gateway concentrates the cross-cutting concerns.
+Extraction responses are cached in Redis under a content-addressed key,
+so re-extracting an unchanged document costs nothing; outputs are
+constrained to typed schemas instead of free text; the model choice and
+the cache lifetime are configuration. The service parses DOCX,
+plain-text, Markdown and text-layer PDF documents itself, and passes a
+PDF to the model as a document input only when it finds no text layer.
+A language heuristic separates German from English, so German
+legal-entity forms are preserved verbatim in extracted names.
 
-Clause detection carries the subsystem's strictest design rule:
-every detected clause must quote its source verbatim, and any clause
-whose quoted snippet is not a substring of the document text is
-discarded. The guard makes a hallucinated quotation structurally
-impossible, and it also fixes the subsystem's limit. A scanned PDF has
-no text layer to check quotations against, so clause detection on scans
-stays out of scope until an optical-character-recognition step is
-added; extraction, which does not quote, still works on scans through
-the model's vision input.
+Clause detection carries the subsystem's strictest design rule: every
+detected clause must quote its source verbatim, and a clause whose
+quoted snippet is not a substring of the document text is discarded.
+This makes a hallucinated quotation structurally impossible. The same
+guard also fixes the subsystem's limit. A scanned PDF has no text layer
+to check quotations against, so clause detection on scans stays out of
+scope until an optical-character-recognition step is added; extraction,
+which does not quote, still works on scans through the model's vision
+input.
 
 The subsystem's quality is measured continuously. An evaluation harness
-of 20 hand-labelled fixtures (plain-text and DOCX documents,
-13 English and 7 German, covering every contract type) runs in
-the integration pipeline and scores each extracted field against its
-label. The baseline stands at 158 of 160 fields correct
-(98.8\,\%), and the harness proved its worth during development, when a
-prompt revision raised counterparty-name accuracy from 80\,\% to
-90\,\% with the regression risk visible before release.
+of 20 hand-labelled fixtures (plain-text and DOCX documents, 13 English
+and 7 German, covering every contract type) runs in the integration
+pipeline and scores each extracted field against its label. The baseline
+stands at 158 of 160 fields correct (98.8\,\%). The harness paid for
+itself during development, when a prompt revision raised
+counterparty-name accuracy from 80\,\% to 90\,\% and the regression risk
+was visible before release.
 
 On the backend, an enrichment reactor connects this pipeline to the
-contract. Figure~\ref{fig:enrichment-flow} follows the scenario: once a
+contract. Figure~\ref{fig:enrichment-flow} follows the scenario. Once a
 document is linked, the reactor downloads its bytes through the same
 storage adapters as the link itself (capped at 50~MiB), calls extraction
-and clause detection, and applies the results to the contract, filling
-only fields the user has left empty; a human-entered value is never
-overwritten. The call runs detached from the linking request under a
-5-minute ceiling and a panic guard, which brought the latency of the
-link operation from over 6 seconds to under 1; the suggestions
-arrive on the record moments later, where the user reviews them field by
+and clause detection, and applies the results to the contract. Only
+fields the user has left empty are filled; a human-entered value is
+never overwritten. The call runs detached from the linking request,
+under a 5-minute ceiling and a panic guard, which brought the latency of
+the link operation from over 6 seconds to under 1. The suggestions
+arrive on the record moments later, and the user reviews them field by
 field (accept, edit or undo) in the interface of
 Section~\ref{sec:webapp}. Re-linking the same document is treated as a
 synchronisation and refreshes every extractable field.
@@ -488,75 +479,68 @@ synchronisation and refreshes every extractable field.
     {\includegraphics[width=0.95\linewidth]{enrichment-flow}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
       \textit{Diagram to be rendered from} \texttt{figures/enrichment-flow.puml}\vspace{2em}}}}
-  \caption{The enrichment pipeline: a linked document is downloaded,
-           analysed by the intelligence service behind the LLM gateway,
-           and applied to the contract; only fields the user left empty
-           are filled, and unquoted clauses are discarded by the
-           verbatim-snippet guard.}
+  \caption{The enrichment pipeline.}
   \label{fig:enrichment-flow}
 \end{figure}
 
 \subsection{Electronic signature}
 \label{sec:esign}
 
-Electronic signature is built behind a provider-agnostic
-\texttt{ESignatureProvider} interface, on the same discipline as
+Electronic signature sits behind a provider-agnostic
+\texttt{ESignatureProvider} interface, with the same discipline as
 document storage: the domain model never names a vendor. The first
-adapter targets DocuSeal~\cite{DocuSeal}, selected on 4 grounds. It
-can be self-hosted under an open-source licence, keeping signed
-documents on the platform's own infrastructure; the simple electronic
+adapter targets DocuSeal~\cite{DocuSeal}, selected on 4 grounds. It can
+be self-hosted under an open-source licence, which keeps signed
+documents on the platform's own infrastructure. The simple electronic
 signature it produces has legal effect for ordinary business contracts
-under Article~25 of the eIDAS regulation~\cite{eIDAS}; it offers the
-REST-and-webhook integration the reactor pattern needs; and it leaves an
+under Article~25 of the eIDAS regulation~\cite{eIDAS}. It offers the
+REST-and-webhook integration the reactor pattern needs. And it leaves an
 upgrade path towards qualified signatures for the contract classes that
 demand them.
 
-The signature workflow is its own aggregate, modelled on Approval: a
+The signature workflow is its own aggregate, modelled on Approval. A
 request holds ordered signers, and events record dispatch, each signer's
 completion or refusal, overall completion and voiding. Sending validates
 that the contract is in a signable state, pulls the primary linked
 document's bytes through the storage adapters, and hands them to the
-provider, stamping the tenant, contract and request identifiers into the
-provider's submission metadata so that whatever comes back can be
+provider. The tenant, contract and request identifiers are stamped into
+the provider's submission metadata, so whatever comes back can be
 routed.
 
 Figure~\ref{fig:esign-webhook} shows the return path. Signing progress
-arrives as webhooks on a public endpoint that verifies the provider's
+arrives as webhooks on a public endpoint, which verifies the provider's
 signature before parsing anything, reads the routing identifiers back
 out of the submission metadata, and translates the provider's event into
-a status-application command dispatched with system authority. The
-application is idempotent: a duplicate or out-of-order delivery is
-compared against the aggregate's current state and ignored when stale.
-Completion then triggers a reactor in the contract domain, which marks
-the contract's signature status, flips a draft contract to active,
-downloads the signed PDF from the provider and links it back to the
-contract as an ordinary \texttt{DocumentLink}, so the executed document
-enters the same audit trail as everything else. Because webhooks can be
-lost, the scheduled reconciliation job of
-Section~\ref{sec:workflow-temporal} polls the provider for requests
-stuck in a sent state past a threshold. The whole path was validated end
-to end against DocuSeal's hosted sandbox environment; in production the
-integration stays inactive until an operator configures a provider key.
+a status-application command dispatched with system authority. Applying
+status is idempotent: a duplicate or out-of-order delivery is compared
+against the aggregate's current state and ignored when stale. Completion
+then triggers a reactor in the contract domain, which marks the
+contract's signature status, flips a draft contract to active, downloads
+the signed PDF from the provider and links it back to the contract as an
+ordinary \texttt{DocumentLink}, so the executed document enters the same
+audit trail as everything else. Webhooks can be lost, so the scheduled
+reconciliation job of Section~\ref{sec:workflow-temporal} polls the
+provider for requests stuck in a sent state past a threshold. We
+validated the whole path end to end against DocuSeal's hosted sandbox;
+in production the integration stays inactive until an operator
+configures a provider key.
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/esign-webhook.pdf}
     {\includegraphics[width=0.9\linewidth]{esign-webhook}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
       \textit{Diagram to be rendered from} \texttt{figures/esign-webhook.puml}\vspace{2em}}}}
-  \caption{Component view of the e-signature webhook flow: verified
-           webhooks apply status idempotently to the signature aggregate;
-           on completion a reactor activates the contract and links the
-           signed PDF back as a DocumentLink.}
+  \caption{Component view of the e-signature webhook flow.}
   \label{fig:esign-webhook}
 \end{figure}
 
 The outbound email these subsystems and the workflow reactors rely on is
 delivered through SendGrid's HTTP interface~\cite{SendGrid}, sending
-from an already-authenticated company domain; this avoided any DNS
-configuration on the product domain while keeping deliverability
-verifiable. Messages are rendered from bilingual templates (7 at the
-MVP, growing with each later context) as multipart text-and-HTML, in the
-recipient's locale (Section~\ref{sec:webapp}).
+from an already-authenticated company domain. That choice avoided any
+DNS work on the product domain while keeping deliverability verifiable.
+Messages are rendered from bilingual templates (7 at the MVP, growing
+with each later context) as multipart text-and-HTML, in the recipient's
+locale (Section~\ref{sec:webapp}).
 
 %--------------------------------------------------------------------
 \section{The web application and internationalised \mbox{user experience}}
@@ -572,25 +556,22 @@ recipient's locale (Section~\ref{sec:webapp}).
 
 The web application is a single-page application built with Vue~3 and
 the Quasar component framework~\cite{VueJS,Quasar}, written in strict
-TypeScript. Its structure, shown in Figure~\ref{fig:spa-structure},
+TypeScript. Figure~\ref{fig:spa-structure} shows its structure, which
 separates 4 kinds of module: pages and components render; composables
 package reusable view logic such as contract lookups, permission checks
-and deadline bucketing; Pinia stores own client-side state and every
-server call; and a small utility layer holds pure functions. The
-discipline behind the split is testability. The project runs no
-component-mount test harness, so everything worth testing is kept out of
-the components, in stores, composables and utilities that the unit suite
-(198 tests at the close of Phase~2) exercises directly.
+and deadline bucketing; Pinia stores own the client-side state and every
+server call; and a small utility layer holds pure functions. Testability
+is the reason for the split. The project runs no component-mount test
+harness, so everything worth testing is kept out of the components, in
+stores, composables and utilities that the unit suite (198 tests at the
+close of Phase~2) exercises directly.
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/spa-structure.pdf}
     {\includegraphics[width=0.95\linewidth]{spa-structure}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
       \textit{Diagram to be rendered from} \texttt{figures/spa-structure.puml}\vspace{2em}}}}
-  \caption{Package structure of the single-page application: pages and
-           components render, composables and stores carry the logic and
-           state, and the generated OpenAPI client is the single
-           integration point with the backend.}
+  \caption{Package structure of the single-page application.}
   \label{fig:spa-structure}
 \end{figure}
 
@@ -599,57 +580,55 @@ client generated from the backend's OpenAPI document~\cite{OpenAPI}.
 Regenerating the client is a build step, so an API change becomes a
 compile error in the frontend, caught before it can become a runtime
 failure; this is the explicit, regenerated contract that
-Section~\ref{sec:repo-split} accepted as the cost of the repository
-split. The HTTP layer adds the cookie-based session, a single point
-where backend errors are translated into localised messages, and the
-proactive session refresh described in
-Section~\ref{sec:iam-practice}.
+Section~\ref{sec:found} accepted as the cost of the repository split.
+The HTTP layer adds the cookie-based session, one place where backend
+errors are translated into localised messages, and the proactive session
+refresh described in Section~\ref{sec:iam-practice}.
 
 Internationalisation follows the strategy of Section~\ref{sec:i18n},
 realised end to end. The interface carries English and German message
-catalogues, split by feature namespace; the locale is resolved from the
+catalogues, split by feature namespace. The locale is resolved from the
 user's stored preference, persisted on the identity so it follows the
-user across devices, with a browser-language fallback; and dates,
-numbers and currencies format by locale, including day-first date
-ordering for the English interface, whose users are European. The
-locale also crosses the stack: it travels with an invitation, so an
-invited user's first email arrives in the language chosen by the person
-who invited them, and every notification renders in its recipient's
-locale. The user documentation ships inside the application itself: a
-help area bundles the documentation source at build time, in both
-languages, so the documentation is versioned with the code it
-describes. The packaging caveat this uncovered is recorded with the
-configuration material in Appendix~A.3.
+user across devices, with a browser-language fallback; dates, numbers
+and currencies format by locale, including day-first date ordering for
+the English interface, whose users are European. The locale crosses the
+stack as well. It travels with an invitation, so an invited user's first
+email arrives in the language chosen by the person who invited them, and
+every notification renders in its recipient's locale. The user
+documentation ships inside the application itself: a help area bundles
+the documentation source at build time, in both languages, so the
+documentation is versioned with the code it describes. The packaging
+caveat this uncovered is recorded with the configuration material in
+Appendix~A.3.
 
-2 Phase-2 capabilities stretch the presentation layer furthest.
-Custom fields make the contract form partly data-driven: the form
-renders one input per tenant definition, choosing the widget by the
-field's type and mirroring the backend validation rules, while
-administrators manage and re-order the definitions from the settings
-area. The report builder turns the reporting projections of the backend
-into a self-service tool. Those projections include portfolio volume,
-per-department and per-counterparty rollups, and a risk score computed
-as an additive sum of named factors (contract value, expiry proximity
-and missing documents), kept transparent so a reviewer can see why a
-contract scored as it did. In the builder, the user picks columns,
-groupings and a chart type, saves the configuration under their own
-identity, and can schedule it as a recurring export delivered by email
-through the scheduler of Section~\ref{sec:workflow-temporal}.
+2 Phase-2 capabilities demanded the most from the presentation layer.
+Custom fields make the contract form partly data-driven: the form renders one
+input per tenant definition, choosing the widget by the field's type and
+mirroring the backend validation rules, while administrators manage and
+re-order the definitions from the settings area. The report builder
+turns the reporting projections of the backend into a self-service tool.
+Those projections include portfolio volume, per-department and
+per-counterparty rollups, and a risk score computed as an additive sum
+of named factors (contract value, expiry proximity and missing
+documents), kept transparent so a reviewer can see why a contract scored
+as it did. In the builder, the user picks columns, groupings and a chart
+type, saves the configuration under their own identity, and can schedule
+it as a recurring export delivered by email through the scheduler of
+Section~\ref{sec:workflow-temporal}.
 
 One scenario ties the patterns together. A legal manager registers a
 contract: the form combines the fixed fields with the tenant's custom
-fields, and submission dispatches the register command. The manager
+fields, and submission dispatches the register command. The manager then
 links the contract's document from the organisation's own storage
-through the provider picker; the link returns within a second, and a few
+through the provider picker. The link returns within a second, and a few
 seconds later the enrichment suggestions appear on the overview, marked
-field by field, where the extracted dates are accepted and the
-counterparty corrected. The accepted dates have already seeded the
-contract's deadlines, the dashboard's expiring-contracts view includes
-the new record, and the audit tab shows every step of the sequence as
-events. The remaining screens (the approval inbox, the deadline
-timeline, the administration area) follow the same division into
-stores, composables and components; a gallery of them is provided in
-Appendix~A.5.
+field by field; the extracted dates are accepted, the counterparty
+corrected. By then the accepted dates have already seeded the contract's
+deadlines, the dashboard's expiring-contracts view includes the new
+record, and the audit tab shows every step of the sequence as events.
+The remaining screens (the approval inbox, the deadline timeline, the
+administration area) follow the same division into stores, composables
+and components; a gallery of them is provided in Appendix~A.5.
 
 %--------------------------------------------------------------------
 \section{Identity, access control and multi-tenancy in practice}
@@ -664,77 +643,73 @@ Appendix~A.5.
 % figure: sequence diagram -- the authentication journey across the full stack.
 
 The identity model in production is the comby default model of
-Section~\ref{sec:identity-model}, exercised without modification:
-tenants for customer organisations, accounts for people, identities
-binding an account into a tenant, groups as roles, and permissions as
-the right to dispatch a given command or query. CLMPilot's contribution
-is the vocabulary layered on it: a typed catalogue of permission
-constants covering every domain, and 5 role groups (administrator,
-legal, finance, manager and viewer) whose permission bundles are seeded
-into every new tenant by a reactor listening for tenant creation, so a
-freshly provisioned organisation starts with a working role set. Tests
-guard the catalogue's invariants, holding the viewer and finance roles
-to read-only bundles with no command permission at all.
+Section~\ref{sec:identity-model}, used without modification: tenants for
+customer organisations, accounts for people, identities binding an
+account into a tenant, groups as roles, and permissions as the right to
+dispatch a given command or query. What CLMPilot adds is the vocabulary
+on top of it: a typed catalogue of permission constants covering every
+domain, and 5 role groups (administrator, legal, finance, manager and
+viewer) whose permission bundles are seeded into every new tenant by a
+reactor listening for tenant creation, so a freshly provisioned
+organisation starts with a working role set. Tests guard the catalogue's
+invariants and hold the viewer and finance roles to read-only bundles,
+with no command permission at all.
 
 Figure~\ref{fig:auth-journey} follows a sign-in across the stack.
-Authentication is 2-step: the credentials are checked first, and a
-one-time code sent by email must then be confirmed, after which the backend
+Authentication is 2-step: the credentials are checked first, then a
+one-time code sent by email must be confirmed, after which the backend
 issues the opaque session cookie and the companion identity cookie that
 scopes every later request to a tenant
-(Section~\ref{sec:security-pipeline}). The session's lifetime is
-mirrored in the client, which refreshes it shortly before expiry so a
-working user is never interrupted. Self-serve registration through an
-invitation follows the same rails with one refinement found in the
-framework's internals: confirming a registration already returns a
-pre-issued login token, which the client feeds straight into the login
-confirmation, so a new user completes registration with exactly one
-code and lands authenticated. A password-reset flow completes the
-account lifecycle, and the invitation page inserts an explicit human
-click before any state-changing step, because corporate mail scanners
-follow links and would otherwise consume single-use invitation tokens.
+(Section~\ref{sec:security-pipeline}). The client mirrors the session's
+lifetime and refreshes it shortly before expiry, so a working user is
+never interrupted. Self-serve registration through an invitation follows
+the same rails, with one refinement found in the framework's internals:
+confirming a registration already returns a pre-issued login token,
+which the client feeds straight into the login confirmation, so a new
+user completes registration with exactly one code and lands
+authenticated. A password-reset flow completes the account lifecycle.
+The invitation page also inserts an explicit human click before any
+state-changing step, because corporate mail scanners follow links and
+would otherwise consume single-use invitation tokens.
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/auth-journey.pdf}
     {\includegraphics[width=0.9\linewidth]{auth-journey}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
       \textit{Diagram to be rendered from} \texttt{figures/auth-journey.puml}\vspace{2em}}}}
-  \caption{The authentication journey across the stack: 2-step login
-           with an email one-time code, opaque session and identity
-           cookies, and the authorisation stage every later request
-           passes at dispatch.}
+  \caption{The authentication journey across the stack.}
   \label{fig:auth-journey}
 \end{figure}
 
 Role-based access control is enforced at dispatch
-(Section~\ref{sec:security-pipeline}), and the realised platform holds
-2 hard-won rules about it. First, the permission string checked at
-dispatch is derived from the command or query type itself, so the
-catalogue's constants must match those derived names exactly; a
-regression test now derives every name by reflection and compares,
-after a mismatched constant silently produced a permission that no role
-could ever hold. Second, integration tests that dispatch with system
-authority never exercise the authorisation stage. That blind spot let
-3 role-configuration defects remain invisible until the first
-ordinary tenant hit the standard path, because the platform operators
-used until then bypass the role check entirely; the countermeasure is an
-end-to-end suite that authenticates as a real user against the running
-API, so every permission a role needs is proven from the outside. The
-frontend consumes the same vocabulary through a permission composable
-that hides actions a role cannot perform, with the backend remaining
-authoritative.
+(Section~\ref{sec:security-pipeline}), and the realisation taught us 2
+rules about it. First, the permission string checked at dispatch is
+derived from the command or query type itself, so the catalogue's
+constants must match those derived names exactly. After a mismatched
+constant silently produced a permission that no role could ever hold, a
+regression test now derives every name by reflection and compares.
+Second, integration tests that dispatch with system authority never
+exercise the authorisation stage. That blind spot let 3
+role-configuration defects stay invisible until the first ordinary
+tenant hit the standard path, because the platform operators used until
+then bypass the role check entirely. The countermeasure is an end-to-end
+suite that authenticates as a real user against the running API, so
+every permission a role needs is proven from the outside. The frontend
+consumes the same vocabulary through a permission composable that hides
+actions a role cannot perform; the backend remains authoritative.
 
-Multi-tenancy in operation needs administration as well as isolation. A
+Multi-tenancy in operation needs administration as much as isolation. A
 reserved system tenant holds the platform's operators, seeded at boot
-from configuration so that an administrator can be added or recovered
-without touching the database. The operators work through a
-cross-tenant administration area in the application itself, which
-provisions a tenant, waits for its role groups to be seeded, and issues
-the first administrator invitation. Decommissioning is archival:
-archiving marks the tenant, and a middleware on both dispatch paths
-refuses every request scoped to an archived tenant unless the caller is
-a platform operator, with the client translating the refusal into an
-explicit end-of-service screen. The archived state is thereby enforced
-at the same chokepoint as every other rule, and the user interface only
+from configuration, so an administrator can be added or recovered
+without touching the database. The operators work through a cross-tenant
+administration area in the application itself, which provisions a
+tenant, waits for its role groups to be seeded, and issues the first
+administrator invitation. Decommissioning is archival. Archiving marks
+the tenant, and a middleware on both dispatch paths refuses every
+request scoped to an archived tenant unless the caller is a platform
+operator; the client translates the refusal into an explicit
+end-of-service screen. The archived state is therefore enforced at the
+same chokepoint as every other rule, and the user interface only
 reflects it.
 
 %--------------------------------------------------------------------
@@ -754,61 +729,56 @@ reflects it.
 Production realises the topology of Section~\ref{sec:deployment-topology}
 on a single EU-hosted virtual machine at Hetzner, a 4~GB instance sized
 for the pilot. Figure~\ref{fig:production-topology} shows the
-operational view. The 3 service images and the 4 backing stores
-run as one Docker~Compose stack~\cite{DockerCompose} under a systemd
-unit, so the stack survives a reboot; every container binds to loopback,
-and the only process facing the network is an nginx reverse proxy on the
-host, which terminates TLS with certificates issued and renewed
-automatically through Let's~Encrypt. Memory limits are set per
-container, and PostgreSQL is tuned to the small host, which keeps the
-single-machine footprint predictable under load.
+operational view. The 3 service images and the 4 backing stores run as
+one Docker~Compose stack~\cite{DockerCompose} under a systemd unit, so
+the stack survives a reboot. Every container binds to loopback, and the
+only process facing the network is an nginx reverse proxy on the host,
+which terminates TLS with certificates issued and renewed automatically
+through Let's~Encrypt. Memory limits are set per container, and
+PostgreSQL is tuned to the small host, which keeps the single-machine
+footprint predictable under load.
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/production-topology.pdf}
     {\includegraphics[width=\linewidth]{production-topology}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
       \textit{Diagram to be rendered from} \texttt{figures/production-topology.puml}\vspace{2em}}}}
-  \caption{The realised production topology: a systemd-managed Compose
-           stack bound to loopback behind a host nginx with automated
-           TLS, nightly off-host backups, version-pinned images pulled
-           from the registry, and the external services behind named
-           interfaces.}
+  \caption{The production topology.}
   \label{fig:production-topology}
 \end{figure}
 
 The platform serves at the apex domain, \texttt{clmpilot.com}, with the
-API under the same origin. The choice removes a class of complexity:
+API under the same origin. That choice removes a class of complexity:
 same-origin requests need no cross-origin configuration, cookies operate
 under the strictest same-site policy, and one certificate covers the
-whole product. An earlier subdomain plan was abandoned, and its stale
-references were removed across the stack when the apex choice was made
-final.
+whole product. An earlier subdomain plan was dropped, and its stale
+references were cleaned out of the stack once the apex choice was final.
 
 Backups follow the recovery objectives fixed with the non-functional
 requirements (Chapter~\ref{chap:analysis}). A nightly database dump
 leaves the host for object storage at a second provider, so the loss of
-the machine cannot take the backups with it. The procedure was validated
-by a full drill against production: back up, drop the databases,
+the machine cannot take the backups with it. We validated the procedure
+with a full drill against production: back up, drop the databases,
 restore, and let the backend rebuild every projection by replaying the
 restored event log. The drill confirmed the recovery-point objective
-(under 24 hours, one nightly backup) and beat the 4-hour
-recovery-time objective by a wide margin, with restore and replay
-completing in under a minute at pilot volume. The replay step doubles as
-an integrity check of the event-sourced design: the read models are
-rebuilt from the restored log alone, so a successful drill proves the
-log is sufficient to reconstruct the system.
+(under 24 hours, one nightly backup) and beat the 4-hour recovery-time
+objective by a wide margin; restore and replay completed in under a
+minute at pilot volume. The replay step doubles as an integrity check of
+the event-sourced design, since the read models are rebuilt from the
+restored log alone: a successful drill proves the log is sufficient to
+reconstruct the system.
 
-Observability at pilot scale is minimal. The services
-emit structured logs, tagged by component, which
-are the primary diagnostic tool; the backend exposes metrics in
-Prometheus format, but no aggregation stack runs on the host yet, a
-decision consistent with the maintainability driver of
-Section~\ref{sec:arch-drivers}. External monitoring covers what users
-experience: an independent probe checks the public health endpoint
-every 5 minutes and alerts by email, and the TLS configuration holds
-the highest public rating. The backend's minimal container image ships
-no shell, so container-level health checks gave way to probes from
-outside the container.
+Observability at pilot scale is deliberately minimal. The services emit
+structured logs, tagged by component, and these are the primary
+diagnostic tool. The backend exposes metrics in Prometheus format, but
+no aggregation stack runs on the host yet, a decision consistent with
+the maintainability driver of Section~\ref{sec:arch-drivers}. External
+monitoring covers what users experience: an independent probe checks the
+public health endpoint every 5 minutes and alerts by email, and the TLS
+configuration holds the highest public rating. One detail forced a
+choice here: the backend's minimal container image ships no shell, so
+container-level health checks gave way to probes from outside the
+container.
 
 A release is a promotion, not a build performed on the host. Work
 merges into \texttt{develop}; a release pull request promotes
@@ -817,22 +787,21 @@ pipeline that builds and publishes the image; and a deployment script on
 the host pins the new versions in the environment, pulls the images,
 restarts the stack and polls the health endpoint before reporting
 success. Rollback is the same procedure with the previous version
-numbers. The script carries one realised caveat: it pins all 3
+numbers. The script carries one caveat we hit in practice: it pins all 3
 service versions in lockstep, which keeps a full release reproducible
-but makes a single-service hotfix awkward. In practice, partial releases
-bypass the script by editing the pinned versions directly, and the
+but makes a single-service hotfix awkward. Partial releases therefore
+bypass the script and edit the pinned versions directly, and the
 services were re-unified onto one version at the close of Phase~2 so
-that the lockstep procedure and its rollback work again; the script and
+that the lockstep procedure and its rollback work again. The script and
 the bypass are reproduced in Appendix~A.3.
 
 With production traffic observable, the availability and performance
 targets of Section~\ref{sec:nfr-perf} moved from assumptions to
 measurements. Deploys complete in well under the recovery-time budget,
 the uptime probe provides the availability record against which the MVP
-target is validated, and the pilot's operational history (more than
-40 releases, a single rolled-back deployment during a framework
-migration, and no data loss) is the evidence those targets were set to
-collect.
+target is checked, and the pilot's operational history (more than 40
+releases, a single rolled-back deployment during a framework migration,
+and no data loss) is the evidence those targets were set to collect.
 
 %--------------------------------------------------------------------
 \section*{Conclusion}
@@ -844,19 +813,19 @@ collect.
 % platform realised, the remaining engineering work turns inward, to the
 % event-sourced system it runs on. Per the report-wide rule, the conclusion
 % may reference the NEXT chapter only.
-This chapter consolidated the realised platform, theme by theme: the
-delivery foundations and the release train they carried, the dispatch
-model on comby, the contract domain with its lifecycle and its
-document links, the workflow and temporal automation built on reactors
-and a scheduler, the intelligence and signature subsystems, the
-internationalised web application, the identity and tenancy model as it
-operates in production, and the deployment and release operations that
-keep the pilot live at \texttt{clmpilot.com}. Each theme delivers a part
-of the designed architecture, and together they close the 3 product
-phases of the release train.
+This chapter followed the realised platform theme by theme: the delivery
+foundations and the release train they carried, the dispatch model on
+comby, the contract domain with its lifecycle and its document links,
+the workflow and temporal automation built on reactors and a scheduler,
+the intelligence and signature subsystems, the internationalised web
+application, the identity and tenancy model as it operates in
+production, and the deployment and release operations that keep the
+pilot live at \texttt{clmpilot.com}. Each theme delivers a part of the
+designed architecture; together they close the 3 product phases of the
+release train.
 
 With the platform realised across Phases~0 to~2, the engineering effort
-moves from the product to the framework it is built on.
+moves from the product to the framework beneath it.
 Chapter~\ref{chap:future} takes up the seams the architecture left open
 and develops the planned improvements to the event-sourced system.
 

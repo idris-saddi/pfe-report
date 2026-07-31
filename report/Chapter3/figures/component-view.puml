@@ -1,7 +1,9 @@
 @startuml component-view
 '==============================================================================
-' Figure (Chapter II): CLMPilot component view -- one provided interface and
+' Figure (Chapter III): CLMPilot component view -- one provided interface and
 ' three required interfaces, each named so the implementation is swappable.
+' Conceptual on purpose (supervisor feedback): roles, not products -- the
+' concrete tools behind each component are named in Chapter IV.
 ' Render:  plantuml -tpdf component-view.puml      (or -tpng)
 '==============================================================================
 skinparam shadowing false
@@ -10,8 +12,8 @@ skinparam componentStyle rectangle
 skinparam ranksep 26
 skinparam nodesep 22
 
-component "Frontend\n(Vue 3 SPA)" as fe
-component "Backend\n(Go + comby)" as be
+component "Frontend\n(SPA)" as fe
+component "Backend" as be
 
 ' Provided interface: the generated REST/OpenAPI contract.
 interface "REST / OpenAPI" as rest
@@ -27,8 +29,8 @@ be -down-( iIntel
 be -down-( iMail
 be -down-( iStore
 
-component "Intelligence\n(Python)" as intel
-component "Mail provider\n(SendGrid)" as mail
+component "Intelligence\nservice" as intel
+component "Email\nprovider" as mail
 component "Cloud storage\nadapters" as store
 
 iIntel -down- intel
