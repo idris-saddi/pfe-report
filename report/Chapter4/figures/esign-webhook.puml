@@ -13,8 +13,6 @@ skinparam componentStyle rectangle
 skinparam ranksep 30
 skinparam nodesep 24
 
-cloud "DocuSeal\n(e-signature provider)" as ds
-
 package "CLMPilot backend" {
   component "Webhook endpoint\n(verifies provider signature\nbefore parsing)" as hook
   component "Command bus" as cbus
@@ -26,13 +24,17 @@ package "CLMPilot backend" {
   component "Reconciliation job\n(cron)" as recon
 }
 
-ds --> hook : signer / submission\nevents (webhook)
+' The provider cloud is declared after the package and attached with
+' left-pointing arrows so it sits on the RIGHT of the backend package.
+cloud "DocuSeal\n(e-signature provider)" as ds
+
+ds -left-> hook : signer / submission\nevents (webhook)
 hook --> cbus : apply-status command\n(system dispatch, idempotent)
 cbus --> sig : status events
 sig --> reactor : SignatureCompletedEvent
 reactor --> contract : mark signed,\ndraft to active
 reactor --> adapter : fetch signed PDF
-adapter --> ds : download signed\ndocument
+adapter -right-> ds : download signed\ndocument
 reactor --> doclink : link signed PDF\nto the contract
 recon --> adapter : poll requests stuck\nin a sent state
 

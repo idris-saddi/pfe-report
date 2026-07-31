@@ -14,36 +14,488 @@
 \makeatletter
 \renewcommand\thefigure{A.\arabic{figure}}
 \renewcommand\thetable{A.\arabic{table}}
+% \backmatter leaves the chapter unnumbered, so \thechapter is empty
+% here; number the appendix sections A.1..A.4 explicitly (the body's
+% "Appendix A.x" references rely on these numbers).
+\renewcommand\thesection{A.\arabic{section}}
 \makeatother
 
 \chapter{Appendices}
 \graphicspath{{Appendix1/figures/}}
 %==============================================================================
+% Contents follow the body's promises: A.2 is referenced from Section IV.2
+% (command/query/event catalogue), A.3 from Sections IV.1, IV.6 and IV.8
+% (pipelines, stack configuration, deploy script, packaging caveat), A.4 from
+% Section IV.3 (provider OAuth walkthroughs). The UI screenshots live in
+% Chapter IV beside the subsystems they illustrate (\uishot helper there).
+% All configuration excerpts are real files from the clmpilot-deployment
+% repository, trimmed, with secrets redacted.
+%==============================================================================
 
-% TODO: Candidate appendix sections. Drop anything that does not earn its
-% place; appendices are for material that the body genuinely cannot carry.
+% ---------------------------------------------------------------------------
+% Syntax colouring for the configuration listings. The report-wide lstset
+% (report-idris.tex) styles keywords/strings/comments; the small languages
+% below tell listings WHAT to highlight in YAML, nginx, systemd-unit and Go
+% excerpts, and the appendix-local lstset adds a light background so the
+% configuration blocks read as code at a glance.
+% ---------------------------------------------------------------------------
+\lstdefinelanguage{yamlcfg}{
+  keywords={services, image, mem_limit, ports, environment, depends_on,
+            networks, command, volumes, driver, internal, healthcheck,
+            profiles, on, push, pull_request, branches, tags, jobs,
+            lint, test, build, image},
+  sensitive=true,
+  comment=[l]{\#},
+  morestring=[b]",
+  morestring=[b]',
+}
+\lstdefinelanguage{nginxcfg}{
+  keywords={upstream, server, listen, server_name, location, root, return,
+            ssl_certificate, ssl_certificate_key, ssl_protocols, add_header,
+            client_max_body_size, proxy_pass, keepalive},
+  sensitive=true,
+  comment=[l]{\#},
+  morestring=[b]",
+}
+\lstdefinelanguage{systemdcfg}{
+  keywords={Description, Requires, After, Type, WorkingDirectory,
+            ExecStartPre, ExecStart, ExecStop, TimeoutStartSec, Restart,
+            RestartSec, WantedBy, Unit, Service, Install},
+  sensitive=true,
+  comment=[l]{\#},
+}
+\lstdefinelanguage{golang}{
+  keywords={func, package, return, var, type, struct, interface, map,
+            chan, go, defer, if, else, for, range, import},
+  sensitive=true,
+  comment=[l]{//},
+  morestring=[b]",
+  morestring=[b]`,
+}
+\lstset{
+  backgroundcolor = \color{gray!8},
+  keywordstyle    = \color{NavyBlue}\bfseries,
+  commentstyle    = \color{gray}\itshape,
+  stringstyle     = \color{OliveGreen},
+  frame           = single,
+  rulecolor       = \color{gray!45},
+  framerule       = 0.4pt,
+}
 
-\section*{Appendix A.1 -- Glossary}
-% TODO: One-line definitions for CLM, GoBD, GDPR, CQRS, ES, DDD, RBAC, MFA,
-%       SLA, ERP, SaaS, IaC, OIDC, MVP.
-\dots
+%------------------------------------------------------------------
+\section{Glossary}
+\label{sec:app-glossary}
 
-\section*{Appendix A.2 -- Comby framework reference}
-% TODO: Catalogue of commands / queries / events used in the project.
-\dots
+\begin{description}[itemsep=1pt, font=\normalfont\bfseries]
+  \item[CLM] Contract Lifecycle Management: the discipline and tooling
+    that track a contract from drafting through approval, signature,
+    obligations and renewal to expiry.
+  \item[CQRS] Command Query Responsibility Segregation: an architecture
+    that separates the write model (commands validated by aggregates)
+    from the read models (projections serving queries).
+  \item[ES] Event Sourcing: persisting every state change as an
+    immutable event; the current state is rebuilt by replaying the log.
+  \item[DDD] Domain-Driven Design: modelling software around the
+    business domain, organised in bounded contexts and aggregates.
+  \item[Aggregate] The DDD consistency unit: an object cluster that
+    guards its own invariants and is modified only through its
+    intentions (commands).
+  \item[Reactor] In comby, a component that reacts to a domain event by
+    dispatching a follow-up command, connecting 2 contexts without
+    coupling them.
+  \item[RBAC] Role-Based Access Control: permissions are granted to
+    roles (groups), and users acquire them through role membership.
+  \item[MFA / OTP] Multi-Factor Authentication / One-Time Password: a
+    second authentication step, realised in CLMPilot as an emailed
+    one-time code.
+  \item[SaaS] Software as a Service: software delivered as a hosted,
+    subscription-based service.
+  \item[SPA] Single-Page Application: a web client that loads once and
+    renders every view itself, talking to the backend through an API.
+  \item[MVP] Minimum Viable Product: the smallest product slice that
+    delivers verifiable customer value.
+  \item[LLM] Large Language Model: the hosted model class behind the
+    intelligence service's extraction, classification and clause
+    detection.
+  \item[OCR] Optical Character Recognition: extracting a text layer
+    from scanned images; the prerequisite for clause detection on scans.
+  \item[eIDAS] EU Regulation 910/2014 on electronic identification and
+    trust services; its Article~25 gives simple electronic signatures
+    legal effect.
+  \item[GDPR] The EU General Data Protection Regulation, the privacy
+    baseline for processing personal data.
+  \item[GoBD] German principles for the proper keeping of books and
+    records in electronic form; the driver behind the immutable audit
+    trail.
+  \item[OAuth~2.0] The delegation protocol used to connect a tenant's
+    document storage (Google Drive, SharePoint) without holding user
+    passwords.
+  \item[ERP] Enterprise Resource Planning: the business-management
+    systems (finance, procurement) a CLM platform typically borders on.
+  \item[SLA] Service-Level Agreement: the availability and support
+    commitments a provider makes to its customers.
+  \item[Semver] Semantic Versioning: \texttt{major.minor.patch} version
+    numbers whose increments encode compatibility.
+  \item[CI/CD] Continuous Integration / Continuous Delivery: the
+    automated lint--test--build--publish pipeline every repository runs.
+\end{description}
 
-\section*{Appendix A.3 -- Configuration files}
-% TODO: Trimmed but real:
-%   - docker-compose.yml (with secrets redacted).
-%   - nginx site config.
-%   - systemd unit for the clmpilot service.
-\dots
+%------------------------------------------------------------------
+\section{Comby framework reference}
+\label{sec:app-comby}
 
-\section*{Appendix A.4 -- OAuth setup walkthroughs}
-% TODO: Step-by-step for Google Drive and SharePoint, suitable for a
-%       customer admin to follow.
-\dots
+Every state change in the platform is a command dispatched on the comby
+bus, and every read is a query; the permission checked at dispatch is
+derived mechanically from the context name and the message type:
 
-\section*{Appendix A.5 -- API contract excerpts}
-% TODO: Selected OpenAPI snippets that did not fit inline.
-\dots
+\begin{lstlisting}[language=golang]
+comby.NewCommand("Contract", &command.ContractCommandRegister{...})
+        -> checked permission "Contract.ContractCommandRegister"
+\end{lstlisting}
+
+A caller must hold that permission through one of its role groups;
+members of the framework-seeded system-administrator group bypass the
+check, which is what the \emph{system dispatch} convention of
+Section~\ref{sec:backend-comby} relies on: boot-time seeding, reactors and scheduler jobs
+dispatch with system authority, while every interactive call is checked
+against the 5 seeded role groups (administrator, legal, finance,
+manager, viewer).
+
+Alongside CLMPilot's own contexts, the framework registers its default
+domains --- tenant, account, identity, group, invitation, asset and
+webhook --- which bring their own commands and queries (account
+registration and login, invitation issue and confirmation, group and
+identity administration). Table~\ref{tab:comby-catalogue} catalogues the
+CLMPilot-specific contexts as realised at the close of Phase~2. Event
+names mirror their commands (a \texttt{ContractCommandRegister} that
+succeeds appends a \texttt{ContractRegisteredEvent}, and so on), so the
+event catalogue follows from the command column.
+
+\begin{small}
+\begin{xltabular}{\textwidth}{@{}p{2.6cm}Xp{4.2cm}@{}}
+  \caption{Command and query catalogue of the CLMPilot contexts.}
+  \label{tab:comby-catalogue}\\
+  \hline
+  \textbf{Context} & \textbf{Commands (intentions)} & \textbf{Queries} \\
+  \hline
+  \endfirsthead
+  \hline
+  \textbf{Context} & \textbf{Commands (intentions)} & \textbf{Queries} \\
+  \hline
+  \endhead
+  Contract &
+    Register, Update, Terminate, Archive, Delete (soft), Restore,
+    RequestAuditExport &
+    Get, List, Expiring, Search, Volume, DepartmentSummary,
+    CounterpartySummary, Risk, Events (audit trail) \\
+  Approval &
+    Request, ApproveStep, RejectStep, Cancel &
+    Get, List, PendingForIdentity, HistoryForContract \\
+  Deadline &
+    Set, Update, AcknowledgeReminder, Cancel, CheckDeadlines (batch),
+    MarkMissed (batch) &
+    Get, List, Upcoming, Missed \\
+  DocumentLink &
+    Link, Unlink, Refresh (metadata) &
+    ListByContract, IntegrationAccess, PickerAccess \\
+  CustomField &
+    Create, Update, Delete &
+    List (definitions per tenant) \\
+  Signature &
+    CreateAndSend, ApplyStatus (webhook, system dispatch), Void &
+    ForContract \\
+  Obligation &
+    Create, Update, Complete, CheckObligations (batch), MarkMissed
+    (batch) &
+    Upcoming, Report \\
+  ReportConfig &
+    Create, Update, Delete, RunScheduled (scheduler, system dispatch) &
+    List \\
+  \hline
+\end{xltabular}
+\end{small}
+
+The batch commands (\texttt{CheckDeadlines}, \texttt{MarkMissed},
+\texttt{CheckObligations}, \texttt{RunScheduled}) are dispatched by the
+in-process scheduler once per tenant with system authority; they are the
+only commands never issued by an interactive caller. The exported
+OpenAPI contract covering this surface counts 165 paths at the close of
+Phase~2 and is regenerated from the backend whenever the surface
+changes; the frontend's typed client is generated from the same
+document.
+
+%------------------------------------------------------------------
+\section{Configuration and delivery pipeline}
+\label{sec:app-config}
+
+All excerpts in this section are the real files from the
+\texttt{clmpilot-deployment} repository, trimmed to their structure;
+secrets and credentials are replaced by \texttt{\$\{VAR\}} environment
+references resolved from an \texttt{.env} file that never leaves the
+host.
+
+\subsection{Production Docker Compose stack}
+
+The production stack is one Compose project: 3 application services
+exposed on loopback only, 4 backing stores on an internal network with
+no internet access, and an explicit memory limit on every container so
+a runaway process cannot exhaust the 4~GB host.
+
+\begin{lstlisting}[language=yamlcfg]
+services:
+  frontend:                       # SPA behind host nginx
+    image: ${REGISTRY}/clmpilot-frontend:${FRONTEND_VERSION}
+    mem_limit: 64m
+    ports: ["127.0.0.1:18081:80"]
+    networks: [web]
+
+  backend:                        # Go service on comby
+    image: ${REGISTRY}/clmpilot-backend:${BACKEND_VERSION}
+    mem_limit: 256m
+    ports: ["127.0.0.1:18080:8080"]
+    environment:                  # ~60 keys, grouped:
+      # PostgreSQL event + command stores, Redis, NATS, MinIO
+      # OAuth (Google/SharePoint) client ids + callback base URL
+      # DocuSeal base URL / API key / webhook secret
+      # SendGrid key + sender; SMTP fallback (dev mail catcher)
+      # comby defaults: session cookies, registration mode,
+      #                 system-tenant administrator seeding
+    depends_on: [postgres, redis, nats, minio]  # all health-gated
+    networks: [web, internal]
+
+  intelligence:                   # stateless Python extraction service
+    image: ${REGISTRY}/clmpilot-intelligence:${INTELLIGENCE_VERSION}
+    mem_limit: 384m
+    environment:                  # LLM provider/model, Redis cache,
+                                  # backend service token
+    networks: [web, internal]     # web only for LLM egress
+
+  postgres:                       # event store + command store
+    image: postgres:16-alpine
+    mem_limit: 1g
+    command: postgres -c shared_buffers=256MB -c max_connections=50
+             -c effective_cache_size=1GB -c work_mem=8MB
+    networks: [internal]
+  redis:    { image: redis:8-alpine,  mem_limit: 96m,
+              command: --maxmemory 64mb --maxmemory-policy allkeys-lru }
+  nats:     { image: nats:2-alpine,   mem_limit: 64m }   # JetStream on
+  minio:    { image: minio/minio,     mem_limit: 256m }
+
+networks:
+  web:      { driver: bridge }                  # host nginx reaches these
+  internal: { driver: bridge, internal: true }  # no internet
+\end{lstlisting}
+
+2 details are deliberate. The backend's runtime image is distroless
+(the Go binary and nothing else, no shell), so it carries no
+container-level health check; liveness is probed from outside instead
+(Section~\ref{sec:deployment-ops}). And the self-hosted DocuSeal service is declared behind
+an opt-in Compose profile: the pilot signs against the provider's
+hosted sandbox, and the self-hosted container starts only when an
+operator selects that profile.
+
+\subsection{Host nginx reverse proxy}
+
+TLS terminates on the host, not in a container. One site file proxies
+the apex domain to the loopback ports; certificates are issued and
+renewed by certbot over the HTTP-01 challenge.
+
+\begin{lstlisting}[language=nginxcfg]
+upstream clmpilot_backend  { server 127.0.0.1:18080; keepalive 32; }
+upstream clmpilot_frontend { server 127.0.0.1:18081; keepalive 16; }
+
+server {                                  # port 80: ACME + redirect
+  listen 80; server_name clmpilot.com;
+  location ~ /.well-known/acme-challenge/ { root /usr/share/nginx/html; }
+  location / { return 301 https://$host$request_uri; }
+}
+
+server {                                  # port 443: TLS + proxy
+  listen 443 ssl http2; server_name clmpilot.com;
+  ssl_certificate     /etc/letsencrypt/live/clmpilot.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/clmpilot.com/privkey.pem;
+  ssl_protocols TLSv1.2 TLSv1.3;          # Mozilla intermediate profile
+
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-Frame-Options "DENY" always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+  client_max_body_size 25m;               # contract attachments are small
+
+  location /api/      { proxy_pass http://clmpilot_backend; }
+  location /webhooks/ { proxy_pass http://clmpilot_backend; }
+  location /          { proxy_pass http://clmpilot_frontend; }
+}
+\end{lstlisting}
+
+\subsection{systemd service unit}
+
+The Compose stack runs under a systemd unit so it survives host
+reboots and restarts on failure; this is the complete unit.
+
+\begin{lstlisting}[language=systemdcfg]
+[Unit]
+Description=clmpilot deployment service
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/user/clmpilot
+ExecStartPre=-/usr/bin/docker compose -f docker-compose.yml \
+              -f docker-compose.prod.yml down --remove-orphans
+ExecStart=/usr/bin/docker compose -f docker-compose.yml \
+              -f docker-compose.prod.yml up
+ExecStop=/usr/bin/docker compose -f docker-compose.yml \
+              -f docker-compose.prod.yml down
+TimeoutStartSec=300
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+\end{lstlisting}
+
+\subsection{Continuous-integration pipeline}
+
+Each repository carries its own GitHub Actions workflow with the same
+shape; the backend's is the largest and stands for the pattern. It
+guards \texttt{main} and \texttt{develop} on every push and pull
+request, and a semantic-version tag additionally publishes the image.
+
+\begin{lstlisting}[language=yamlcfg]
+on:
+  push:         { branches: [main, develop], tags: ["v*.*.*"] }
+  pull_request: { branches: [main, develop] }
+
+jobs:
+  lint:   # golangci-lint over the module (comby pinned at v3.0.2)
+  test:   # go test suites against disposable PostgreSQL, Redis
+          # and NATS service containers
+  build:  # compile the binary; regenerate + diff the OpenAPI spec
+  image:  # on tags: build the distroless image and push it to the
+          # registry, tagged with commit, branch and release version
+\end{lstlisting}
+
+The frontend workflow lints, runs the 198-test unit suite and builds
+the production bundle; the intelligence workflow runs its linter, its
+tests and the extraction-evaluation harness; the deployment workflow
+validates the Compose files and shell scripts it ships. Dependency
+updates arrive as weekly automated pull requests and pass the same
+gates.
+
+\subsection{Release script and the lockstep bypass}
+
+A release is executed on the host by \texttt{deploy.sh}, which refuses
+unpinned versions, updates the pinned tags, restarts the unit and
+polls the health endpoint before reporting success.
+
+\begin{lstlisting}[language=bash]
+sudo ./scripts/deploy.sh production v1.2.3
+
+# 1. validate: env known, version is a semver ('latest' rejected),
+#    .env present
+# 2. pin BACKEND_VERSION / FRONTEND_VERSION / INTELLIGENCE_VERSION
+#    to the given tag in .env  (<-- the lockstep)
+# 3. docker compose pull
+# 4. systemctl restart clmpilot.service
+# 5. poll http://127.0.0.1:18080/healthz, 60 x 2 s; on timeout,
+#    print service status + last backend logs and exit non-zero
+# 6. docker image prune -f
+# Rollback: re-run with the previous version number.
+\end{lstlisting}
+
+The script pins all 3 service versions in lockstep (step~2), which
+keeps a full release reproducible but makes a single-service hotfix
+awkward. The bypass used in practice edits the one pinned variable in
+\texttt{.env} directly and restarts the unit:
+
+\begin{lstlisting}[language=bash]
+sudo sed -i 's/^FRONTEND_VERSION=.*/FRONTEND_VERSION=v0.3.1/' .env
+sudo systemctl restart clmpilot.service
+\end{lstlisting}
+
+The services were re-unified onto one version at the close of Phase~2
+so the lockstep procedure and its rollback apply again.
+
+\subsection{Packaging caveat: the bundled help documentation}
+
+The user documentation is bundled into the SPA at build time from the
+repository's \texttt{docs/} tree (Section~\ref{sec:webapp}). The frontend's
+\texttt{.dockerignore}, written to keep the build context lean,
+originally excluded that tree --- so the CI-built image shipped with an
+empty help area while every local build, which does not pass through
+Docker, had the content. The gap surfaced only in production and was
+corrected by a hotfix release that re-included \texttt{docs/} in the
+build context. The lesson is recorded here because it generalises:
+whatever a build bundles from the repository must be present in the
+image build context, and a bundle that can silently be empty deserves a
+CI assertion.
+
+%------------------------------------------------------------------
+\section{OAuth setup walkthroughs}
+\label{sec:app-oauth}
+
+Document storage is connected per tenant through OAuth~2.0
+(Section~\ref{sec:contract-domain}). Setup happens at 2 levels: the \emph{operator}
+registers CLMPilot once per deployment with each provider and supplies
+the client credentials through the environment; a \emph{tenant
+administrator} then connects their organisation's storage from inside
+the application, without any credential ever passing through CLMPilot.
+
+\subsection{Google Drive}
+
+Operator, once per deployment:
+\begin{enumerate}[itemsep=1pt]
+  \item In the Google Cloud console, create (or pick) a project and
+    enable the \textbf{Google Drive API} and the \textbf{Google Picker
+    API}.
+  \item Configure the OAuth consent screen with the scopes the adapter
+    requests: file-metadata read and picker presentation --- CLMPilot
+    never requests content-write scopes.
+  \item Create an OAuth client of type \textbf{Web application} and
+    register the redirect URI
+    \path{https://clmpilot.com/api/integrations/google/callback}.
+  \item Set \texttt{OAUTH\_GOOGLE\_CLIENT\_ID} and
+    \texttt{OAUTH\_GOOGLE\_CLIENT\_SECRET} in the deployment
+    \texttt{.env} and redeploy.
+\end{enumerate}
+
+Tenant administrator, once per tenant:
+\begin{enumerate}[itemsep=1pt]
+  \item Open \textbf{Settings $\rightarrow$ Integrations} and click
+    \textbf{Connect} on the Google Drive card.
+  \item Approve the requested scopes on Google's consent screen; the
+    browser returns to CLMPilot and the card flips to
+    \textbf{Connected}.
+\end{enumerate}
+
+The resulting refresh token is held encrypted in the object store,
+scoped to the tenant; users then link files through the Google picker
+under their own Drive permissions. If Google rotates or the
+administrator revokes the token, the picker fails with an explicit
+``reconnect'' message and the same card offers \textbf{Reconnect}.
+
+\subsection{SharePoint}
+
+Operator, once per deployment:
+\begin{enumerate}[itemsep=1pt]
+  \item In the Azure portal, create an \textbf{App registration} and
+    register the redirect URI
+    \path{https://clmpilot.com/api/integrations/sharepoint/callback}.
+  \item Grant the app delegated \textbf{Microsoft Graph} permissions
+    for reading files and sites, plus \texttt{offline\_access} for the
+    refresh token.
+  \item Create a client secret, then set
+    \texttt{OAUTH\_SHAREPOINT\_CLIENT\_ID} and
+    \texttt{OAUTH\_SHAREPOINT\_CLIENT\_SECRET} in the deployment
+    \texttt{.env} and redeploy.
+\end{enumerate}
+
+The tenant-side connect flow is identical to Google Drive's, from the
+same Integrations page. At the close of Phase~2 the SharePoint adapter
+is realised behind the backend's \texttt{DocumentStore} interface while
+the frontend's file picker exposes Google Drive and generic URLs;
+SharePoint documents are therefore linked by URL until the dedicated
+picker ships.

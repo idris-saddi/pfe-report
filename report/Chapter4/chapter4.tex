@@ -17,11 +17,26 @@
 \renewcommand{\headrulewidth}{0.5pt}
 \renewcommand{\footrulewidth}{0pt}
 \renewcommand{\chaptermark}[1]{\markboth{{\chaptername~\thechapter.\ #1}}{}}
-\renewcommand{\sectionmark}[1]{\markright{\thechapter.\thesection~ #1}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection~ #1}}
 
 % NOTE: the \pumlfig figure helper defined in Chapter III checks
 % Chapter3/figures only, so Chapter IV figures use the explicit
 % \IfFileExists pattern below (same as the Gantt figure).
+
+% Screenshot helper: \uishot{<file-basename>}{<what to capture>}{<caption>}
+% Renders Chapter4/figures/<file>.png if present; otherwise a labelled
+% placeholder box naming the demo-tenant page to capture (the box
+% disappears automatically once the PNG exists).
+\newcommand{\uishot}[3]{%
+  \begin{figure}[H]\centering
+    \IfFileExists{Chapter4/figures/#1.png}
+      {{\setlength{\fboxsep}{0pt}\fbox{\includegraphics[width=0.92\linewidth]{#1}}}}
+      {\fbox{\parbox{0.88\linewidth}{\centering\vspace{2.2em}
+        \textbf{Screenshot placeholder} --- \texttt{Chapter4/figures/#1.png}\\[0.4em]
+        \textit{To capture (demo tenant): #2}\vspace{2.2em}}}}
+    \caption{#3}
+    \label{fig:#1}
+  \end{figure}}
 
 \begin{spacing}{1.2}
 %==============================================================================
@@ -35,9 +50,10 @@
 % is a recurring pattern that spans the stack, illustrated by the realised
 % domains, never a per-tier or per-phase tour. Per the report-wide rule, the
 % chapter intro must not reference other chapters.
-This chapter presents the CLMPilot platform as it was built and shipped:
-a multi-tenant pilot, live in production at \url{https://clmpilot.com},
-covering the full contract lifecycle together with the enterprise tier of feutures :
+This chapter presents the CLMPilot platform as it was built and
+shipped. The result is a multi-tenant pilot, live in production at
+\url{https://clmpilot.com}, that covers the full contract lifecycle and
+titiextends it with an enterprise tier of capabilities:
 intelligence-assisted extraction, electronic signature, per-tenant custom
 fields, obligation tracking and advanced reporting. Each
 section of the chapter follows one engineering theme across the whole
@@ -66,7 +82,7 @@ later phase relied on. The first of them was to split the codebase into 4
 repositories, each owning one concern and one release cadence;
 Figure~\ref{fig:repos} shows what each repository owns in the realised
 platform. The backend repository carries the Go service and its domain
-contexts~\cite{GoDocs}. The frontend repository carries the single-page
+contexts. The frontend repository carries the single-page
 application, and the intelligence repository the Python extraction
 service. The fourth, the deployment repository, holds the operational
 stack itself: the Compose files, the reverse-proxy and service-unit
@@ -85,7 +101,7 @@ explain how to operate them.
   \label{fig:repos}
 \end{figure}
 
-The split is by concern, not by microservice~\cite{Newman2021}: there is
+The split is by concern, not by microservice: there is
 one backend, not many. Each repository keeps its own toolchain and its
 own release pace, so the frontend can ship without rebuilding the
 backend, and a broken intelligence build never blocks a release. Each
@@ -232,9 +248,10 @@ in Appendix~A.2.
 % trail is anchored on Contract by construction.
 % figure: class diagram -- the realised Contract + DocumentLink model with events.
 
-The Contract aggregate realises the registry at the centre of the
-functional requirements (Section~\ref{sec:functional-requirements}). It
-carries the business metadata (counterparty, category and department,
+The heart of the platform is the Contract aggregate: it realises the
+contract registry that the functional requirements of
+Section~\ref{sec:functional-requirements} place at the core of the
+product. The aggregate carries the business metadata (counterparty, category and department,
 value and currency, start and end dates, renewal terms) and a status
 that moves only along the transitions of the state machine designed in
 Section~\ref{sec:behavioural-views}: a draft becomes active, an active
@@ -247,7 +264,15 @@ exactly what changed. Deletion is a flag rather than a removal, since
 the immutability requirement of Section~\ref{sec:nfr-audit} forbids
 destroying history. And a registration is only accepted after the
 command handler has checked that the contract number is unique within
-the tenant.
+the tenant. Figure~\ref{fig:ui-contract-list} shows this registry as
+the demo tenant's users see it.
+
+\uishot{figures/ui-contract-list}
+  {the contract registry with the filter bar and the free-text search
+   active (e.g.\ filtered to one department).}
+  {The contract registry: filterable listing backed by the
+   case-insensitive search projection of
+   Section~\ref{sec:backend-comby}.}
 
 Every state change is an event appended to the contract's stream, so the
 audit trail demanded by the compliance drivers exists by construction.
@@ -258,6 +283,14 @@ report asynchronously, by replaying the contract's events into a tabular
 file kept in the object store. And a download endpoint serves that file
 after first dispatching the contract-retrieve query, so the export
 inherits exactly the access control of the record it describes.
+Figure~\ref{fig:ui-audit-trail} shows the first of the 3 forms on a
+contract of the demo tenant.
+
+\uishot{figures/ui-audit-trail}
+  {a contract's audit-log tab showing the event list with actor,
+   timestamp and payload of each entry.}
+  {The audit-log view of a contract: the raw event stream rendered
+   with actor, timestamp and payload.}
 
 Phase~2 extended the aggregate with per-tenant custom fields without
 touching its core. A separate \texttt{CustomFieldDefinition} aggregate
@@ -274,6 +307,15 @@ each value against the tenant's definitions: required fields are
 present, values parse for their type, selections stay among the allowed
 options. Values whose definitions have since been deleted are ignored,
 so re-saving an old record never fails on removed configuration.
+Figure~\ref{fig:ui-contract-form-custom-fields} shows the result on the
+contract form: one typed widget per definition.
+
+\uishot{figures/ui-contract-form-custom-fields}
+  {the contract form of the demo tenant, scrolled to the
+   tenant-defined custom fields so the data-driven widgets are
+   visible.}
+  {The contract form: fixed fields followed by the tenant's typed
+   custom fields, one widget per definition.}
 
 \texttt{DocumentLink} realises the integration boundary as a domain
 object, as designed in Section~\ref{sec:aggregate-responsibilities}. One
@@ -306,6 +348,17 @@ emits.
            \texttt{DocumentStore} interface.}
   \label{fig:contract-domain}
 \end{figure}
+
+The provider connections behind those adapters are administered from
+inside the application: Figure~\ref{fig:ui-settings-integrations} shows
+the integrations area where a tenant administrator runs the OAuth
+connect flow that Appendix~A.4 walks through.
+
+\uishot{figures/ui-settings-integrations}
+  {the Settings page, Integrations tab, with the Google Drive card in
+   the Connected state.}
+  {The integrations settings of a tenant administrator: the per-tenant
+   OAuth connections behind the \texttt{DocumentStore} adapters.}
 
 %--------------------------------------------------------------------
 \section{Workflow and temporal automation}
@@ -343,6 +396,14 @@ loop of Section~\ref{sec:behavioural-views}. A second reactor owns every
 notification email the workflow sends. We kept state transitions and
 side effects apart on purpose: a mail failure can never interfere with
 the workflow's state, and each reactor fails on its own.
+Figure~\ref{fig:ui-approval-inbox} shows the approver's side of this
+workflow: the inbox of steps awaiting their designated approver.
+
+\uishot{figures/ui-approval-inbox}
+  {the approval inbox of a user with at least one pending step; one
+   workflow expanded to show the ordered steps.}
+  {The approval inbox: ordered steps, each awaiting its designated
+   approver.}
 
 Most deadlines are created by automation rather than by hand.
 Figure~\ref{fig:deadline-automation} follows the realised chain. A
@@ -378,7 +439,16 @@ unchanged. Obligation checks run on the same scheduler at offset minutes
 so the batches do not contend; scheduled report exports run hourly
 against each configuration's next-run date (Section~\ref{sec:webapp});
 and a reconciliation job polls the signature provider for requests whose
-webhooks were missed (Section~\ref{sec:intel-esign}).
+webhooks were missed (Section~\ref{sec:intel-esign}). What this
+automation produces for the user is the deadline view of
+Figure~\ref{fig:ui-deadline-timeline}: the upcoming markers with their
+reminder horizon.
+
+\uishot{figures/ui-deadline-timeline}
+  {the deadline view with upcoming deadlines and reminder markers (90,
+   60, 30 days) visible.}
+  {The deadline view: automation-created markers with their reminder
+   horizon.}
 
 Obligations, added in Phase~2, reuse the deadline mechanics but model a
 different thing: a deadline is a date the platform watches, while an
@@ -392,7 +462,14 @@ reactor spawns the next occurrence from it. The next due date is
 computed by calendar arithmetic anchored to the original one (a monthly
 task due on the 15th stays on the 15th) and rolled forward past the
 present, so completing a task late never schedules an occurrence that is
-already overdue.
+already overdue. Figure~\ref{fig:ui-obligations} shows the obligation
+view with a recurring commitment and its occurrences.
+
+\uishot{figures/ui-obligations}
+  {the obligation view with a recurring obligation and its
+   completed/upcoming occurrences.}
+  {Obligation tracking: person-owned recurring tasks with the shorter
+   14/7/1-day reminder horizon.}
 
 Idempotency in these contexts is a designed property, checked case by
 case. Every reactor overrides its restore behaviour to skip replayed
@@ -534,6 +611,16 @@ configures a provider key.
   \label{fig:esign-webhook}
 \end{figure}
 
+Figure~\ref{fig:ui-esign-status} shows the sending side in the
+application: the signature panel of a contract with a request in
+progress, fed by exactly this return path.
+
+\uishot{figures/ui-esign-status}
+  {a contract's signature panel with a request in progress (signers
+   and their statuses), against the DocuSeal sandbox.}
+  {The signature request on a contract: ordered signers and per-signer
+   status, updated by the webhook return path.}
+
 The outbound email these subsystems and the workflow reactors rely on is
 delivered through SendGrid's HTTP interface~\cite{SendGrid}, sending
 from an already-authenticated company domain. That choice avoided any
@@ -597,9 +684,16 @@ email arrives in the language chosen by the person who invited them, and
 every notification renders in its recipient's locale. The user
 documentation ships inside the application itself: a help area bundles
 the documentation source at build time, in both languages, so the
-documentation is versioned with the code it describes. The packaging
+documentation is versioned with the code it describes; the help area in
+the German locale is shown in Figure~\ref{fig:ui-help-de}. The packaging
 caveat this uncovered is recorded with the configuration material in
 Appendix~A.3.
+
+\uishot{figures/ui-help-de}
+  {the in-app help area in the German locale, to show the bundled
+   bilingual documentation.}
+  {The bundled help area in German: documentation versioned and
+   shipped with the code it describes.}
 
 2 Phase-2 capabilities demanded the most from the presentation layer.
 Custom fields make the contract form partly data-driven: the form renders one
@@ -614,7 +708,14 @@ documents), kept transparent so a reviewer can see why a contract scored
 as it did. In the builder, the user picks columns, groupings and a chart
 type, saves the configuration under their own identity, and can schedule
 it as a recurring export delivered by email through the scheduler of
-Section~\ref{sec:workflow-temporal}.
+Section~\ref{sec:workflow-temporal}. Figure~\ref{fig:ui-report-builder}
+shows the builder as a user of the demo tenant sees it.
+
+\uishot{figures/ui-report-builder}
+  {the report builder with columns, a grouping and a chart type
+   selected, and the rendered chart visible.}
+  {The report builder on the demo tenant: self-service columns,
+   groupings and chart over the reporting projections.}
 
 One scenario ties the patterns together. A legal manager registers a
 contract: the form combines the fixed fields with the tenant's custom
@@ -626,9 +727,32 @@ field by field; the extracted dates are accepted, the counterparty
 corrected. By then the accepted dates have already seeded the contract's
 deadlines, the dashboard's expiring-contracts view includes the new
 record, and the audit tab shows every step of the sequence as events.
-The remaining screens (the approval inbox, the deadline timeline, the
-administration area) follow the same division into stores, composables
-and components; a gallery of them is provided in Appendix~A.5.
+Figure~\ref{fig:ui-enrichment-review} captures the middle of that
+scenario on the demo tenant: the document has just been linked, and the
+extracted suggestions sit on the contract overview awaiting field-by-field
+review.
+
+\uishot{figures/ui-enrichment-review}
+  {a contract overview right after linking a document, with the
+   intelligence suggestions shown per field and the accept / edit /
+   undo controls visible.}
+  {Enrichment suggestions on a contract of the demo tenant, reviewed
+   field by field (accept, edit or undo); only fields the user left
+   empty are filled.}
+
+By the end of the scenario the dashboard has caught up as well:
+Figure~\ref{fig:ui-dashboard} shows it with the expiring-contracts view
+and the deadline overview the automation feeds.
+
+\uishot{figures/ui-dashboard}
+  {the dashboard after login: KPI tiles, the expiring-contracts list
+   and the deadline overview.}
+  {The dashboard, with the expiring-contracts view served by the
+   dedicated read model of Section~\ref{sec:backend-comby}.}
+
+The remaining screens, shown throughout this chapter beside the
+subsystems they realise, follow the same division into stores,
+composables and components.
 
 %--------------------------------------------------------------------
 \section{Identity, access control and multi-tenancy in practice}
@@ -681,6 +805,16 @@ would otherwise consume single-use invitation tokens.
   \label{fig:auth-journey}
 \end{figure}
 
+The visible half of that journey is the sign-in of
+Figure~\ref{fig:ui-login-otp}: the one-time-code step that completes an
+authentication.
+
+\uishot{figures/ui-login-otp}
+  {the sign-in page at the second step, where the emailed one-time code
+   is entered.}
+  {Two-step sign-in: the one-time-code confirmation that completes
+   authentication.}
+
 Role-based access control is enforced at dispatch
 (Section~\ref{sec:security-pipeline}), and the realisation taught us 2
 rules about it. First, the permission string checked at dispatch is
@@ -710,7 +844,16 @@ request scoped to an archived tenant unless the caller is a platform
 operator; the client translates the refusal into an explicit
 end-of-service screen. The archived state is therefore enforced at the
 same chokepoint as every other rule, and the user interface only
-reflects it.
+reflects it. Figure~\ref{fig:ui-admin-tenants} shows the operators'
+administration area on the pilot.
+
+\uishot{figures/ui-admin-tenants}
+  {the cross-tenant administration area listing the provisioned tenants
+   (demo tenants visible), with the provision-tenant action shown ---
+   captured from a system-tenant operator account.}
+  {The cross-tenant administration area: tenant provisioning,
+   first-administrator invitation and archival, available only to
+   platform operators of the system tenant.}
 
 %--------------------------------------------------------------------
 \section{Production deployment and release operations}
