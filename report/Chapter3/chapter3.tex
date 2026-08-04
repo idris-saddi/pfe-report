@@ -181,10 +181,7 @@ heavy query never blocks a write, and it expresses the domain in the terms
 of Domain-Driven Design~\cite{Evans2003,Vernon2013}.
 Figure~\ref{fig:cqrs-es} shows both paths.
 
-\pumlfig{cqrs-es}{0.90\textwidth}{The CQRS and Event~Sourcing flow:
-commands validate and append immutable events; the event store is the
-system of record; projections and reactors consume events asynchronously;
-queries read from projections.}{fig:cqrs-es}
+\pumlfig{cqrs-es}{0.90\textwidth}{The CQRS and Event Sourcing flow}{fig:cqrs-es}
 
 Figure~\ref{fig:cqrs-seq} shows the same flow as a sequence, for
 registering a contract. The command path is short and synchronous:
@@ -194,9 +191,7 @@ follow-up command that creates the contract's deadlines. That is the reactor
 pattern, and the point where eventual consistency becomes visible.
 
 \pumlfig{cqrs-sequence}{\textwidth}{Registering a contract as a
-sequence: a synchronous command path that appends an event, then
-asynchronous projection updates and a reactor that derives the contract's
-deadline reminders.}{fig:cqrs-seq}
+sequence}{fig:cqrs-seq}
 
 The costs anticipated in Section~\ref{sec:arch-choice} are now concrete.
 Read models are eventually consistent: a new contract
@@ -240,10 +235,7 @@ rebuilding a projection, isolating a tenant. CLMPilot owns the \emph{what}:
 what a contract is, when an approval advances, how a deadline raises
 reminders. That split is the maintainability driver in practice.
 
-\pumlfig{comby-layers}{0.80\textwidth}{Layering of CLMPilot on comby: the 4
-core domains, the enterprise contexts that extend them, and 2 cross-cutting
-additions sit on comby's CQRS/ES core and its multi-tenant defaults, which sit
-on the shared data stores.}{fig:comby-layers}
+\pumlfig{comby-layers}{0.80\textwidth}{Layering of CLMPilot on comby.}{fig:comby-layers}
 
 What CLMPilot inherits is large: tenancy, accounts, identities, groups,
 invitations, asset storage, and the whole authentication layer. The REST
@@ -259,10 +251,7 @@ domains register on comby, the satellites depend on Contract, and the
 integration and internal packages keep the external services and
 cross-cutting concerns apart.
 
-\pumlfig{backend-packages}{\textwidth}{Package structure of the backend:
-the core and enterprise domains register on comby, the satellites reference
-Contract, and the integration and internal packages isolate the external
-services and the cross-cutting concerns.}{fig:backend-packages}
+\pumlfig{backend-packages}{\textwidth}{Packages structure of the backend}{fig:backend-packages}
 
 \subsection{Justification of choice}
 \label{sec:comby-choice}
@@ -347,7 +336,7 @@ platform concerns owned by the framework (Section~\ref{sec:comby-role}), not
 business contexts.
 
 \pumlfig{domain-model}{0.85\textwidth}{The 4 bounded contexts and their
-relationships, within the enclosing tenant boundary.}{fig:domains}
+relationships, within the enclosing tenant boundary}{fig:domains}
 
 \subsection{Aggregate responsibilities}
 \label{sec:aggregate-responsibilities}
@@ -385,7 +374,7 @@ contract can instead be \textit{terminated} early. Both paths end in
 is a compact summary of a contract's audit trail.
 
 \pumlfig{contract-lifecycle}{0.5\textwidth}{State machine of the Contract
-aggregate.\\Soft delete (tombstone) and restore are available from any state and are omitted
+aggregate\\Soft delete (tombstone) and restore are available from any state and are omitted
  here for clarity.}{fig:contract-states}
 
 Figure~\ref{fig:approval-activity} shows the approval workflow as activity.
@@ -496,7 +485,7 @@ within a tenant (Legal, Finance, Admin); a \textbf{permission} is the right
 to run a given command or query. Access control is role-based and always
 scoped to a tenant.
 
-\pumlfig{identity-model}{\textwidth}{The identity and access model.}{fig:identity-model}
+\pumlfig{identity-model}{\textwidth}{The identity and access model}{fig:identity-model}
 
 Above the per-tenant model sits the platform \textbf{system administrator}:
 a small, seeded set of operator accounts in a reserved system tenant, able
@@ -553,9 +542,7 @@ layers is the tenant isolation that all of the compliance guarantees depend on,
 and at the core the immutable event log, which serves as both the system of
 record and the audit trail.
 
-\pumlfig{security-layers}{0.8\textwidth}{Defence in depth: concentric controls
-around the immutable event log, each independent of the others. The data-layer
-row-security control is a comby~v3 affordance not yet activated.}{fig:security-layers}
+\pumlfig{security-layers}{0.8\textwidth}{Defence in depth}{fig:security-layers}
 
 Tenant isolation today is enforced in the application: every command, query
 and event carries a tenant context, and a single logical event store is
