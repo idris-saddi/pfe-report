@@ -72,6 +72,11 @@
 \renewcommand{\SC@figure@vpos}{c}
 \renewcommand{\fnum@figure}{\small\textbf{Figure~\thefigure}}
 \renewcommand{\fnum@table}{\small\textbf{Table~\thetable}}
+% Widen the number column of the figure/table lists: the book-class
+% default (2.3em) is too narrow for two-digit numbers like III.10, whose
+% titles would otherwise start flush against the number.
+\renewcommand*{\l@figure}{\@dottedtocline{1}{1.5em}{3.2em}}
+\renewcommand*{\l@table}{\@dottedtocline{1}{1.5em}{3.2em}}
 \makeatother
 
 \def\thechapter{\Roman{chapter}}

@@ -23,19 +23,23 @@
 % Chapter3/figures only, so Chapter IV figures use the explicit
 % \IfFileExists pattern below (same as the Gantt figure).
 
-% Screenshot helper: \uishot{<file-basename>}{<what to capture>}{<caption>}
-% Renders Chapter4/figures/<file>.png if present; otherwise a labelled
+% Screenshot helper:
+%   \uishot[<short title for the list of figures>]{<file-basename>}
+%          {<what to capture>}{<caption>}
+% Renders Chapter4/figures/ui/<file>.png if present; otherwise a labelled
 % placeholder box naming the demo-tenant page to capture (the box
-% disappears automatically once the PNG exists).
-\newcommand{\uishot}[3]{%
+% disappears automatically once the PNG exists). The optional short title
+% keeps the List of Figures entry to one line; the full caption stays
+% under the figure.
+\newcommand{\uishot}[4][]{%
   \begin{figure}[H]\centering
-    \IfFileExists{Chapter4/figures/#1.png}
-      {{\setlength{\fboxsep}{0pt}\fbox{\includegraphics[width=0.92\linewidth]{#1}}}}
+    \IfFileExists{Chapter4/figures/ui/#2.png}
+      {{\setlength{\fboxsep}{0pt}\fbox{\includegraphics[width=0.92\linewidth]{ui/#2}}}}
       {\fbox{\parbox{0.88\linewidth}{\centering\vspace{2.2em}
-        \textbf{Screenshot placeholder} --- \texttt{Chapter4/figures/#1.png}\\[0.4em]
-        \textit{To capture (demo tenant): #2}\vspace{2.2em}}}}
-    \caption{#3}
-    \label{fig:#1}
+        \textbf{Screenshot placeholder} --- \texttt{Chapter4/figures/ui/#2.png}\\[0.4em]
+        \textit{To capture (demo tenant): #3}\vspace{2.2em}}}}
+    \ifblank{#1}{\caption{#4}}{\caption[#1]{#4}}
+    \label{fig:#2}
   \end{figure}}
 
 \begin{spacing}{1.2}
@@ -53,7 +57,7 @@
 This chapter presents the CLMPilot platform as it was built and
 shipped. The result is a multi-tenant pilot, live in production at
 \url{https://clmpilot.com}, that covers the full contract lifecycle and
-titiextends it with an enterprise tier of capabilities:
+extends it with an enterprise tier of capabilities:
 intelligence-assisted extraction, electronic signature, per-tenant custom
 fields, obligation tracking and advanced reporting. Each
 section of the chapter follows one engineering theme across the whole
@@ -264,7 +268,7 @@ command handler has checked that the contract number is unique within
 the tenant. Figure~\ref{fig:ui-contract-list} shows this registry as
 the demo tenant's users see it.
 
-\uishot{figures/ui-contract-list}
+\uishot[The contract registry]{ui-contract-list}
   {the contract registry with the filter bar and the free-text search
    active (e.g.\ filtered to one department).}
   {The contract registry: filterable listing backed by the
@@ -283,7 +287,7 @@ inherits exactly the access control of the record it describes.
 Figure~\ref{fig:ui-audit-trail} shows the first of the 3 forms on a
 contract of the demo tenant.
 
-\uishot{figures/ui-audit-trail}
+\uishot[The audit-log view of a contract]{ui-audit-trail}
   {a contract's audit-log tab showing the event list with actor,
    timestamp and payload of each entry.}
   {The audit-log view of a contract: the raw event stream rendered
@@ -307,7 +311,7 @@ so re-saving an old record never fails on removed configuration.
 Figure~\ref{fig:ui-contract-form-custom-fields} shows the result on the
 contract form: one typed widget per definition.
 
-\uishot{figures/ui-contract-form-custom-fields}
+\uishot[The contract form with custom fields]{ui-contract-form-custom-fields}
   {the contract form of the demo tenant, scrolled to the
    tenant-defined custom fields so the data-driven widgets are
    visible.}
@@ -348,7 +352,7 @@ inside the application: Figure~\ref{fig:ui-settings-integrations} shows
 the integrations area where a tenant administrator runs the OAuth
 connect flow that Appendix~A.4 walks through.
 
-\uishot{figures/ui-settings-integrations}
+\uishot[The integrations settings of a tenant]{ui-settings-integrations}
   {the Settings page, Integrations tab, with the Google Drive card in
    the Connected state.}
   {The integrations settings of a tenant administrator: the per-tenant
@@ -393,7 +397,7 @@ the workflow's state, and each reactor fails on its own.
 Figure~\ref{fig:ui-approval-inbox} shows the approver's side of this
 workflow: the inbox of steps awaiting their designated approver.
 
-\uishot{figures/ui-approval-inbox}
+\uishot[The approval inbox]{ui-approval-inbox}
   {the approval inbox of a user with at least one pending step; one
    workflow expanded to show the ordered steps.}
   {The approval inbox: ordered steps, each awaiting its designated
@@ -438,7 +442,7 @@ automation produces for the user is the deadline view of
 Figure~\ref{fig:ui-deadline-timeline}: the upcoming markers with their
 reminder horizon.
 
-\uishot{figures/ui-deadline-timeline}
+\uishot[The deadline view]{ui-deadline-timeline}
   {the deadline view with upcoming deadlines and reminder markers (90,
    60, 30 days) visible.}
   {The deadline view: automation-created markers with their reminder
@@ -459,7 +463,7 @@ present, so completing a task late never schedules an occurrence that is
 already overdue. Figure~\ref{fig:ui-obligations} shows the obligation
 view with a recurring commitment and its occurrences.
 
-\uishot{figures/ui-obligations}
+\uishot[Obligation tracking]{ui-obligations}
   {the obligation view with a recurring obligation and its
    completed/upcoming occurrences.}
   {Obligation tracking: person-owned recurring tasks with the shorter
@@ -609,7 +613,7 @@ Figure~\ref{fig:ui-esign-status} shows the sending side in the
 application: the signature panel of a contract with a request in
 progress, fed by exactly this return path.
 
-\uishot{figures/ui-esign-status}
+\uishot[The signature request on a contract]{ui-esign-status}
   {a contract's signature panel with a request in progress (signers
    and their statuses), against the DocuSeal sandbox.}
   {The signature request on a contract: ordered signers and per-signer
@@ -624,7 +628,7 @@ with each later context) as multipart text-and-HTML, in the recipient's
 locale (Section~\ref{sec:webapp}).
 
 %--------------------------------------------------------------------
-\section{The web application and internationalised \mbox{user experience}}
+\section{The web application and internationalised user experience}
 \label{sec:webapp}
 % intent: The Vue 3 + Quasar SPA: composition via stores (Pinia) and
 % composables/components for reuse; a single API integration boundary using the
@@ -683,7 +687,7 @@ the German locale is shown in Figure~\ref{fig:ui-help-de}. The packaging
 caveat this uncovered is recorded with the configuration material in
 Appendix~A.3.
 
-\uishot{figures/ui-help-de}
+\uishot[The bundled help area in German]{ui-help-de}
   {the in-app help area in the German locale, to show the bundled
    bilingual documentation.}
   {The bundled help area in German: documentation versioned and
@@ -705,7 +709,7 @@ it as a recurring export delivered by email through the scheduler of
 Section~\ref{sec:workflow-temporal}. Figure~\ref{fig:ui-report-builder}
 shows the builder as a user of the demo tenant sees it.
 
-\uishot{figures/ui-report-builder}
+\uishot[The report builder]{ui-report-builder}
   {the report builder with columns, a grouping and a chart type
    selected, and the rendered chart visible.}
   {The report builder on the demo tenant: self-service columns,
@@ -726,7 +730,7 @@ scenario on the demo tenant: the document has just been linked, and the
 extracted suggestions sit on the contract overview awaiting field-by-field
 review.
 
-\uishot{figures/ui-enrichment-review}
+\uishot[Enrichment suggestions on a contract]{ui-enrichment-review}
   {a contract overview right after linking a document, with the
    intelligence suggestions shown per field and the accept / edit /
    undo controls visible.}
@@ -738,7 +742,7 @@ By the end of the scenario the dashboard has caught up as well:
 Figure~\ref{fig:ui-dashboard} shows it with the expiring-contracts view
 and the deadline overview the automation feeds.
 
-\uishot{figures/ui-dashboard}
+\uishot[The dashboard]{ui-dashboard}
   {the dashboard after login: KPI tiles, the expiring-contracts list
    and the deadline overview.}
   {The dashboard, with the expiring-contracts view served by the
@@ -803,7 +807,7 @@ The visible half of that journey is the sign-in of
 Figure~\ref{fig:ui-login-otp}: the one-time-code step that completes an
 authentication.
 
-\uishot{figures/ui-login-otp}
+\uishot[Two-step sign-in]{ui-login-otp}
   {the sign-in page at the second step, where the emailed one-time code
    is entered.}
   {Two-step sign-in: the one-time-code confirmation that completes
@@ -841,7 +845,7 @@ same chokepoint as every other rule, and the user interface only
 reflects it. Figure~\ref{fig:ui-admin-tenants} shows the operators'
 administration area on the pilot.
 
-\uishot{figures/ui-admin-tenants}
+\uishot[The cross-tenant administration area]{ui-admin-tenants}
   {the cross-tenant administration area listing the provisioned tenants
    (demo tenants visible), with the provision-tenant action shown ---
    captured from a system-tenant operator account.}

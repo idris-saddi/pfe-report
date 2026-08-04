@@ -335,8 +335,7 @@ crosses it. Identity and the audit log are absent here: they are
 platform concerns owned by the framework (Section~\ref{sec:comby-role}), not
 business contexts.
 
-\pumlfig{domain-model}{0.85\textwidth}{The 4 bounded contexts and their
-relationships, within the enclosing tenant boundary}{fig:domains}
+\pumlfig{domain-model}{0.85\textwidth}{The 4 bounded contexts, within the tenant boundary}{fig:domains}
 
 \subsection{Aggregate responsibilities}
 \label{sec:aggregate-responsibilities}
@@ -372,10 +371,11 @@ starts as a \textit{draft}, goes \textit{active} once approved, may turn
 contract can instead be \textit{terminated} early. Both paths end in
 \textit{archived}. Each transition is a command or a time-driven event, so the diagram
 is a compact summary of a contract's audit trail.
+\\Soft delete (tombstone) and restore are available from any state and are omitted
+ here for clarity.
 
 \pumlfig{contract-lifecycle}{0.5\textwidth}{State machine of the Contract
-aggregate\\Soft delete (tombstone) and restore are available from any state and are omitted
- here for clarity.}{fig:contract-states}
+aggregate}{fig:contract-states}
 
 Figure~\ref{fig:approval-activity} shows the approval workflow as activity.
 The Legal~Manager starts it against a template of ordered steps. Each
