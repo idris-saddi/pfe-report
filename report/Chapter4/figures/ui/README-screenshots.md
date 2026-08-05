@@ -19,3 +19,14 @@ window, 1600px+ wide, English locale unless noted.
 - ui-help-de.png                   in-app help area, German locale
 - ui-login-otp.png                 sign-in, step 2: one-time-code entry
 - ui-admin-tenants.png             cross-tenant admin area (operator account)
+- ui-comby-metrics.png             comby operator dashboard, Metrics > Overview.
+                                   NOT on clmpilot.com — served by the backend
+                                   itself at /admin/ (nginx doesn't route it).
+                                   From the Mac: ssh -L 18080:127.0.0.1:18080
+                                   root@138.201.191.99 then open
+                                   http://localhost:18080/admin/ (system-admin
+                                   sign-in). Capture PROD, not local: the
+                                   report's sec:runtime-perf quotes numbers
+                                   from this table (2026-08-05 window), so the
+                                   shot should show the same production
+                                   counters (larger counts are fine).
