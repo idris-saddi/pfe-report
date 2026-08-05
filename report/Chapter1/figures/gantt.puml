@@ -3,13 +3,13 @@
 ' Figure (Chapter IV, Engineering foundations and the delivery process):
 ' project timeline of the internship as a Gantt chart, with sub-phases.
 '
-' PRESENTATION CALENDAR (set by the author, 2026-07-07):
+' PRESENTATION CALENDAR (set by the author; revised 2026-08-04):
 '   - Phase 0 -- Foundations:        second half of April 2026
 '   - Phase 1 -- MVP:                May + first half of June
-'   - Phase 2 -- Enterprise tier:    second half of June + first half of July
-'   - R&D on the event-sourced core: mid-July to the END OF SEPTEMBER
-'     (internship end per the author; replaces the earlier end-of-August
-'     assumption).
+'   - Phase 2 -- Enterprise tier:    second half of June + July (pilot
+'     complete end of July)
+'   - August to end of September:    audit + maintenance of the platform,
+'     and writing of the present report
 ' Sub-phases follow the roadmap's section structure:
 '   - Phase 0: repositories/branching/CI-CD, dev environment, planning.
 '   - Phase 1: backend (comby foundation + four core domains), web
@@ -17,26 +17,29 @@
 '     production and re-released continuously well before the phase gate.
 '   - Phase 2: document intelligence, custom fields + e-signature,
 '     obligations + advanced reporting, testing and release.
-'   - R&D (planned, Chapter V order): broker-communication insight,
-'     multi-tenancy in the framework, scalability of comby + event store.
+' The former R&D section (planned work on the event-sourced core) was
+' removed 2026-08-04 with the retirement of Chapter V -- perspectives-only;
+' the closing section is now audit/maintenance + report writing.
 ' Render:  plantuml -tsvg gantt.puml  then  rsvg-convert -f pdf
 '==============================================================================
 skinparam shadowing false
 skinparam defaultFontName Helvetica
 
 printscale weekly
-Project starts 2026-04-13
+Project starts 2026-04-05 ends 2026-09-25
 
 -- Phase 0: Foundations --
-[Repositories, branching and CI/CD] starts 2026-04-16 and ends 2026-04-23
-[Repositories, branching and CI/CD] is colored in #5D6D7E
-[Development environment] starts 2026-04-20 and ends 2026-04-27
-[Development environment] is colored in #5D6D7E
-[Project planning and roadmap] starts 2026-04-23 and ends 2026-04-30
+[Bussiness and Product Research] starts 2026-04-13 and ends 2026-04-20
+[Bussiness and Product Research] is colored in #5D6D7E
+[Project planning and roadmap] starts 2026-04-16 and ends 2026-04-23
 [Project planning and roadmap] is colored in #5D6D7E
+[Repositories, branching and CI/CD] starts 2026-04-20 and ends 2026-04-27
+[Repositories, branching and CI/CD] is colored in #5D6D7E
+[Development environment] starts 2026-04-23 and ends 2026-04-30
+[Development environment] is colored in #5D6D7E
 
 -- Phase 1: MVP --
-[Backend: comby foundation and core domains] starts 2026-05-01 and ends 2026-05-22
+[Backend: comby foundation and core domains] starts 2026-05-03 and ends 2026-05-22
 [Backend: comby foundation and core domains] is colored in #5D6D7E
 [Web application on the generated API] starts 2026-05-11 and ends 2026-06-05
 [Web application on the generated API] is colored in #5D6D7E
@@ -49,17 +52,17 @@ Project starts 2026-04-13
 [Document intelligence and enrichment] is colored in #5D6D7E
 [Custom fields and electronic signature] starts 2026-06-22 and ends 2026-07-03
 [Custom fields and electronic signature] is colored in #5D6D7E
-[Obligations and advanced reporting] starts 2026-06-29 and ends 2026-07-08
+[Obligations and advanced reporting] starts 2026-06-29 and ends 2026-07-10
 [Obligations and advanced reporting] is colored in #5D6D7E
-[Phase 2 testing and release] starts 2026-07-06 and ends 2026-07-15
+[Phase 2 testing and release] starts 2026-07-06 and ends 2026-07-31
 [Phase 2 testing and release] is colored in #5D6D7E
-[Pilot complete] happens 2026-07-15
+[Pilot complete] happens 2026-07-31
 
--- R&D on the event-sourced system (planned) --
-[Insight from broker communications] starts 2026-07-16 and ends 2026-08-21
-[Insight from broker communications] is colored in #D5D8DC
-[Multi-tenancy in the framework] starts 2026-08-03 and ends 2026-09-04
-[Multi-tenancy in the framework] is colored in #D5D8DC
-[Scalability of comby and the event store] starts 2026-08-24 and ends 2026-09-30
-[Scalability of comby and the event store] is colored in #D5D8DC
+-- Closing: audit, maintenance and report --
+[Platform audit and maintenance] starts 2026-07-16 and ends 2026-09-10
+[Platform audit and maintenance] is colored in #AEB6BF
+[Writing of the present report] starts 2026-06-03 and ends 2026-09-10
+[Writing of the present report] is colored in #AEB6BF
+[ ] starts 2026-06-03 and ends 2026-09-25
+[ ] is colored in #ffffff00
 @endgantt

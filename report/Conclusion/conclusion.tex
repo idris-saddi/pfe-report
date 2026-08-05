@@ -18,10 +18,11 @@
 %   - Contribution: CLMPilot, an integration-first CLM platform for the
 %     DACH Mittelstand, built on the comby framework (CQRS + Event
 %     Sourcing in Go), shipped in live production at clmpilot.com.
-%   - Realised scope: Phases 0 and 1 complete -- repository foundation,
-%     four backend domains (Contract / Approval / Deadline /
-%     DocumentLink), a Vue 3 SPA, and a Hetzner-hosted production
-%     deployment with monitoring and backups.
+%   - Realised scope: Phases 0-2 complete -- repository foundation, the
+%     full-stack MVP (backend domains Contract / Approval / Deadline /
+%     DocumentLink, Vue 3 SPA, Hetzner-hosted production deployment with
+%     monitoring and backups), and the enterprise tier (intelligence
+%     extraction, e-signature, workflow/temporal automation, i18n).
 %   - Methodology: release-train delivery with a single source-of-truth
 %     roadmap that drove both the work and the structure of this report.
 %   - Difficulties encountered (briefly): the .dockerignore /docs gap;
@@ -29,19 +30,121 @@
 %     bug; auth-vs-query authorisation gap for backfills.
 %
 % PART 2 -- Perspectives (~1 page)
-%   - Phase 2: intelligence service (LLM-powered metadata extraction),
-%     DocuSign, custom fields, obligation tracking, mobile companion.
-%   - Phase 3: public API, ERP integrations (DATEV, SAP), multi-entity
-%     consolidation, marketplace, batch intelligence, K8s, multi-region.
+%   (absorbs the retired Chapter V -- improvements in the event-sourced
+%   system -- now grounded in the comby framework audit of 2026-07-07,
+%   planning-doc/AUDIT.md; present as an audit performed + evolution
+%   plan, at architecture level, no file:line detail)
+%   - Evolution of the event-sourced framework: the internship closed
+%     with a source-level audit of comby; its findings define the
+%     hardening path -- store-enforced optimistic concurrency and atomic
+%     event-batch persistence, a corrected snapshot subsystem, a
+%     bounded sharded execution model with graceful shutdown, a global
+%     sequence with checkpointed projections and a dead-letter queue,
+%     and reliable cross-instance replication for read replicas.
+%   - Deeper multi-tenancy: per-tenant quotas and metering, physical
+%     partitioning of the event store, crypto-shredding for GDPR
+%     erasure (from the same audit).
+%   - Insight extraction from broker communications (design idea from
+%     the retired Chapter V shell): extend the extraction pipeline from
+%     contract documents to the communications around a contract.
+%   - Phase 3 product roadmap: public API, ERP integrations (DATEV,
+%     SAP), multi-entity consolidation, marketplace, batch
+%     intelligence, K8s, multi-region.
 %   - Beyond the roadmap: open research directions (clause-level
 %     reasoning over the event store, federated audit-trail
 %     verification, contract similarity embeddings for negotiation
 %     support).
 
 \section*{Recap of the contribution}
-\dots
+
+This report presented \textbf{CLMPilot}, an integration-first contract
+lifecycle management platform for the DACH \textit{Mittelstand}, built
+during an end-of-studies internship at Gradient~Zero and live in
+production at \texttt{clmpilot.com}. The platform manages the lifecycle
+of a contract (its metadata, deadlines, approvals and audit trail)
+while the document itself stays in the customer's own storage, so
+adoption carries no migration cost. It is built on the \texttt{comby}
+framework, which brings CQRS and Event~Sourcing in Go, and that choice
+is what makes the compliance-grade audit trail a property of the
+storage model itself: every change to a contract is an immutable event,
+traced to an actor and a moment, and any past state can be
+reconstructed on demand.
+
+The pilot was delivered as a release train of 3 product phases, all
+realised and shipped. Phase~0 laid the engineering foundations:
+repositories, continuous integration and delivery, and the roadmap that
+served as the single source of truth for the whole internship, ordering
+both the work and the structure of this report. Phase~1 delivered the
+full-stack MVP: the 4 core domains (Contract, Approval, Deadline and
+DocumentLink) behind a generated API, an internationalised web
+application, and a monitored, backed-up production deployment on
+EU-hosted infrastructure. Phase~2 added the enterprise tier:
+intelligence-assisted metadata and clause extraction, electronic
+signature, per-tenant custom fields, obligation tracking and advanced
+reporting. The work ran under Extreme Programming adapted to a solo
+developer, with weekly supervision and release gates in place of team
+practices. The main difficulties were operational: delivering alone
+against fixed phase milestones, and keeping the releases of 3
+separately versioned services reproducible as one unit.
 
 \section*{Perspectives}
-\dots
+
+The closing weeks of the internship went into an engineering audit of
+the event-sourced framework beneath the platform, asking of each
+guarantee the architecture depends on where it is enforced and where
+that enforcement stops. Most of the perspectives below come from its
+findings.
+
+On consistency, the audit found that the framework enforces its
+strongest guarantees in the running process and not in the store:
+optimistic concurrency is checked against a version cache in memory,
+and the events of a command are written one by one. A single instance
+behaves correctly, but a second concurrent writer, even a brief
+overlap during a deployment, could write conflicting versions into a
+stream without any error, and a crash between two writes leaves an
+operation half-recorded. The fix is to enforce these rules in the
+event store: a uniqueness constraint on aggregate and version, and one
+transaction per command. A corrupted stream then becomes a conflict
+the dispatcher can catch and retry.
+
+Operating at scale raises the same kind of question. Start-up rebuilds
+every read model by replaying the whole log, and the snapshot
+mechanism meant to bound that has defects to correct before it can be
+enabled. Under load, nothing bounds concurrent work, ordering per
+aggregate is not guaranteed, and shutdown can drop accepted commands.
+Assigning each aggregate to one worker in a sharded execution model
+would give ordering, backpressure and a clean shutdown at once. Read
+models also need a recovery story: a global order over the log,
+checkpointed projections and a dead-letter queue, so a failing
+projection can be repaired and replayed instead of silently skipping
+events, and replicas that catch up from the store when broker messages
+are missed. This is what it would take to run the multi-instance
+topology the deployment design already anticipates.
+
+Isolation between tenants is solid (a tenant context on every command
+and event, with row-level security behind it), but growth adds
+problems isolation does not solve. Nothing bounds one tenant's load,
+so quotas and metering are needed on the shared dispatch path.
+Partitioning the event store by tenant would give large or
+compliance-sensitive customers their own storage, backup and deletion
+boundaries. Corporate groups need consolidation across their tenants,
+which has no model yet. And the immutable log conflicts with GDPR
+erasure; per-tenant encryption keys would settle that conflict, since
+destroying a key erases the personal data while the stream stays
+intact.
+
+On the product side, the extraction pipeline is worth extending. It is
+a stateless boundary (fetch a document's bytes, extract metadata and
+clauses, event-source the result) and nothing in it is specific to
+contract documents; the broker communications around a contract, which
+the platform does not touch today, could be fed through the same path.
+Deeper connections to the storage and ERP systems the
+\textit{Mittelstand} already runs would serve the same goal: adoption
+that asks no migration of the customer.
+
+The pilot showed that a compliance-grade contract registry can be
+delivered at mid-market cost when auditability is built into the
+storage model. The work sketched above is what would turn that pilot
+into a durable product.
 
 \end{spacing}

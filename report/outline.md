@@ -22,14 +22,18 @@ The remainder of the internship is **not** the old "Phase 3 platform vision"
 focused **R&D effort on the `comby` framework and the event-sourced core** —
 extracting insight from broker communications, deepening multi-tenancy, and
 scaling the framework and the event store. This work is planned and designed in
-the remaining time, not necessarily fully implemented.
+the remaining time, not necessarily fully implemented. (In the end it produced
+the comby framework audit of 2026-07-07 and stopped there — see the
+"Chapter V retired" note below.)
 
 So the report **drops the per-phase release chapters** (the earlier III Phase 0,
-IV Phase 1, V Phase 2, VI Phase 3 layout) and adopts a **five-chapter
-structure** in two parts: framing and design, then realisation and planned
-evolution. (Originally four chapters; on 2026-07-06 the supervisor asked for
-the old Chapter I to be split into a context/scope chapter and a dedicated
-"Analysis and Requirements Specification" chapter.)
+IV Phase 1, V Phase 2, VI Phase 3 layout) and adopts a **four-chapter
+structure**: framing and design (Chapters I–III), then realisation
+(Chapter IV). (History: on 2026-07-06 the supervisor asked for the old
+Chapter I to be split into a context/scope chapter and a dedicated "Analysis
+and Requirements Specification" chapter, giving five chapters in two parts;
+on 2026-08-04 Chapter V and the part divisions were removed — see the
+"Chapter V retired" note below.)
 
 ## Two design decisions that drove this structure
 
@@ -44,15 +48,16 @@ identity and multi-tenancy, deployment — and uses the realised domains as
 illustrations of those themes. The roadmap's phase hierarchy remains the
 traceability backbone behind it.
 
-### 2 — A dedicated architecture chapter that names its seams
+### 2 — A dedicated architecture chapter
 
 Chapter III carries the structural narrative once (CQRS/ES, comby, the domain
 model, topology, security, i18n) so the later chapters reference back instead of
-re-deriving it. Critically, it closes with **§8 "Designed seams for evolution"**,
-which names the three open seams — multi-tenancy, scalability/event-store growth,
-and the intelligence/extraction pipeline — that **Chapter V** then develops.
-That is what lets the forward-looking chapter build on the design rather than
-re-introduce it.
+re-deriving it. (It originally closed with a **§8 "Designed seams for
+evolution"** that set up a standalone Chapter V; both were removed — Chapter V
+on 2026-08-04, §8 on 2026-08-05. The forward-looking analysis now lives
+entirely in the **Perspectives** section of the general conclusion, which
+carries its own problem → proposed-solution reasoning grounded in the comby
+audit, so the body chapters describe only the realised system.)
 
 ## Report-wide editorial rules (2026-07-06)
 
@@ -68,7 +73,19 @@ re-introduce it.
   space is accepted. The `\pumlfig` helper emits `[H]` too — use `[H]` for any
   new float.
 
-## Final structure (5 chapters; 2 parts)
+## Chapter V retired (2026-08-04)
+
+The planned **Chapter V — Improvements in the event-sourced system** is dropped
+as a standalone chapter: the framework work will not be continued during the
+internship, so a chapter of purely planned R&D is not defensible. Its material
+moves into the **Perspectives** half of the general conclusion, grounded in the
+comby framework audit of 2026-07-07 (`planning-doc/AUDIT.md`) — presented at
+architecture level as an audit performed plus an evolution plan. The
+`Chapter5/` folder is deleted. The `\part` divisions were removed at the same
+time — with a single realisation chapter a two-part split no longer earned its
+place.
+
+## Final structure (4 chapters; no parts)
 
 ```
 Front matter
@@ -80,8 +97,7 @@ Front matter
 ├── List of Tables
 └── General Introduction                    (context / problem / contribution / outline)
 
-PART 1 — PROJECT FRAMING AND DESIGN
-
+Chapters
 ├── Chapter I — General Context and Project Scope        (chap:context)
 │   ├── 1.  Hosting company: Gradient Zero
 │   ├── 2.  Project context: CLM in the DACH Mittelstand
@@ -95,35 +111,29 @@ PART 1 — PROJECT FRAMING AND DESIGN
 │   ├── 2.  Functional requirements  (incl. Enterprise capabilities)
 │   └── 3.  Non-functional requirements
 │
-└── Chapter III — Architecture and Design                (chap:arch)
-    ├── 1.  Architectural drivers
-    ├── 2.  Why CQRS and Event Sourcing for CLM?
-    ├── 3.  The comby framework
-    ├── 4.  Domain model overview  (core 4 contexts + 4.4 Extension contexts)
-    ├── 5.  System topology
-    ├── 6.  Security and compliance model
-    ├── 7.  Internationalisation strategy
-    └── 8.  Designed seams for evolution   → bridges to Chapter V
-
-PART 2 — REALISATION AND PLANNED EVOLUTION
-
-├── Chapter IV — Realisation of the CLMPilot platform    (chap:realisation; Phases 0–2, by theme)
-│   ├── 1.  Engineering foundations and the delivery process  (opens with the project-timeline Gantt)
-│   ├── 2.  Backend service architecture on comby
-│   ├── 3.  The contract domain and its lifecycle
-│   ├── 4.  Workflow and temporal automation
-│   ├── 5.  Document intelligence and electronic signature
-│   ├── 6.  The web application and internationalised user experience
-│   ├── 7.  Identity, access control and multi-tenancy in practice
-│   └── 8.  Production deployment and release operations
+├── Chapter III — Architecture and Design                (chap:arch)
+│   ├── 1.  Architectural drivers
+│   ├── 2.  Why CQRS and Event Sourcing for CLM?
+│   ├── 3.  The comby framework
+│   ├── 4.  Domain model overview  (core 4 contexts + 4.4 Extension contexts)
+│   ├── 5.  System topology
+│   ├── 6.  Security and compliance model
+│   └── 7.  Internationalisation strategy
 │
-└── Chapter V — Improvements in the event-sourced system  (chap:future; planned R&D)
-    (chapter shell — no sections yet; three planned areas recorded in the
-     source as intent: broker-communication insight, multi-tenancy,
-     scalability of comby and the event store)
+└── Chapter IV — Realisation of the CLMPilot platform    (chap:realisation; Phases 0–2, by theme)
+    ├── 1.  Engineering foundations and the delivery process  (opens with the project-timeline Gantt)
+    ├── 2.  Backend service architecture on comby
+    ├── 3.  The contract domain and its lifecycle
+    ├── 4.  Workflow and temporal automation
+    ├── 5.  Document intelligence and electronic signature
+    ├── 6.  The web application and internationalised user experience
+    ├── 7.  Identity, access control and multi-tenancy in practice
+    └── 8.  Production deployment and release operations
 
 Back matter
-├── Conclusion and Perspectives
+├── Conclusion and Perspectives   (Perspectives absorb the retired Chapter V:
+│    event-sourced-framework evolution from the comby audit, deeper
+│    multi-tenancy, broker-communication insight, Phase 3 roadmap)
 ├── References (bibliography)
 └── Appendix A — Miscellaneous
     ├── A.1  Glossary
@@ -139,9 +149,9 @@ Back matter
 |---|---|
 | I — General Context and Project Scope | Written; split from the old Ch I; new Proposed-solution section; Methodology = Extreme Programming (solo-adapted, release-train release planning), structured after the Ghassen Benali reference report; cites Beck2004 + C2XPForOne |
 | II — Analysis and Requirements Specification | Written; actors/use-cases → functional → non-functional; detailed use-case description tables for contract creation, approval, audit reconstruction |
-| III — Architecture and Design | Written; §8 seams added; stale facts fixed (intelligence realised, DocuSeal, EN-primary) |
+| III — Architecture and Design | Written; stale facts fixed (intelligence realised, DocuSeal, EN-primary); §8 seams section removed 2026-08-05 (analysis moved to the conclusion's Perspectives) |
 | IV — Realisation of the CLMPilot platform | **Section-level skeleton** — 8 themed sections with `% intent` + `% figure` notes; §1 opens with the project-timeline Gantt |
-| V — Improvements in the event-sourced system | **Chapter shell** — intro + Conclusion stubs; planned areas in source comments |
+| V — Improvements in the event-sourced system | **Retired 2026-08-04** — no longer included; material folded into the conclusion's Perspectives (see note above) |
 
 The earlier per-phase placeholders are **retired and removed** — no longer
 `\include`-d in [report.tex](report.tex).

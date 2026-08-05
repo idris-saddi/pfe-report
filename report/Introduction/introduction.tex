@@ -47,13 +47,11 @@ so adoption carries no migration fee. The platform is designed so that the
 compliance-grade audit trail is a property of its storage model itself.
 CLMPilot was delivered as a release train, and the realised pilot covers
 foundations, a full-stack minimum viable product, and a tier of enterprise
-features. The remaining internship effort
-then shifts from the product to the system beneath it,
-in an engineering study of how that system should evolve.
+features.
 
 % 4. REPORT OUTLINE
-The report is organised in 2 parts. The first frames the project and its
-design. Chapter~\ref{chap:context} sets the general context and the scope of
+The report is organised in 4 chapters.
+Chapter~\ref{chap:context} sets the general context and the scope of
 the project: the hosting company, the market, the problem, the
 solution we propose in response, and the methodology under which the
 work was carried out. Chapter~\ref{chap:analysis} analyses and specifies the
@@ -62,15 +60,13 @@ and non-functional requirements, and finally the use cases through which
 they are exercised.
 Chapter~\ref{chap:arch} presents the architecture and
 design, justifying the choice of CQRS and Event~Sourcing,
-deriving the domain model and the system topology, setting out the
-security and compliance model, and naming the points at which the design is
-left open for later evolution. The second part covers realisation and
-planned evolution: Chapter~\ref{chap:realisation} consolidates the work
-delivered across the realised phases, and Chapter~\ref{chap:future} sets
-out the planned improvements to the event-sourced system: extracting insight
-from broker communications, deepening multi-tenancy, and scaling the framework
-and the event store. A general conclusion then recaps the contribution and
-sets out perspectives for future work.
+deriving the domain model and the system topology, and setting out the
+security and compliance model. Finally,
+Chapter~\ref{chap:realisation} consolidates the work delivered across
+the realised phases. A general conclusion then recaps the contribution
+and sets out the perspectives for future work, from the evolution of
+the event-sourced framework beneath the platform to the further phases
+of the product roadmap.
 
 %==============================================================================
 \end{spacing}

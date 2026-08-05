@@ -1,10 +1,10 @@
 @startuml release-train
 '==============================================================================
 ' Figure (Chapter I): the release-train delivery model.
-' Three scope-sized PRODUCT phases with absolute gates (all realised), then a
-' fourth, different kind of work: a planned engineering effort on the
-' event-sourced system (designed, not shipped as a customer release).
-' Realised vs planned is also carried in the figure caption. From the
+' Three scope-sized PRODUCT phases with absolute gates (all realised).
+' The former fourth block (planned engineering work on the event-sourced
+' system) was removed 2026-08-04 with the retirement of Chapter V -- that
+' work is now perspectives-only, in the general conclusion. From the
 ' methodology section (release-train delivery).
 ' Render:  plantuml -tsvg release-train.puml  then  rsvg-convert -f pdf
 '==============================================================================
@@ -14,22 +14,13 @@ skinparam componentStyle rectangle
 skinparam rectangle {
   BorderColor Black
   BackgroundColor White
-  BorderColor<<planned>> Gray
-  BackgroundColor<<planned>> #F5F5F5
-  BorderStyle<<planned>> dashed
 }
 
 rectangle "Phase 0  --  Engineering foundations\n(repository, CI/CD, dev environment, roadmap)" as p0
 rectangle "Phase 1  --  MVP, full stack\n(registry, document links, deadlines,\napprovals, dashboard, IAM)" as p1
 rectangle "Phase 2  --  Enterprise features\n(intelligence-assisted extraction, e-signature,\ncustom fields, obligations, advanced reporting)" as p2
-rectangle "Improvements in the event-sourced system\n(broker-communication, multi-tenancy,\nscalability of comby and the event store)" as ev <<Part 2>>
 
 p0 --> p1 : gate
 p1 --> p2 : gate
-p2 ..> ev : designed,\nnot shipped
 
-note bottom of p2
-  Phases 0--2 realised and
-  shipped to production.
-end note
 @enduml

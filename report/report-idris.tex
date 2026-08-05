@@ -1,14 +1,16 @@
 %%==============================================================================
 %% CLMPilot -- INSAT PFE report (English).
 %%
-%% Five-chapter TOC, in two parts:
-%%   PART 1 -- Project framing and design
-%%     I.   General Context and Project Scope        (Chapter1/)
-%%     II.  Analysis and Requirements Specification  (Chapter2/)
-%%     III. Architecture and Design                  (Chapter3/)
-%%   PART 2 -- Realisation and planned evolution
-%%     IV.  Realisation of the CLMPilot platform  (Chapter4/, Phases 0-2 by theme)
-%%     V.   Improvements in the event-sourced system (Chapter5/, planned R&D)
+%% Four-chapter TOC (no \part divisions):
+%%   I.   General Context and Project Scope        (Chapter1/)
+%%   II.  Analysis and Requirements Specification  (Chapter2/)
+%%   III. Architecture and Design                  (Chapter3/)
+%%   IV.  Realisation of the CLMPilot platform  (Chapter4/, Phases 0-2 by theme)
+%% Chapter V (improvements in the event-sourced system) was dropped as a
+%% standalone chapter on 2026-08-04 and its folder deleted: the work will not
+%% be continued, so its material moves into the Perspectives half of the
+%% general conclusion, backed by the comby framework audit
+%% (planning-doc/AUDIT.md). The \part divisions were removed at the same time.
 %% The earlier per-phase chapters (Phase 0/1/2/3) are retired and removed.
 %% See outline.md in this folder for the rationale and section breakdown.
 %%
@@ -202,16 +204,10 @@
 \renewcommand{\headrulewidth}{0.5pt}
 \renewcommand{\footrulewidth}{0pt}
 
-%---- Part 1 -- Project framing and design ----------------------------------
-\part{Project framing and design}
 \include{Chapter1/chapter1}   % I.   General Context and Project Scope
 \include{Chapter2/chapter2}   % II.  Analysis and Requirements Specification
 \include{Chapter3/chapter3}   % III. Architecture and Design
-
-%---- Part 2 -- Realisation and planned evolution ---------------------------
-\part{Realisation and planned evolution}
 \include{Chapter4/chapter4}   % IV.  Realisation of the CLMPilot platform (Phases 0-2)
-\include{Chapter5/chapter5}   % V.   Improvements in the event-sourced system (planned)
 
 \backmatter
 \pagestyle{fancy}

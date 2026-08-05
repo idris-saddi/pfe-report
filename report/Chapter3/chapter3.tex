@@ -445,9 +445,9 @@ A \textbf{relational database} is the system of
 record (the event store and the command store) and the source every read
 model is rebuilt from. A \textbf{cache database} holds sessions and
 accelerates read models. A \textbf{message broker} carries events to
-projections and reactors and is designed to distribute them across backend
-instances: the seam on which horizontal scaling depends
-(Section~\ref{sec:seams}). An \textbf{object store} keeps exports, signed
+projections and reactors and is designed to distribute them across
+backend instances when the platform scales
+horizontally. An \textbf{object store} keeps exports, signed
 documents and other assets. One reverse proxy terminates TLS in front of
 them.
 
@@ -594,44 +594,6 @@ across the German-speaking markets; time-stamps are stored in UTC and rendered
 in the user's zone.
 
 %--------------------------------------------------------------------
-\section{Designed seams for evolution}
-\label{sec:seams}
-
-The architecture described so far is the structure the realised platform runs
-on. It also fixes where that structure is meant to grow. 3 seams were left 
-open.
-
-The first seam is \textbf{multi-tenancy in the framework itself}. Isolation
-today rests on a tenant context carried by every command, query and event, and
-on per-tenant role-based access control (Section~\ref{sec:identity-model}); a
-single logical event store is partitioned by that context. The framework already provides more than
-the product uses (it carries a finer workspace scope below the tenant that
-CLMPilot's own contexts do not yet exercise), and consolidation \emph{across}
-tenants, for customers that are themselves corporate groups, has no model at
-all. Deepening tenancy in the event-sourced core, without weakening the
-isolation compliance depends on, remains open for now.
-
-The second seam is \textbf{scalability and the growth of the event store}.
-Read models are projections held in memory and rebuilt by replaying the event
-log (Section~\ref{sec:why-cqrs-es}); the log is append-only and never
-compacted, and the write side assumes a single active instance. At MVP volume
-this is the right trade-off (it keeps operations simple), but
-it sets 3 clear growth points: snapshotting and projection persistence so
-that start-up does not depend on a full replay, an archival and partitioning
-strategy as the log grows without bound, and the multi-instance topology,
-fanned out through the message broker, that Section~\ref{sec:deployment-topology}
-already wires for but does not yet run.
-
-The third seam is \textbf{the intelligence and extraction pipeline}. The
-intelligence service is a stateless boundary behind the \texttt{IntelligenceClient}
-interface (Section~\ref{sec:component-view}): the backend fetches a document's
-bytes and asks the service for structured metadata and clauses, which a reactor
-applies back to the contract. That pipeline is built around \emph{contract
-documents}. The same pattern (fetch, extract, event-source the result, enrich a
-domain object) generalises to the unstructured broker communications that
-surround a contract, which the realised platform does not touch at all.
-
-%--------------------------------------------------------------------
 \section*{Conclusion}
 This chapter set out the architecture the rest of the report delivers. 5
 drivers (auditability, integration-first design, EU data residency,
@@ -643,13 +605,11 @@ us cover the platform's requirements with only a small amount of custom code. Th
 requirements map onto a 4-context core domain model (Contract, Approval,
 Deadline and DocumentLink, extended at its seams by the enterprise contexts)
 on a single-backend topology hosted in the EU, with tenant isolation
-and the audit trail as structural guarantees. Its open seams mark where the
-design is built to extend.
+and the audit trail as structural guarantees.
 
 Chapter~\ref{chap:realisation} turns from this design to its realisation,
 consolidating the work delivered across the project: foundations, the contract
-core, and the enterprise capabilities. The seams named here mark where the
-event-sourced system is designed to evolve beyond that realised scope.
+core, and the enterprise capabilities.
 
 %==============================================================================
 \end{spacing}
