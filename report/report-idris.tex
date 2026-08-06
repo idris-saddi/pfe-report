@@ -49,6 +49,30 @@
 \usepackage{listings}
 \usepackage{courier}
 \usepackage{enumitem}
+% --- Arabic support for the trilingual abstract ------------------------------
+% ArabTeX lets the Arabic abstract be written in real Arabic script while the
+% whole report stays on pdflatex. `\setcode{utf8}` is switched on only around
+% the Arabic text (see Abstract/abstract.tex) and switched back afterwards, so
+% the accented Latin text of the rest of the report is untouched.
+%
+% ArabTeX overwrites \begin and \end with a copy of the pre-2020 LaTeX
+% kernel's versions. That copy runs \begin{document} inside a group, so every
+% package that loads another one from an \AtBeginDocument hook (backref via
+% hyperref, epstopdf-base via graphicx, ragged2e via caption) fails with
+% "Loading a class or package in a group" and its definitions are lost when
+% the group closes. LaTeX's own \begin/\end are therefore saved here and put
+% back after ArabTeX is loaded; \begin{arabtext} still works, because
+% arabtext/endarabtext are ordinary macros that the standard \begin finds.
+\makeatletter
+\let\clm@ltx@begin\begin
+\let\clm@ltx@end\end
+\makeatother
+\usepackage{arabtex}
+\usepackage{utf8}
+\makeatletter
+\let\begin\clm@ltx@begin
+\let\end\clm@ltx@end
+\makeatother
 % Keep figures within the section that introduces them (stops floats from
 % drifting to the end of the chapter, away from their referencing text).
 \usepackage[section]{placeins}
@@ -125,20 +149,21 @@
 
 % --- Cover-page metadata ----------------------------------------------------
 % TODO: Personalise the cover page.
-\TitreProjet{CLMPilot: an integration-first Contract Lifecycle Management
-             platform for the European Mittelstand, built on a CQRS and
-             Event Sourcing architecture}
+\TitreProjet{CLMPilot: an integration-first 
+              Contract Lifecycle Management
+              platform, built on a CQRS and
+              Event Sourcing architecture}
 
 \AuteurA{Idris}{SADDI}
 
-\Encadrant {Dr.}{Aymen}{SELLAOUTI}  % INSAT academic supervisor
-\EncadrantS{Mr.}{Artur}{SUSDORF}    % Gradient Zero company supervisor (CTO)
+\Encadrant {}{Aymen}{SELLAOUTI}  % INSAT academic supervisor
+\EncadrantS {}{Artur}{SUSDORF}    % Gradient Zero company supervisor (CTO)
 
 \Filiere{Software Engineering}
-\datesout{--/06/2026}
+\datesout{24/09/2026}
 
-\President  {Mr. President}{LAST}
-\RapporteurA{Ms. Reviewer}{LAST}
+\President  {}{President}{LAST}
+\RapporteurA{}{Reviewer}{LAST}
 
 \AnneeUniv{2025/2026}
 
