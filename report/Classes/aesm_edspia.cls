@@ -149,6 +149,11 @@
   {\newpage\renewcommand{\thepage}{\arabic{page}}\setcounter{page}{1}}
 
 % -------- Cover-page metadata (user-facing API) -----------------------------
+% Logo row of the cover page, centred above the top rule. Defaults to the
+% INSAT seal alone; \renewcommand it in the main file to show further logos
+% (e.g. Carthage University, host company) without touching this class.
+\newcommand{\CoverLogos}{\includegraphics[scale=0.05]{insat.jpg}}
+
 \newcommand{\FILIERE}{XXXX}
 
 \newcommand{\ENCt}{}\newcommand{\ENCn}{}\newcommand{\ENCp}{}
@@ -201,7 +206,7 @@
   \baselineskip=13pt
   \vspace*{-4cm}
 
-  \begin{center}\includegraphics[scale=0.05]{insat.jpg}\end{center}
+  \begin{center}\CoverLogos\end{center}
 
   \begin{center}
     \hbox{\raisebox{0.4em}{\vrule depth 0pt height 1pt width 17cm}}%

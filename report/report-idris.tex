@@ -147,23 +147,48 @@
 \renewcommand\figurename{\small\textbf{Figure}}
 \addtocounter{page}{-1}
 
+% --- Cover-page logos -------------------------------------------------------
+% The class shows the INSAT seal alone; the cover names Carthage University on
+% the line just below, so its logo belongs there too: UCAR flush left, INSAT
+% flush right, spanning the same 17 cm as the rules underneath. \vcenter puts
+% the wide, short UCAR wordmark and the tall, square INSAT seal on a common
+% midline instead of a common baseline.
+\renewcommand{\CoverLogos}{%
+  \hbox to 17cm{%
+    $\vcenter{\hbox{\includegraphics[height=4cm]{ucar.png}}}$\hfil
+    $\vcenter{\hbox{\includegraphics[height=4cm]{insat.jpg}}}$}}
+
 % --- Cover-page metadata ----------------------------------------------------
-% TODO: Personalise the cover page.
-\TitreProjet{CLMPilot: an integration-first 
+% The class prints one \AUTEURS line per author slot A-D; with a single author
+% the three unused slots come out as empty bold lines, leaving a big hole
+% between the name and the supervisor block. Only slot A is printed here, with
+% no trailing \\ -- the class already ends the line itself, and a second \\
+% raises "There's no line here to end".
+\renewcommand{\AUTEURS}{{\Large\textbf{\AUTEURA}}}
+% \ENCADRANT/\JURY names are "<title> <first> <last>"; with no honorific the
+% leading \  put a stray space in front of every name. Drop the title slot.
+\renewcommand{\ENCADRANT}{\ENCn\ \ENCp}
+\renewcommand{\ENCADRANTSoc}{\ENCSn\ \ENCSp}
+
+\TitreProjet{CLMPilot: an integration-first
               Contract Lifecycle Management
               platform, built on a CQRS and
-              Event Sourcing architecture}
+              Event Sourcing Architecture}
 
 \AuteurA{Idris}{SADDI}
 
 \Encadrant {}{Aymen}{SELLAOUTI}  % INSAT academic supervisor
-\EncadrantS {}{Artur}{SUSDORF}    % Gradient Zero company supervisor (CTO)
+\EncadrantS {}{Artur}{SUSDORF}   % Gradient Zero company supervisor (CTO)
 
 \Filiere{Software Engineering}
 \datesout{24/09/2026}
 
-\President  {}{President}{LAST}
-\RapporteurA{}{Reviewer}{LAST}
+% \President and \RapporteurA take TWO arguments (first name, last name); the
+% class appends the "(President)" / "(Reviewer)" role itself. A third argument
+% is not absorbed by the macro and gets typeset at the top of the cover page.
+% TODO: replace with the real jury members once the defence panel is assigned.
+\President  {Aymen}{SELLAOUTI}
+\RapporteurA{Aymen}{SELLAOUTI}
 
 \AnneeUniv{2025/2026}
 
