@@ -505,13 +505,9 @@ The intelligence service is a stateless Python service behind the
 \texttt{IntelligenceClient} interface named in the architecture's
 component view (Chapter~\ref{chap:arch}). It offers 3 operations
 (metadata extraction, contract-type classification and clause
-detection), each implemented as a prompt against a hosted
-large-language model~\cite{AnthropicClaude} behind a small internal
-gateway. The gateway concentrates the cross-cutting concerns.
-Extraction responses are cached in Redis under a content-addressed key,
-so re-extracting an unchanged document costs nothing; outputs are
-constrained to typed schemas instead of free text; the model choice and
-the cache lifetime are configuration. The service parses DOCX,
+detection), each implemented as a prompt sent to a managed
+large-language-model API~\cite{AnthropicClaude} behind a small internal
+gateway. The service parses DOCX,
 plain-text, Markdown and text-layer PDF documents itself, and passes a
 PDF to the model as a document input only when it finds no text layer.
 A language heuristic separates German from English, so German
