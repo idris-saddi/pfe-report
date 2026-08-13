@@ -21,10 +21,22 @@
 \renewcommand{\chaptermark}[1]{\markboth{{\chaptername~\thechapter.\ #1}}{}}
 \renewcommand{\sectionmark}[1]{\markright{\thesection~ #1}}
 
-\providecommand{\uishot}[4][]{%
+% --- Screenshot sizing -------------------------------------------------------
+% Every screenshot is a 16:9 desktop capture (3344x1860), so its rendered
+% HEIGHT is what drives pagination: at full width a figure block runs to ~11cm
+% inside a 22cm text block, which means 2 blocks fill a page with no room for
+% prose and the second one is pushed, leaving a large hole at the bottom. The
+% float spacing below is tightened for the same reason. Figures keep [H] so
+% each one stays exactly where its paragraph puts it.
+%
+% One width for every screenshot, so the gallery reads as a single series: a
+% figure printed larger than its neighbours reads as more important, and none
+% of these is. \uiscale is the single knob for the whole chapter.
+\newcommand{\uiscale}{0.78}
+\newcommand{\uishot}[4][]{%
   \begin{figure}[H]\centering
     \IfFileExists{Chapter5/figures/ui/#2.png}
-      {{\setlength{\fboxsep}{0pt}\fbox{\includegraphics[width=0.92\linewidth]{ui/#2}}}}
+      {{\setlength{\fboxsep}{0pt}\fbox{\includegraphics[width=\uiscale\linewidth]{ui/#2}}}}
       {\fbox{\parbox{0.88\linewidth}{\centering\vspace{2.2em}
         \textbf{Screenshot placeholder} --- \texttt{Chapter5/figures/ui/#2.png}\\[0.4em]
         \textit{To capture (demo tenant): #3}\vspace{2.2em}}}}
@@ -33,6 +45,12 @@
   \end{figure}}
 
 \begin{spacing}{1.2}
+% Tighter separation around the in-text figures and above their captions, for
+% the same packing reason. These MUST stay inside the spacing environment:
+% \setlength is global, and the environment's group is what keeps the change
+% from leaking into the Conclusion and the Appendix.
+\setlength{\intextsep}{7pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{5pt}
 %==============================================================================
 
 \section*{Introduction}
