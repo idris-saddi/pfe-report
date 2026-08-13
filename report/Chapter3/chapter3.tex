@@ -106,51 +106,59 @@ detail (Section~\ref{sec:cqrs-es-pattern}).
 \subsection{Architectural choice}
 \label{sec:arch-choice}
 
-\textbf{Selection criteria.} 4 criteria follow from the drivers. The
-first is \emph{compliance-grade history}: the record must be immutable
-and attributable, and any past state must be reconstructable on demand;
-this is the auditability driver, and the decisive criterion. The second
-is \emph{domain fit}: contract management is a read-heavy workload
-(dashboards, expiry counts, sums by quarter) punctuated by rare, guarded
-writes (an approval, an edit) that must pass multi-step validation. The
-third is \emph{tenant isolation by construction}: whatever the storage
-model, every record and every access must carry the tenant it belongs to.
-The fourth is \emph{maintainability}: the result must stay operable by a
-single engineer, without a heavy runtime beside the application.
+4 criteria follow from the drivers. \emph{Compliance-grade history},
+decisive: an immutable, attributable record from which any past state can be
+rebuilt. \emph{Domain fit}: reads dominate, writes are rare and pass
+multi-step validation. \emph{Tenant isolation by construction}: every record
+and every access carries its tenant.
 
-\textbf{Candidate architectures.} 4 candidate families could carry a CLM
-platform. \emph{Classic CRUD}, first, is the default 3-tier
-architecture~\cite{Fowler2003}: the current state lives in mutable rows
-and every update overwrites the previous one; its usual refinement bolts
-an audit trail beside the data (audit columns, history tables, triggers)
-to log the changes. \emph{A document-oriented store} models each contract
-as a self-contained document with a flexible schema, which suits
-heterogeneous metadata. \emph{A workflow (BPM) engine} makes the process
-the first-class citizen and models approval chains natively. \emph{CQRS
-with Event~Sourcing}, finally, stores what happened rather than what is:
-an append-only sequence of events is the primary record, the current
-state is derived from it, and reads are served by models kept separate
-from the writes~\cite{FowlerEventSourcing,FowlerCQRS,Young2010}.
+Table~\ref{tab:arch-dimensions} sets the established architectural style
+against the one retained, on each of the 3 dimensions of the choice.
 
-\textbf{Justification of the choice.} The first criterion eliminates most
-of the field. Classic CRUD keeps no history at all; with audit columns
-the trail becomes a side-structure that can be forgotten or edited, and
-it still cannot reconstruct a past state, exactly the guarantee that the
-regulator wants. A document database inherits the same weakness and adds
-one of its own: it has no transactional model for a multi-step approval.
-A workflow engine would model approvals natively, but it adds a heavy
-runtime and vendor lock-in, against the maintainability criterion, and
-still leaves the contract's own audit trail unsolved. CQRS with
-Event~Sourcing is the only candidate that meets the first criterion by
-construction (the history is not kept beside the data, it \emph{is} the
-data) while fitting the split read/write workload and carrying a tenant
-context naturally on every event. Its price falls on the fourth
-criterion: eventual consistency, long-lived event schemas, and a learning
-curve. That price is accepted knowingly, and
-Section~\ref{sec:cqrs-es-pattern} returns to it: state can always be
-re-derived later, but a history that was never recorded cannot be
-retrofitted. CQRS and Event~Sourcing were therefore chosen before any
-feature was designed.
+\begin{table}[H]
+  \centering
+  \caption{Established architectural style opposed on each dimension of the
+           foundational choice.}
+  \label{tab:arch-dimensions}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{|>{\bfseries}l|X|X|}
+    \hline
+    Dimension & Established style & Style retained \\
+    \hline\hline
+    State persistence & Current-state persistence, the default of the classic
+      3-tier application~\cite{Fowler2003}; history bolted on as a
+      shadow-table audit log, a second write that can drift from the first. &
+      Event~Sourcing: the append-only event store is the
+      record~\cite{FowlerEventSourcing,Young2010}, current state a derivation,
+      any past state a replay. \\
+    \hline
+    Domain modelling & Layered (N-tier) architecture with Active~Record / ORM
+      mapping~\cite{Fowler2003}: one entity set serves queries and mutations
+      alike. & CQRS: commands enforcing invariants and purpose-built read
+      projections are separate pipelines~\cite{FowlerCQRS,Young2010}. \\
+    \hline
+    Communication & Request-response (REST/RPC) over a shared ACID database:
+      synchronous, immediately consistent. & Event-driven: projections consume
+      events asynchronously; eventual consistency on the read side. \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+Two packaged architectures cut across the 3 dimensions: a
+document-oriented store, current-state with a flexible schema, and a
+workflow (BPM) engine, which models the approval process rather than the
+contract.
+
+The first criterion settles it. Current-state persistence cannot rebuild a
+past state, and a shadow-table trail can be edited or diverge from the data
+it describes (Section~\ref{sec:nfr-audit}). A document store inherits that
+and has no transaction for a multi-step approval; a BPM engine adds a heavy
+runtime and vendor lock-in, and still leaves the trail unsolved.
+Event~Sourcing meets the criterion by construction, CQRS fits the read-heavy
+workload, and both carry a tenant context on every event and every query.
+The price is eventual consistency, long-lived event schemas and a learning
+curve, accepted because state can be re-derived later, a missing history
+cannot (Section~\ref{sec:cqrs-es-pattern}).
 
 \subsection{CQRS and Event Sourcing}
 \label{sec:cqrs-es-pattern}
