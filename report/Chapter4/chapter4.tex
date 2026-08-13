@@ -1,13 +1,16 @@
 \setcounter{chapter}{3}
-\chapter{Realisation of the CLMPilot platform}\label{chap:realisation}
+\chapter{Technical realisation of the platform}\label{chap:realisation}
 \graphicspath{{Chapter4/figures/}}
 
 %==============================================================================
-%% This chapter consolidates the realised work of Phases 0-2, organised by
-%% ENGINEERING THEME, not by phase. Each section keeps its original
-%% `% intent:` note (the argument to make) and `% figure:` note (the UML view
-%% it carries). Engineer-level register throughout: patterns, abstractions,
-%% justified choices -- implementation minutiae go to the Appendix.
+%% This chapter is the MECHANISM half of the realisation: the engineering
+%% narrative of Phases 0-2, organised by theme rather than by phase, carried
+%% by the 8 UML views. Engineer-level register throughout: patterns,
+%% abstractions, justified choices -- implementation minutiae go to the
+%% Appendix.
+%% Register: no screenshots and no user-facing walkthrough. What the platform
+%% does for the people who use it is Chapter V; each section here may point
+%% forward with a Section~\ref but must not describe a screen.
 %% See outline.md for the rationale.
 %==============================================================================
 \pagestyle{fancy}
@@ -19,56 +22,29 @@
 \renewcommand{\chaptermark}[1]{\markboth{{\chaptername~\thechapter.\ #1}}{}}
 \renewcommand{\sectionmark}[1]{\markright{\thesection~ #1}}
 
-% NOTE: the \pumlfig figure helper defined in Chapter III checks
-% Chapter3/figures only, so Chapter IV figures use the explicit
-% \IfFileExists pattern below (same as the Gantt figure).
-
-% Screenshot helper:
-%   \uishot[<short title for the list of figures>]{<file-basename>}
-%          {<what to capture>}{<caption>}
-% Renders Chapter4/figures/ui/<file>.png if present; otherwise a labelled
-% placeholder box naming the demo-tenant page to capture (the box
-% disappears automatically once the PNG exists). The optional short title
-% keeps the List of Figures entry to one line; the full caption stays
-% under the figure.
-\newcommand{\uishot}[4][]{%
-  \begin{figure}[H]\centering
-    \IfFileExists{Chapter4/figures/ui/#2.png}
-      {{\setlength{\fboxsep}{0pt}\fbox{\includegraphics[width=0.92\linewidth]{ui/#2}}}}
-      {\fbox{\parbox{0.88\linewidth}{\centering\vspace{2.2em}
-        \textbf{Screenshot placeholder} --- \texttt{Chapter4/figures/ui/#2.png}\\[0.4em]
-        \textit{To capture (demo tenant): #3}\vspace{2.2em}}}}
-    \ifblank{#1}{\caption{#4}}{\caption[#1]{#4}}
-    \label{fig:#2}
-  \end{figure}}
-
 \begin{spacing}{1.2}
 %==============================================================================
 
 \section*{Introduction}
-% intent: Frame the chapter as the realisation of the designed architecture
-% across the full stack, consolidating Phases 0-2 by engineering theme rather
-% than by phase. State the deliverable: a live pilot at clmpilot.com covering
-% the contract lifecycle plus the enterprise capabilities of
-% Section~\ref{sec:fr-enterprise}. Name the organising principle: each section
-% is a recurring pattern that spans the stack, illustrated by the realised
-% domains, never a per-tier or per-phase tour. Per the report-wide rule, the
-% chapter intro must not reference other chapters.
-This chapter presents the CLMPilot platform as it was built and
-shipped. The result is a multi-tenant pilot, live in production at
-\url{https://clmpilot.com}, that covers the full contract lifecycle and
-extends it with an enterprise tier of capabilities:
-intelligence-assisted extraction, electronic signature, per-tenant custom
-fields, obligation tracking and advanced reporting. Each
-section of the chapter follows one engineering theme across the whole
-stack and uses the realised domains to illustrate it, starting from the
-foundations and the delivery process, through the backend dispatch model,
-the contract domain, the workflow and temporal automation, the
-intelligence and signature subsystems, the web application, and identity
-and tenancy in production, through the deployment and release operations
-that keep the pilot running, down to the performance measured on the
-pilot's own production traffic.
-
+% intent: Frame this chapter as HOW the platform was built -- mechanism,
+% patterns and justified choices across the stack, carried by the UML views.
+% Per the report-wide rule, the chapter intro must not reference other
+% chapters, so the bridge to the walkthrough belongs in the conclusion only.
+This chapter presents how the CLMPilot platform was built. The result is
+a multi-tenant pilot, live in production at \url{https://clmpilot.com},
+that covers the full contract lifecycle and extends it with an
+enterprise tier of capabilities: intelligence-assisted extraction,
+electronic signature, per-tenant custom fields, obligation tracking and
+advanced reporting. Each section follows one engineering theme across
+the whole stack and uses the realised domains to illustrate it: the
+foundations and the delivery process that carried every later phase, the
+backend dispatch model, the contract domain and its integration
+boundary, the workflow and temporal automation, the intelligence and
+signature subsystems, the architecture of the web application, the
+identity model that governs access, and the production deployment that
+keeps the result running. The concern throughout is mechanism --- the
+patterns chosen, the rules the realisation had to respect, and the
+reasoning behind each.
 %--------------------------------------------------------------------
 \section{Engineering foundations and the delivery process}
 \label{sec:found}
@@ -266,15 +242,7 @@ exactly what changed. Deletion is a flag rather than a removal, since
 the immutability requirement of Section~\ref{sec:nfr-audit} forbids
 destroying history. And a registration is only accepted after the
 command handler has checked that the contract number is unique within
-the tenant. Figure~\ref{fig:ui-contract-list} shows this registry as
-the demo tenant's users see it.
-
-\uishot[The contract registry]{ui-contract-list}
-  {the contract registry with the filter bar and the free-text search
-   active (e.g.\ filtered to one department).}
-  {The contract registry: filterable listing backed by the
-   case-insensitive search projection of
-   Section~\ref{sec:backend-comby}.}
+the tenant.
 
 Every state change is an event appended to the contract's stream, so the
 audit trail demanded by the compliance drivers exists by construction.
@@ -285,14 +253,6 @@ report asynchronously, by replaying the contract's events into a tabular
 file kept in the object store. And a download endpoint serves that file
 after first dispatching the contract-retrieve query, so the export
 inherits exactly the access control of the record it describes.
-Figure~\ref{fig:ui-audit-trail} shows the first of the 3 forms on a
-contract of the demo tenant.
-
-\uishot[The audit-log view of a contract]{ui-audit-trail}
-  {a contract's audit-log tab showing the event list with actor,
-   timestamp and payload of each entry.}
-  {The audit-log view of a contract: the raw event stream rendered
-   with actor, timestamp and payload.}
 
 Phase~2 extended the aggregate with per-tenant custom fields without
 touching its core. A separate \texttt{CustomFieldDefinition} aggregate
@@ -309,15 +269,6 @@ each value against the tenant's definitions: required fields are
 present, values parse for their type, selections stay among the allowed
 options. Values whose definitions have since been deleted are ignored,
 so re-saving an old record never fails on removed configuration.
-Figure~\ref{fig:ui-contract-form-custom-fields} shows the result on the
-contract form: one typed widget per definition.
-
-\uishot[The contract form with custom fields]{ui-contract-form-custom-fields}
-  {the contract form of the demo tenant, scrolled to the
-   tenant-defined custom fields so the data-driven widgets are
-   visible.}
-  {The contract form: fixed fields followed by the tenant's typed
-   custom fields, one widget per definition.}
 
 \texttt{DocumentLink} realises the integration boundary as a domain
 object, as designed in Section~\ref{sec:aggregate-responsibilities}. One
@@ -349,15 +300,8 @@ emits.
 \end{figure}
 
 The provider connections behind those adapters are administered from
-inside the application: Figure~\ref{fig:ui-settings-integrations} shows
-the integrations area where a tenant administrator runs the OAuth
-connect flow that Appendix~A.4 walks through.
-
-\uishot[The integrations settings of a tenant]{ui-settings-integrations}
-  {the Settings page, Integrations tab, with the Google Drive card in
-   the Connected state.}
-  {The integrations settings of a tenant administrator: the per-tenant
-   OAuth connections behind the \texttt{DocumentStore} adapters.}
+inside the application: only a tenant administrator may run the OAuth
+connect flow, from the tenant's own settings area.
 
 %--------------------------------------------------------------------
 \section{Workflow and temporal automation}
@@ -395,14 +339,6 @@ loop of Section~\ref{sec:behavioural-views}. A second reactor owns every
 notification email the workflow sends. We kept state transitions and
 side effects apart on purpose: a mail failure can never interfere with
 the workflow's state, and each reactor fails on its own.
-Figure~\ref{fig:ui-approval-inbox} shows the approver's side of this
-workflow: the inbox of steps awaiting their designated approver.
-
-\uishot[The approval inbox]{ui-approval-inbox}
-  {the approval inbox of a user with at least one pending step; one
-   workflow expanded to show the ordered steps.}
-  {The approval inbox: ordered steps, each awaiting its designated
-   approver.}
 
 Most deadlines are created by automation rather than by hand.
 Figure~\ref{fig:deadline-automation} follows the realised chain. A
@@ -438,16 +374,7 @@ unchanged. Obligation checks run on the same scheduler at offset minutes
 so the batches do not contend; scheduled report exports run hourly
 against each configuration's next-run date (Section~\ref{sec:webapp});
 and a reconciliation job polls the signature provider for requests whose
-webhooks were missed (Section~\ref{sec:intel-esign}). What this
-automation produces for the user is the deadline view of
-Figure~\ref{fig:ui-deadline-timeline}: the upcoming markers with their
-reminder horizon.
-
-\uishot[The deadline view]{ui-deadline-timeline}
-  {the deadline view with upcoming deadlines and reminder markers (90,
-   60, 30 days) visible.}
-  {The deadline view: automation-created markers with their reminder
-   horizon.}
+webhooks were missed (Section~\ref{sec:intel-esign}).
 
 Obligations, added in Phase~2, reuse the deadline mechanics but model a
 different thing: a deadline is a date the platform watches, while an
@@ -461,14 +388,7 @@ reactor spawns the next occurrence from it. The next due date is
 computed by calendar arithmetic anchored to the original one (a monthly
 task due on the 15th stays on the 15th) and rolled forward past the
 present, so completing a task late never schedules an occurrence that is
-already overdue. Figure~\ref{fig:ui-obligations} shows the obligation
-view with a recurring commitment and its occurrences.
-
-\uishot[Obligation tracking]{ui-obligations}
-  {the obligation view with a recurring obligation and its
-   completed/upcoming occurrences.}
-  {Obligation tracking: person-owned recurring tasks with the shorter
-   14/7/1-day reminder horizon.}
+already overdue.
 
 Idempotency in these contexts is a designed property, checked case by
 case. Every reactor overrides its restore behaviour to skip replayed
@@ -606,16 +526,6 @@ configures a provider key.
   \label{fig:esign-webhook}
 \end{figure}
 
-Figure~\ref{fig:ui-esign-status} shows the sending side in the
-application: the signature panel of a contract with a request in
-progress, fed by exactly this return path.
-
-\uishot[The signature request on a contract]{ui-esign-status}
-  {a contract's signature panel with a request in progress (signers
-   and their statuses), against the DocuSeal sandbox.}
-  {The signature request on a contract: ordered signers and per-signer
-   status, updated by the webhook return path.}
-
 The outbound email these subsystems and the workflow reactors rely on is
 delivered through SendGrid's HTTP interface~\cite{SendGrid}, sending
 from an already-authenticated company domain. That choice avoided any
@@ -625,7 +535,7 @@ with each later context) as multipart text-and-HTML, in the recipient's
 locale (Section~\ref{sec:webapp}).
 
 %--------------------------------------------------------------------
-\section{The web application and internationalised user experience}
+\section{The web application and its internationalisation}
 \label{sec:webapp}
 % intent: The Vue 3 + Quasar SPA: composition via stores (Pinia) and
 % composables/components for reuse; a single API integration boundary using the
@@ -679,16 +589,9 @@ email arrives in the language chosen by the person who invited them, and
 every notification renders in its recipient's locale. The user
 documentation ships inside the application itself: a help area bundles
 the documentation source at build time, in both languages, so the
-documentation is versioned with the code it describes; the help area in
-the German locale is shown in Figure~\ref{fig:ui-help-de}. The packaging
+documentation is versioned with the code it describes. The packaging
 caveat this uncovered is recorded with the configuration material in
 Appendix~A.3.
-
-\uishot[The bundled help area in German]{ui-help-de}
-  {the in-app help area in the German locale, to show the bundled
-   bilingual documentation.}
-  {The bundled help area in German: documentation versioned and
-   shipped with the code it describes.}
 
 2 Phase-2 capabilities demanded the most from the presentation layer.
 Custom fields make the contract form partly data-driven: the form renders one
@@ -703,51 +606,13 @@ documents), kept transparent so a reviewer can see why a contract scored
 as it did. In the builder, the user picks columns, groupings and a chart
 type, saves the configuration under their own identity, and can schedule
 it as a recurring export delivered by email through the scheduler of
-Section~\ref{sec:workflow-temporal}. Figure~\ref{fig:ui-report-builder}
-shows the builder as a user of the demo tenant sees it.
+Section~\ref{sec:workflow-temporal}.
 
-\uishot[The report builder]{ui-report-builder}
-  {the report builder with columns, a grouping and a chart type
-   selected, and the rendered chart visible.}
-  {The report builder on the demo tenant: self-service columns,
-   groupings and chart over the reporting projections.}
-
-One scenario ties the patterns together. A legal manager registers a
-contract: the form combines the fixed fields with the tenant's custom
-fields, and submission dispatches the register command. The manager then
-links the contract's document from the organisation's own storage
-through the provider picker. The link returns within a second, and a few
-seconds later the enrichment suggestions appear on the overview, marked
-field by field; the extracted dates are accepted, the counterparty
-corrected. By then the accepted dates have already seeded the contract's
-deadlines, the dashboard's expiring-contracts view includes the new
-record, and the audit tab shows every step of the sequence as events.
-Figure~\ref{fig:ui-enrichment-review} captures the middle of that
-scenario on the demo tenant: the document has just been linked, and the
-extracted suggestions sit on the contract overview awaiting field-by-field
-review.
-
-\uishot[Enrichment suggestions on a contract]{ui-enrichment-review}
-  {a contract overview right after linking a document, with the
-   intelligence suggestions shown per field and the accept / edit /
-   undo controls visible.}
-  {Enrichment suggestions on a contract of the demo tenant, reviewed
-   field by field (accept, edit or undo); only fields the user left
-   empty are filled.}
-
-By the end of the scenario the dashboard has caught up as well:
-Figure~\ref{fig:ui-dashboard} shows it with the expiring-contracts view
-and the deadline overview the automation feeds.
-
-\uishot[The dashboard]{ui-dashboard}
-  {the dashboard after login: KPI tiles, the expiring-contracts list
-   and the deadline overview.}
-  {The dashboard, with the expiring-contracts view served by the
-   dedicated read model of Section~\ref{sec:backend-comby}.}
-
-The remaining screens, shown throughout this chapter beside the
-subsystems they realise, follow the same division into stores,
-composables and components.
+Every screen of the application is assembled the same way: stores own
+the server calls and the client-side state, composables carry the
+reusable view logic, and components render. No page departs from that
+division, which is what keeps the unit suite meaningful in the absence
+of a component-mount harness.
 
 %--------------------------------------------------------------------
 \section{Identity, access control and multi-tenancy in practice}
@@ -800,16 +665,6 @@ would otherwise consume single-use invitation tokens.
   \label{fig:auth-journey}
 \end{figure}
 
-The visible half of that journey is the sign-in of
-Figure~\ref{fig:ui-login-otp}: the one-time-code step that completes an
-authentication.
-
-\uishot[Two-step sign-in]{ui-login-otp}
-  {the sign-in page at the second step, where the emailed one-time code
-   is entered.}
-  {Two-step sign-in: the one-time-code confirmation that completes
-   authentication.}
-
 Role-based access control is enforced at dispatch
 (Section~\ref{sec:security-pipeline}), and the realisation taught us 2
 rules about it. First, the permission string checked at dispatch is
@@ -839,16 +694,7 @@ request scoped to an archived tenant unless the caller is a platform
 operator; the client translates the refusal into an explicit
 end-of-service screen. The archived state is therefore enforced at the
 same chokepoint as every other rule, and the user interface only
-reflects it. Figure~\ref{fig:ui-admin-tenants} shows the operators'
-administration area on the pilot.
-
-\uishot[The cross-tenant administration area]{ui-admin-tenants}
-  {the cross-tenant administration area listing the provisioned tenants
-   (demo tenants visible), with the provision-tenant action shown ---
-   captured from a system-tenant operator account.}
-  {The cross-tenant administration area: tenant provisioning,
-   first-administrator invitation and archival, available only to
-   platform operators of the system tenant.}
+reflects it.
 
 %--------------------------------------------------------------------
 \section{Production deployment and release operations}
@@ -919,7 +765,7 @@ every 5 minutes and alerts by email, and the TLS configuration holds
 the highest public rating. One detail forced a choice here: the
 backend's minimal container image ships no shell, so container-level
 health checks gave way to probes from outside the container. What the host does not aggregate, the backend still
-measures in-process; that evidence closes the chapter in
+measures in-process; that evidence is presented in
 Section~\ref{sec:runtime-perf}.
 
 A release is a promotion, not a build performed on the host. Work
@@ -948,152 +794,25 @@ releases, a single rolled-back deployment during a framework migration,
 and no data loss) is the evidence those targets were set to collect.
 
 %--------------------------------------------------------------------
-\section{Measured performance in production}
-\label{sec:runtime-perf}
-% intent: Close the chapter with evidence. The framework's in-process
-% instrumentation at the dispatch chokepoint; the embedded operator dashboard
-% (figure), deliberately off the public surface; then the analysis of one
-% production window -- traffic mix dominated by the temporal automation,
-% read-path costs orders of magnitude inside the Ch II budgets, external
-% round-trips absorbed on the async event path, sub-ms dispatch overhead,
-% zero internal failures, every rejection a rule holding. Numbers were read
-% off the pilot's runtime table on 2026-08-05 (~8 days after the last stack
-% restart); counters accumulate since process start, so a later capture
-% shows the same shape at larger counts.
-
-The chapter closes with measurements from the running pilot. Since
-every command, query and event goes through the same dispatch point,
-the framework can count them all: how many succeeded, failed or were
-rejected, how many arrive per second, and for each message type the
-shortest, average and longest handling time. It also records how long
-a message waits between its dispatch and the start of its handler.
-These counters live in the backend's memory and build up from the
-moment the process starts, so they always cover everything that
-happened since the last release, with no extra infrastructure to run.
-
-The backend ships with an operator dashboard that shows these numbers
-live, as charts for the whole system and as a table per message type,
-next to the request traces and the logs. The dashboard is not exposed
-on the Internet: the reverse proxy only forwards the API and webhook
-paths, so an operator opens it through an SSH tunnel to the host and
-signs in as a system administrator.
-Figure~\ref{fig:ui-comby-metrics} shows it running against the pilot.
-
-\uishot[The runtime metrics dashboard]{ui-comby-metrics}
-  {NOT the demo tenant: the backend operator dashboard
-   (\texttt{/admin/} on the backend itself, via an SSH tunnel to the
-   pilot host), Metrics area, Overview tab --- the three live charts
-   (number per second, average processing times, average latencies)
-   and the per-type entries table visible.}
-  {The runtime metrics dashboard of the backend}
-
-The numbers below were taken from this dashboard after the pilot had
-run untouched for a little over a week. In that time the backend
-handled 5{,}672 messages: 3{,}046 queries of 39 kinds, 2{,}583
-commands of 18 kinds, and 43 domain events of 16 kinds. The mix shows
-where the platform spends its time. All but 22 of the commands came
-from the scheduler, whose hourly deadline, obligation and report
-checks run once per tenant, signed in or not. What users trigger
-directly is almost entirely reads. Table~\ref{tab:runtime-perf} picks
-out representative operations.
-
-\begin{table}[H]
-  \centering
-  \caption[Dispatch measurements from the production pilot]
-          {Representative dispatch measurements from the production
-           pilot over roughly one week of operation: executions, mean
-           and maximum processing time per execution.}
-  \label{tab:runtime-perf}
-  \footnotesize
-  \begin{tabularx}{\linewidth}{|X|l|r|r|r|}
-    \hline
-    \textbf{Operation} & \textbf{Kind} & \textbf{Runs}
-      & \textbf{Mean} & \textbf{Max} \\
-    \hline\hline
-    \multicolumn{5}{|l|}{\textit{Interactive read path}} \\
-    \hline
-    Contract detail retrieval & Query & 744 & 1.5~ms & 49.9~ms \\
-    \hline
-    Contract registry listing & Query & 21 & 21.7~ms & 36.2~ms \\
-    \hline
-    Per-contract risk scoring & Query & 11 & 2.8~ms & 13.9~ms \\
-    \hline
-    Tenant resolution (per request) & Query & 1{,}030 & 1.6~ms & 10.3~ms \\
-    \hline\hline
-    \multicolumn{5}{|l|}{\textit{Interactive write path}} \\
-    \hline
-    Contract update & Command & 1 & 10.3~ms & 10.3~ms \\
-    \hline
-    Role-group creation & Command & 5 & 14.6~ms & 18.5~ms \\
-    \hline
-    Sign-in credential verification & Command & 2 & 183.6~ms & 205.8~ms \\
-    \hline\hline
-    \multicolumn{5}{|l|}{\textit{Scheduled automation (hourly / nightly, per tenant)}} \\
-    \hline
-    Deadline sweep & Command & 833 & 152.7~ms & 1{,}074.2~ms \\
-    \hline
-    Obligation sweep & Command & 833 & 124.0~ms & 721.7~ms \\
-    \hline
-    Scheduled-report tick & Command & 829 & 32.4~ms & 142.3~ms \\
-    \hline\hline
-    \multicolumn{5}{|l|}{\textit{Asynchronous event handling}} \\
-    \hline
-    Obligation reminder delivered & Event & 9 & 10.6~ms & 19.6~ms \\
-    \hline
-    Invitation e-mail delivered & Event & 1 & 488.0~ms & 488.0~ms \\
-    \hline
-  \end{tabularx}
-\end{table}
-
-The middle chart of the figure sums it up: queries stay near one
-millisecond while commands sit around a hundred. In detail, the
-3{,}046 queries averaged 1.3~ms of processing, the heaviest list
-query 31~ms, and the slowest single query of the whole week took
-52~ms. That is a tenth of the 500~ms search budget fixed in
-Section~\ref{sec:nfr-perf}, before the network and the browser add
-their part. The heavier work runs where nobody is waiting for it. The
-scheduled checks average between 32 and 153~ms, with a worst case
-just over one second, and the slowest events, the invitation and
-approval notifications at about half a second, are e-mails sent
-through the external provider after the user's request has already
-returned. The one visible exception is sign-in, at about 184~ms; that
-is the cost of checking the password, and it is intentional. The
-dispatch layer itself is cheap: on average a command waits 0.3~ms
-between its dispatch and the start of its handler.
-
-Reliability over the same week: no message failed, and the 4
-rejections were correct behaviour, not bugs. They were list requests refused by the access rules. A
-quiet pilot says nothing about heavy load, which stays the job of the
-performance tests, but it does replace the response-time assumptions
-with measured values for every message type the platform uses.
-
-%--------------------------------------------------------------------
 \section*{Conclusion}
-% intent: Recap that the realised platform delivers the architecture's design
-% across the full stack -- the contract core and its workflow/temporal
-% automation, the intelligence and e-signature subsystems, the
-% internationalised SPA, the per-tenant identity model, and a documented
-% production deployment -- live at clmpilot.com. Bridge to the general
-% conclusion (Chapter V was dropped 2026-08-04; the event-sourced-system
-% improvements now live in the Perspectives, backed by the comby audit).
-% Per the report-wide rule, the conclusion may reference the NEXT chapter
-% only -- now the Conclusion and Perspectives.
-This chapter followed the realised platform theme by theme: the delivery
-foundations and the release train they carried, the dispatch model on
-comby, the contract domain with its lifecycle and its document links,
-the workflow and temporal automation built on reactors and a scheduler,
-the intelligence and signature subsystems, the internationalised web
-application, the identity and tenancy model as it operates in
-production, the deployment and release operations that keep the
-pilot live at \texttt{clmpilot.com}, and the runtime performance
-measured on it. Each theme delivers a part of the
-designed architecture; together they close the 3 product phases of the
-release train.
+% intent: Recap the construction of the platform across the stack and bridge
+% to the next chapter, which turns from mechanism to result: the platform as
+% its users and operators meet it, and the measurements taken on it. Per the
+% report-wide rule, the conclusion may reference the NEXT chapter only.
+This chapter followed the construction of the platform theme by theme:
+the delivery foundations and the release train they carried, the
+dispatch model on comby, the contract domain with its lifecycle and its
+document links, the workflow and temporal automation built on reactors
+and a scheduler, the intelligence and signature subsystems, the
+composition of the internationalised web application, the identity and
+tenancy model enforced at dispatch, and the deployment and release
+operations that keep the pilot live at \texttt{clmpilot.com}. Each theme
+delivers a part of the designed architecture; together they close the 3
+product phases of the release train.
 
-With the platform realised across 3 phases, the contribution of
-this report is complete. The general conclusion that follows recaps
-that contribution and sets out the perspectives for the evolution of
-the event-sourced system beneath the platform.
+The next chapter turns from mechanism to result. It walks the delivered
+platform as its users and its operators meet it, screen by screen, and
+closes with the performance measured on the running pilot.
 
 %==============================================================================
 \end{spacing}

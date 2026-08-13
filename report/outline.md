@@ -27,13 +27,16 @@ the comby framework audit of 2026-07-07 and stopped there — see the
 "Chapter V retired" note below.)
 
 So the report **drops the per-phase release chapters** (the earlier III Phase 0,
-IV Phase 1, V Phase 2, VI Phase 3 layout) and adopts a **four-chapter
-structure**: framing and design (Chapters I–III), then realisation
-(Chapter IV). (History: on 2026-07-06 the supervisor asked for the old
+IV Phase 1, V Phase 2, VI Phase 3 layout) and adopts a **five-chapter
+structure**: framing and design (Chapters I–III), then realisation split in
+two — how the platform was built (Chapter IV) and the platform as delivered
+(Chapter V). (History: on 2026-07-06 the supervisor asked for the old
 Chapter I to be split into a context/scope chapter and a dedicated "Analysis
 and Requirements Specification" chapter, giving five chapters in two parts;
-on 2026-08-04 Chapter V and the part divisions were removed — see the
-"Chapter V retired" note below.)
+on 2026-08-04 the old Chapter V — "Improvements in the event-sourced system" —
+and the part divisions were removed; on 2026-08-13 the realisation chapter was
+itself split in two, and the numeral V was reused for the new walkthrough
+chapter. The retired Chapter V is unrelated to the current one.)
 
 ## Two design decisions that drove this structure
 
@@ -47,6 +50,25 @@ temporal automation, intelligence and e-signature, the web application,
 identity and multi-tenancy, deployment — and uses the realised domains as
 illustrations of those themes. The roadmap's phase hierarchy remains the
 traceability backbone behind it.
+
+### 1b — Realisation split into mechanism and result (2026-08-13)
+
+The single realisation chapter reached 31 pages against 11 / 13 / 19 for
+Chapters I–III, and it interleaved two registers: the engineering narrative
+(patterns, aggregates, reactors, dispatch) and the delivered product (15 UI
+screenshots). It is now two chapters along that seam.
+
+**Chapter IV carries mechanism only** — the 8 themed sections and all 8 UML
+views, no screenshots. **Chapter V carries the result** — every screenshot,
+walked as a guided tour of the demo tenant, plus the end-to-end scenario and
+the production measurements.
+
+The working rule: a sentence that explains *how something works* belongs in
+Chapter IV; a sentence that shows *what the user gets* belongs in Chapter V,
+which may cite the mechanism with a `Section~\ref` but never re-derive it.
+The alternative considered and rejected was a plain sequential cut at
+IV.5/IV.6, which was cheaper (verbatim move, +1 page) but left mechanism and
+its visual proof in the same chapter.
 
 ### 2 — A dedicated architecture chapter
 
@@ -120,15 +142,29 @@ Chapters
 │   ├── 6.  Security and compliance model
 │   └── 7.  Internationalisation strategy
 │
-└── Chapter IV — Realisation of the CLMPilot platform    (chap:realisation; Phases 0–2, by theme)
-    ├── 1.  Engineering foundations and the delivery process  (opens with the project-timeline Gantt)
-    ├── 2.  Backend service architecture on comby
-    ├── 3.  The contract domain and its lifecycle
-    ├── 4.  Workflow and temporal automation
-    ├── 5.  Document intelligence and electronic signature
-    ├── 6.  The web application and internationalised user experience
-    ├── 7.  Identity, access control and multi-tenancy in practice
-    └── 8.  Production deployment and release operations
+├── Chapter IV — Technical realisation of the platform  (chap:realisation; Phases 0–2, by theme;
+│   │                                                    MECHANISM: all 8 UML views, no screenshots)
+│   ├── 1.  Engineering foundations and the delivery process
+│   ├── 2.  Backend service architecture on comby
+│   ├── 3.  The contract domain and its lifecycle
+│   ├── 4.  Workflow and temporal automation
+│   ├── 5.  Document intelligence and electronic signature
+│   ├── 6.  The web application and its internationalisation
+│   ├── 7.  Identity, access control and multi-tenancy in practice
+│   └── 8.  Production deployment and release operations
+│
+└── Chapter V — The delivered platform                 (chap:delivered; RESULT: all 15 screenshots,
+    │                                                   walked on the demo tenant, + measurements)
+    ├── 1.  Access and onboarding
+    ├── 2.  The contract registry and its audit trail
+    ├── 3.  Fitting the platform to the organisation
+    ├── 4.  Approvals, deadlines and obligations
+    ├── 5.  Reading and signing the document
+    ├── 6.  Reporting and the dashboard
+    ├── 7.  The product in 2 languages
+    ├── 8.  The platform from the operator's side
+    ├── 9.  One contract, end to end
+    └── 10. Measured performance in production
 
 Back matter
 ├── Conclusion and Perspectives   (Perspectives absorb the retired Chapter V:
@@ -150,8 +186,9 @@ Back matter
 | I — General Context and Project Scope | Written; split from the old Ch I; new Proposed-solution section; Methodology = Extreme Programming (solo-adapted, release-train release planning), structured after the Ghassen Benali reference report; cites Beck2004 + C2XPForOne |
 | II — Analysis and Requirements Specification | Written; actors/use-cases → functional → non-functional; detailed use-case description tables for contract creation, approval, audit reconstruction |
 | III — Architecture and Design | Written; stale facts fixed (intelligence realised, DocuSeal, EN-primary); §8 seams section removed 2026-08-05 (analysis moved to the conclusion's Perspectives) |
-| IV — Realisation of the CLMPilot platform | **Section-level skeleton** — 8 themed sections with `% intent` + `% figure` notes; §1 opens with the project-timeline Gantt |
-| V — Improvements in the event-sourced system | **Retired 2026-08-04** — no longer included; material folded into the conclusion's Perspectives (see note above) |
+| IV — Technical realisation of the platform | Written; 8 themed sections, all 8 UML views. Split off the walkthrough on 2026-08-13 — no screenshots remain here |
+| V — The delivered platform | Written 2026-08-13 from the screenshots and scenario carved out of the old Chapter IV; 10 walkthrough sections + the runtime measurements |
+| ~~V — Improvements in the event-sourced system~~ | **Retired 2026-08-04** — material folded into the conclusion's Perspectives (see note above). Unrelated to the current Chapter V, which reuses the numeral only |
 
 The earlier per-phase placeholders are **retired and removed** — no longer
 `\include`-d in [report.tex](report.tex).
@@ -161,10 +198,11 @@ The earlier per-phase placeholders are **retired and removed** — no longer
 Figures are PlantUML sources in each chapter's `figures/` directory, rendered to
 vector PDF and included via a self-healing helper (`\pumlfig`, or the
 `\IfFileExists` stub) so the document compiles whether or not a diagram has been
-rendered yet. Chapters I to III carry rendered diagrams, and Chapter IV opens
-with the rendered project-timeline Gantt (`Chapter4/figures/gantt.puml`);
-Chapters IV and V otherwise name the intended UML view per section in
-`% figure:` comments, to be drawn as the prose is written. Render locally with:
+rendered yet. Chapters I to III carry rendered diagrams; Chapter IV carries the
+8 realisation views in `Chapter4/figures/`, and Chapter V carries the UI
+screenshots in `Chapter5/figures/ui/` (rendered by the `\uishot` helper, which
+falls back to a labelled placeholder naming the page to capture). Render
+diagrams locally with:
 
 ```
 plantuml -tsvg figures/<name>.puml && rsvg-convert -f pdf -o figures/<name>.pdf figures/<name>.svg
