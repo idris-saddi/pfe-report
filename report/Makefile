@@ -34,6 +34,9 @@ OUT     := ../report-idris.pdf
 PUML    := $(shell find . -name '*.puml')
 FIG_PDF := $(PUML:.puml=.pdf)
 TEX     := $(shell find . -name '*.tex')
+# Bibliography sources: an edit to the .bib/.bst must trigger a rebuild too,
+# otherwise make sees the .tex tree unchanged and never re-runs latexmk.
+BIB     := $(shell find . -name '*.bib' -o -name '*.bst')
 
 .PHONY: all watch figures force clean cleanall
 
@@ -62,7 +65,7 @@ figures: $(FIG_PDF)
 # -outdir keeps every intermediate (and report.pdf) inside $(BUILD)/.
 # Each \include writes a per-chapter .aux beside itself *within* the outdir,
 # so mirror those subdirs first — in nonstopmode a missing one is fatal.
-$(PDF): $(FIG_PDF) $(TEX)
+$(PDF): $(FIG_PDF) $(TEX) $(BIB)
 	@mkdir -p $(BUILD)
 	@grep -hoE '\\include\{[^}]+\}' $(MAIN).tex \
 	  | sed -E 's/.*\{([^}]+)\}/\1/' | xargs -n1 dirname | sort -u \
