@@ -16,9 +16,9 @@ skinparam rectangle {
   BackgroundColor White
 }
 
-rectangle "Phase 0  --  Engineering foundations\n(repository, CI/CD, dev environment, roadmap)" as p0
-rectangle "Phase 1  --  MVP, full stack\n(registry, document links, deadlines,\napprovals, dashboard, IAM)" as p1
-rectangle "Phase 2  --  Enterprise features\n(intelligence-assisted extraction, e-signature,\ncustom fields, obligations, advanced reporting)" as p2
+rectangle "Phase 0  :  Engineering foundations\n(repository, CI/CD, dev environment, roadmap)" as p0
+rectangle "Phase 1  :  MVP, full stack\n(registry, document links, deadlines, approvals, dashboard, IAM)" as p1
+rectangle "Phase 2  :  Enterprise features\n(intelligence-assisted extraction, e-signature, custom fields, obligations, advanced reporting)" as p2
 
 p0 --> p1 : gate
 p1 --> p2 : gate
