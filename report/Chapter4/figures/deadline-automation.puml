@@ -44,7 +44,7 @@ es -> broker : publish
 broker -> remind : ReminderSentEvent
 activate remind
 remind -> remind : recipient opted in?\n(per-user preference)
-remind -> mail : render bilingual template,\nsend to responsible person
+remind -> mail : send to responsible person
 deactivate remind
 
 note over create, remind

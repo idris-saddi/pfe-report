@@ -148,10 +148,11 @@ Chapters
 │   ├── 2.  Backend service architecture on comby
 │   ├── 3.  The contract domain and its lifecycle
 │   ├── 4.  Workflow and temporal automation
-│   ├── 5.  Document intelligence and electronic signature
-│   ├── 6.  The web application and its internationalisation
-│   ├── 7.  Identity, access control and multi-tenancy in practice
-│   └── 8.  Production deployment and release operations
+│   ├── 5.  Document intelligence
+│   ├── 6.  Electronic signature
+│   ├── 7.  The web application and its internationalisation
+│   ├── 8.  Identity, access control and multi-tenancy in practice
+│   └── 9.  Production deployment and release operations
 │
 └── Chapter V — The delivered platform                 (chap:delivered; RESULT: all 15 screenshots,
     │                                                   walked on the demo tenant, + measurements)

@@ -42,9 +42,8 @@ backend dispatch model, the contract domain and its integration
 boundary, the workflow and temporal automation, the intelligence and
 signature subsystems, the architecture of the web application, the
 identity model that governs access, and the production deployment that
-keeps the result running. The concern throughout is mechanism --- the
-patterns chosen, the rules the realisation had to respect, and the
-reasoning behind each.
+keeps the result running. 
+\vspace{1cm}
 %--------------------------------------------------------------------
 \section{Engineering foundations and the delivery process}
 \label{sec:found}
@@ -96,33 +95,23 @@ from \texttt{develop}, one per release. This keeps \texttt{main}
 deployable at all times, and it gives each release a diff of its own
 that can be reviewed. Commit messages follow the conventional format and
 name the roadmap item behind the change (Section~\ref{sec:methodology}).
-Each repository is versioned independently under semantic versioning, so
-rolling back a defective release means re-pinning a single version
-number.
 
-Continuous integration guards both branches in all 4 repositories, and
-each pipeline is specific to what it protects. The backend pipeline
-lints the Go code and runs the test suites against disposable
-PostgreSQL, Redis and NATS containers~\cite{PostgreSQL,NATS}. The
-frontend pipeline lints, runs the unit suite and builds the production
-bundle; the intelligence pipeline runs its own linter and tests; the
-deployment pipeline validates the Compose files and shell scripts it
-ships. The 3 application pipelines end by building the repository's
+Continuous integration guards branches in all repositories, and
+each pipeline is specific to what it protects. The backend, 
+frontend and intelligence pipelines run their own linter, tests and builds; the
+deployment pipeline validates the Compose files and shell scripts.
+The 3 application pipelines end by building the repository's
 Docker image and publishing it to the container registry the production
 host pulls from, tagged with the commit, the branch and the release
-version (Section~\ref{sec:deployment-ops}). Dependency updates arrive as
-weekly automated pull requests and pass the same gate. The pipeline and
-stack definitions are configuration; they are reproduced in
-Appendix~A.3.
+version. The pipeline and stack definitions are configuration; 
+they are reproduced in Appendix~A.3.
 
 2 further foundations complete the delivery process. The local
-development environment reproduces the production backing services
-(PostgreSQL, Redis, NATS and MinIO, plus a local mail catcher) in a
+development environment reproduces the production backing services in a
 Compose file of its own, brought up by an idempotent setup script, so
 code is developed against the same services it will run on. And scope
-was tracked in one place throughout: a versioned Markdown roadmap, from
-which a progress tracker is regenerated automatically at phase, section
-and task granularity (Section~\ref{sec:methodology}). Under this process
+was tracked in one place throughout: a versioned roadmap files,
+with a progress tracker. Under this process
 the 4 repositories accumulated more than 40 tagged releases over the
 internship, each traceable from its version number back through the
 release pull request to the roadmap items it delivered.
@@ -155,14 +144,9 @@ The boot sequence is ordered, and the order carries rules the
 realisation had to respect. A command can be dispatched only once its
 domain's handlers are registered; a boot-time action placed after the
 facade exists but before registration completes simply fails, because
-nothing routes the command yet. The platform's 2 seeding actions
-therefore hook into fixed points of the sequence. Administrator seeding
+nothing routes the command yet. Administrator seeding
 (Section~\ref{sec:iam-practice}) runs inside domain registration, right
-after the framework defaults are in place. Demo-data seeding runs only
-after state restoration, because it depends on reactors, and reactors
-begin processing live events once the projections are restored. We found
-the first rule by hitting the failure; the second follows from the
-framework's restore semantics. Both are now conventions of the codebase.
+after the framework defaults are in place.
 
 HTTP enters through a thin REST layer. comby generates handlers and an
 OpenAPI document for every registered default, and CLMPilot's own routes
@@ -173,20 +157,18 @@ Every rule lives in an aggregate or a command handler, where the event
 log records its outcome. The exported specification counted +133
 endpoints when the backend was first containerised and grew with each
 later context; the frontend consumes it through a generated, type-safe
-client (Section~\ref{sec:webapp}).
+client.
 
-Figure~\ref{fig:backend-paths} shows the 2 request paths side by side,
-as they are realised. A command (here, updating a contract) passes the
-authorisation stage, reaches the aggregate, is validated against the
+Figure~\ref{fig:backend-paths} shows the 2 request paths side by side.
+A command passes the authorisation stage, reaches the aggregate, is validated against the 
 current state, and appends an event; the response returns once the event
-is durable. A query (listing contracts) passes the same authorisation
+is durable. A query passes the same authorisation
 stage, then reads a projection and writes nothing. Most views are served
 by the framework's generic per-aggregate projection, which covers
 retrieval and listing without custom code. Where a view has its own
 access pattern, we built a dedicated read model: expiring contracts
 sorted by end date, portfolio volume rolled up by quarter, department or
-type at query time, and a case-insensitive search over the free-form
-fields.
+type at query time.
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/backend-paths.pdf}
@@ -197,25 +179,13 @@ fields.
   \label{fig:backend-paths}
 \end{figure}
 
-Authorisation is attached to dispatch, and only to dispatch
-(Section~\ref{sec:security-pipeline}); we learned the practical weight
-of this during operations. Every command and every query is checked
+Authorisation is attached only to dispatch. Every command and every query is checked
 against the caller's permissions when the bus routes it, so an endpoint
 that read a store directly, without dispatching, would silently bypass
-the check. The convention in the codebase is therefore to route reads
-through dispatch even where a handler could reach a store directly. The
-audit-export download of Section~\ref{sec:contract-domain} dispatches
-the contract-retrieve query before serving a single byte for exactly
-this reason, and the few endpoints that remain unauthenticated (the
-inbound signature webhook, the OAuth callback) verify their callers by
-other means. The same property produces an asymmetry between the 2
-paths: a session that satisfies the query path can still be refused on
-the command path. This is why administrative data corrections against
-production are written as small system-dispatched routines executed at
-boot, not as hand-issued API calls. The framework's command, query and
-event catalogue, including the system-dispatch convention, is summarised
-in Appendix~A.2.
-
+the check. The convention is therefore to route reads through dispatch
+even where a handler could reach a store directly. The framework's command, 
+query and event catalogue, including the system-dispatch convention, 
+is summarised in Appendix~A.2.
 %--------------------------------------------------------------------
 \section{The contract domain and its lifecycle}
 \label{sec:contract-domain}
@@ -299,10 +269,6 @@ emits.
   \label{fig:contract-domain}
 \end{figure}
 
-The provider connections behind those adapters are administered from
-inside the application: only a tenant administrator may run the OAuth
-connect flow, from the tenant's own settings area.
-
 %--------------------------------------------------------------------
 \section{Workflow and temporal automation}
 \label{sec:workflow-temporal}
@@ -315,10 +281,10 @@ connect flow, from the tenant's own settings area.
 % figure: sequence diagram -- contract registration fires the deadline-creation
 % reactor; or activity diagram for obligation recurrence.
 
-3 contexts give the platform its behaviour over time. Approval is the
-ordered review a contract passes before activation; Deadline covers the
+3 contexts give the platform its behaviour over time. \textbf{Approval} is the
+ordered review a contract passes before activation; \textbf{Deadline} covers the
 temporal markers the platform watches on the contract's behalf;
-Obligation covers the recurring commitments a signed contract creates.
+\textbf{Obligation} covers the recurring commitments a signed contract creates.
 All 3 are built from the same 2 mechanisms: reactors, which turn one
 domain's event into another domain's command, and an in-process
 scheduler, which turns the passage of time into commands on a fixed
@@ -326,100 +292,62 @@ calendar and so realises the system-clock actor of
 Section~\ref{sec:actors}.
 
 The approval workflow is an aggregate of ordered steps, each addressed
-to a designated approver. Steps complete strictly in order, only the
-designated approver may act on a step, and a single rejection moves the
-whole workflow to rejected, matching the rules of
-Table~\ref{tab:uc-approval-workflow}. Completion is recorded in 2
-stages: each step completion is its own event, and a separate
-finalisation event closes the workflow. The separation exists for the
-reactor that watches the chain. When the last step completes, that
-reactor dispatches the finalisation and then the contract update that
-flips the target contract to active, which closes the draft-to-active
-loop of Section~\ref{sec:behavioural-views}. A second reactor owns every
-notification email the workflow sends. We kept state transitions and
-side effects apart on purpose: a mail failure can never interfere with
-the workflow's state, and each reactor fails on its own.
+to a designated approver: steps complete strictly in order, only that
+approver may act, and a single rejection rejects the whole workflow.
+on the last step a reactor dispatches the
+finalisation and that flips the contract to active. A second reactor owns the
+notification mail. Keeping state transitions and side effects apart
+means a mail failure cannot touch workflow state.
 
-Most deadlines are created by automation rather than by hand.
-Figure~\ref{fig:deadline-automation} follows the realised chain. A
-cross-domain reactor listens for contract registration and derives up to
-3 deadlines from the record itself: expiry at the end date, the
-cancellation window at the end date minus the notice period (when that
-window still lies ahead), and renewal when the contract auto-renews.
-Each deadline carries reminder markers at 90, 60 and 30~days. In
-Phase~2 the same reactor gained a second trigger: when the intelligence
-pipeline extracts dates from a linked document
-(Section~\ref{sec:intel-esign}), the resulting contract update seeds the
-corresponding deadlines if they do not exist yet. A deadline the user
-has edited is never touched.
+Deadlines are mostly automated, 
+Figure~\ref{fig:deadline-automation} follows the realised chain. A cross-domain reactor listens
+for contract registration and derives up to 3 deadlines from the record:
+expiry at the end date, the cancellation window at the end date minus
+the notice period when that window still lies ahead, and renewal when
+the contract auto-renews.
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/deadline-automation.pdf}
-    {\includegraphics[width=0.95\linewidth]{deadline-automation}}
+    {\includegraphics[width=0.87\linewidth]{deadline-automation}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
       \textit{Diagram to be rendered from} \texttt{figures/deadline-automation.puml}\vspace{2em}}}}
   \caption{Temporal automation in the Deadline context}
   \label{fig:deadline-automation}
 \end{figure}
 
-Time enters through the scheduler, an in-process cron runner with
-UTC-anchored jobs. An hourly job dispatches a batch command that
-promotes every due reminder marker; a nightly job flips overdue
-deadlines to missed. The batch commands are dispatched once per tenant,
-so a failure in one tenant's batch cannot halt the others, and every job
-logs its tenant count and duration. Reminder mail is opt-in per user:
-before sending, the reminder reactors consult a per-identity preference,
-and its absence means no mail. Later phases reused the pattern
-unchanged. Obligation checks run on the same scheduler at offset minutes
-so the batches do not contend; scheduled report exports run hourly
-against each configuration's next-run date (Section~\ref{sec:webapp});
-and a reconciliation job polls the signature provider for requests whose
-webhooks were missed (Section~\ref{sec:intel-esign}).
+Time enters through the scheduler, an in-process cron runner on
+UTC-anchored jobs. An hourly job promotes every due reminder marker, a
+nightly one flips overdue deadlines to missed, and both dispatch once
+per tenant, so a failure in one tenant's batch cannot halt the others;
+every job logs its tenant count and duration. Reminder mail is opt-in:
+the reactors consult a per-identity preference, and its absence means no
+mail.
 
-Obligations, added in Phase~2, reuse the deadline mechanics but model a
-different thing: a deadline is a date the platform watches, while an
-obligation is a task a person owns and completes. Users create
-obligations themselves; nothing derives them from contract fields. Their
-reminder markers sit at 14, 7 and 1~days, the shorter horizon of
-operational tasks, and their lifecycle ends in completed or missed. There
-is no re-opening; a fresh occurrence is created instead. Recurrence is a
-third reactor: completing a recurring obligation emits an event, and the
-reactor spawns the next occurrence from it. The next due date is
-computed by calendar arithmetic anchored to the original one (a monthly
-task due on the 15th stays on the 15th) and rolled forward past the
-present, so completing a task late never schedules an occurrence that is
-already overdue.
+Obligations, added in Phase~2, reuse the deadline mechanics for a
+different thing: a deadline is a date the platform watches, an
+obligation a task a person owns and completes. Users create them;
+nothing derives them from contract fields. Their markers sit at 14, 7
+and 1~days, the shorter horizon of operational tasks, and their
+lifecycle ends in completed or missed. Recurrence is a third reactor: completing
+a recurring obligation emits an event from which it spawns the next
+occurrence, dated by calendar arithmetic anchored to the original one,
+so a late completion never schedules an occurrence already overdue.
 
-Idempotency in these contexts is a designed property, checked case by
-case. Every reactor overrides its restore behaviour to skip replayed
-events, so a restart, which replays the whole log to rebuild the
-projections, re-sends no email and re-creates no record. And where
-automation and users can race, the aggregate arbitrates: a reminder
-event cannot overwrite an acknowledgement that arrived ahead of the
-scheduler.
+Idempotency is designed in case by case. Every reactor skips replayed
+events on restore, so a restart, which replays the whole log to rebuild
+the projections, re-sends no mail and re-creates no record.
 
 %--------------------------------------------------------------------
-\section{Document intelligence and electronic signature}
-\label{sec:intel-esign}
-% intent: The two most novel Phase-2 subsystems. The stateless intelligence
-% service (metadata extraction, classification, clause detection) behind an
-% LLM gateway, with an evaluation harness as a design artefact; the enrichment
-% reactor that folds AI suggestions onto a contract with accept/edit/undo, only
-% filling empty fields. Electronic signature via DocuSeal: envelope dispatch,
-% webhook reception as a domain-event source, signed PDF linked back as a
-% DocumentLink, draft->active transition. Note scanned-PDF/OCR limit
-% ([[project-pdf-clause-detection]]); cite [[project-smtp-provider]] for mail.
-% figure: sequence diagram -- document linked -> extraction pipeline -> contract
-% patched; component view of the e-signature webhook flow.
-
-The 2 most substantial subsystems of the enterprise tier are built
-around the linked document: the intelligence service reads it, and the
-signature integration carries it through signing. Both were specified as
-requirements in Section~\ref{sec:fr-enterprise}; this section presents
-how they were built.
-
-\subsection{Document intelligence}
+\section{Document intelligence}
 \label{sec:doc-intel}
+% intent: The first of the 2 most novel Phase-2 subsystems. The stateless
+% intelligence service (metadata extraction, classification, clause detection)
+% behind an LLM gateway, with an evaluation harness as a design artefact; the
+% enrichment reactor that folds AI suggestions onto a contract with
+% accept/edit/undo, only filling empty fields. Note scanned-PDF/OCR limit
+% ([[project-pdf-clause-detection]]).
+% figure: sequence diagram -- document linked -> extraction pipeline -> contract
+% patched.
 
 The intelligence service is a stateless Python service behind the
 \texttt{IntelligenceClient} interface named in the architecture's
@@ -468,27 +396,30 @@ synchronisation and refreshes every extractable field.
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/enrichment-flow.pdf}
-    {\includegraphics[width=0.95\linewidth]{enrichment-flow}}
+    {\includegraphics[width=0.93\linewidth]{enrichment-flow}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
       \textit{Diagram to be rendered from} \texttt{figures/enrichment-flow.puml}\vspace{2em}}}}
   \caption{The enrichment pipeline}
   \label{fig:enrichment-flow}
 \end{figure}
 
-\subsection{Electronic signature}
+%--------------------------------------------------------------------
+\section{Electronic signature}
 \label{sec:esign}
+% intent: The second of the 2 novel Phase-2 subsystems. Electronic signature via
+% DocuSeal: envelope dispatch, webhook reception as a domain-event source,
+% signed PDF linked back as a DocumentLink, draft->active transition. Cite
+% [[project-smtp-provider]] for mail.
+% figure: component view of the e-signature webhook flow.
 
-Electronic signature sits behind a provider-agnostic
-\texttt{ESignatureProvider} interface, with the same discipline as
+Electronic signature sits behind a provider interface, with the same discipline as
 document storage: the domain model never names a vendor. The first
 adapter targets DocuSeal~\cite{DocuSeal}, selected on 4 grounds. It can
 be self-hosted under an open-source licence, which keeps signed
 documents on the platform's own infrastructure. The simple electronic
 signature it produces has legal effect for ordinary business contracts
 under Article~25 of the eIDAS regulation~\cite{eIDAS}. It offers the
-REST-and-webhook integration the reactor pattern needs. And it leaves an
-upgrade path towards qualified signatures for the contract classes that
-demand them.
+REST-and-webhook integration the reactor pattern needs.
 
 The signature workflow is its own aggregate, modelled on Approval. A
 request holds ordered signers, and events record dispatch, each signer's
@@ -499,32 +430,38 @@ provider. The tenant, contract and request identifiers are stamped into
 the provider's submission metadata, so whatever comes back can be
 routed.
 
-Figure~\ref{fig:esign-webhook} shows the return path. Signing progress
-arrives as webhooks on a public endpoint, which verifies the provider's
-signature before parsing anything, reads the routing identifiers back
-out of the submission metadata, and translates the provider's event into
-a status-application command dispatched with system authority. Applying
-status is idempotent: a duplicate or out-of-order delivery is compared
-against the aggregate's current state and ignored when stale. Completion
-then triggers a reactor in the contract domain, which marks the
-contract's signature status, flips a draft contract to active, downloads
-the signed PDF from the provider and links it back to the contract as an
-ordinary \texttt{DocumentLink}, so the executed document enters the same
-audit trail as everything else. Webhooks can be lost, so the scheduled
-reconciliation job of Section~\ref{sec:workflow-temporal} polls the
-provider for requests stuck in a sent state past a threshold. We
-validated the whole path end to end against DocuSeal's hosted sandbox;
-in production the integration stays inactive until an operator
-configures a provider key.
+Figure~\ref{fig:esign-webhook} shows the return path.
+Once the envelope is sent, the provider collects the
+signatures on its own surface and reports back when it has something to
+say. The public endpoint that receives them, the command it dispatches inward, and the
+reactor that acts when signing completes; wait on those deliveries
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/esign-webhook.pdf}
-    {\includegraphics[width=0.9\linewidth]{esign-webhook}}
+    {\includegraphics[width=0.88\linewidth]{esign-webhook}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
       \textit{Diagram to be rendered from} \texttt{figures/esign-webhook.puml}\vspace{2em}}}}
   \caption{Component view of the e-signature webhook flow}
   \label{fig:esign-webhook}
 \end{figure}
+
+Progress arrives as webhooks on that endpoint, which verifies the
+provider's signature before parsing anything, reads the routing
+identifiers back out of the submission metadata, and translates the
+provider's event into a status-application command dispatched with
+system authority. Applying status is
+idempotent: a duplicate or out-of-order delivery is compared against the
+aggregate's current state and ignored when stale. Completion then
+triggers the contract-domain reactor, which marks the contract's
+signature status, flips a draft contract to active, downloads the signed
+PDF from the provider and links it back to the contract as an ordinary
+\texttt{DocumentLink}, so the executed document enters the same audit
+trail as everything else. Webhooks can be lost, so the scheduled
+reconciliation job of Section~\ref{sec:workflow-temporal} polls the
+provider for requests stuck in a sent state past a threshold. We
+validated the whole path end to end against DocuSeal's hosted sandbox;
+in production the integration stays inactive until an operator
+configures a provider key.
 
 The outbound email these subsystems and the workflow reactors rely on is
 delivered through SendGrid's HTTP interface~\cite{SendGrid}, sending
@@ -533,6 +470,7 @@ DNS work on the product domain while keeping deliverability verifiable.
 Messages are rendered from bilingual templates (7 at the MVP, growing
 with each later context) as multipart text-and-HTML, in the recipient's
 locale (Section~\ref{sec:webapp}).
+\vspace{1cm}
 
 %--------------------------------------------------------------------
 \section{The web application and its internationalisation}
@@ -726,7 +664,7 @@ footprint predictable under load.
 
 \begin{figure}[H]\centering
   \IfFileExists{Chapter4/figures/production-topology.pdf}
-    {\includegraphics[width=\linewidth]{production-topology}}
+    {\includegraphics[width=0.76\linewidth]{production-topology}}
     {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
       \textit{Diagram to be rendered from} \texttt{figures/production-topology.puml}\vspace{2em}}}}
   \caption{The production topology}

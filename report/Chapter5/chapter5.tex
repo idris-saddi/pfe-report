@@ -32,7 +32,7 @@
 % One width for every screenshot, so the gallery reads as a single series: a
 % figure printed larger than its neighbours reads as more important, and none
 % of these is. \uiscale is the single knob for the whole chapter.
-\newcommand{\uiscale}{0.78}
+\newcommand{\uiscale}{0.68}
 \newcommand{\uishot}[4][]{%
   \begin{figure}[H]\centering
     \IfFileExists{Chapter5/figures/ui/#2.png}
@@ -60,8 +60,16 @@
 % system produced. Per the report-wide rule, the chapter intro must not
 % reference other chapters.
 A platform is judged on what it puts in front of the people who use it.
-This chapter walks the delivered CLMPilot platform as they meet it, on
-the pilot running in production at \url{https://clmpilot.com}. 
+This chapter walks the delivered CLMPilot platform as its users and its
+operators actually meet it, on the pilot running in
+production at \url{https://clmpilot.com}. The tour opens where a user does, at the sign-in, then moves out into
+the registry that holds the contracts and remembers every change made
+to them, the settings that shape the product around one organisation,
+and the work it then does on that organisation's behalf before reaching the reports, the interface in 2
+languages and the operator's own administration surface. One contract
+carried end to end draws the threads together, and the chapter ends
+with what the running system measured, so that the walkthrough answers
+to recorded values rather than to claims.
 
 %--------------------------------------------------------------------
 \section{Access and onboarding}
@@ -81,7 +89,7 @@ sign-out.
   {the sign-in page at the second step, where the emailed one-time code
    is entered.}
   {Two-step sign-in: the one-time-code confirmation that completes
-   authentication.}
+   authentication}
 
 A new colleague arrives by invitation instead. The invitation mail is
 written in the language chosen by the person who sent it, and the page
@@ -106,12 +114,14 @@ department, category, status and counterparty. Opening a record gives
 the business metadata, the status, the linked document, the deadlines
 derived from it and the people involved.
 
+\vspace{1cm}
+
 \uishot[The contract registry]{ui-contract-list}
   {the contract registry with the filter bar and the free-text search
    active (e.g.\ filtered to one department).}
-  {The contract registry: filterable listing backed by the
-   case-insensitive search projection of
-   Section~\ref{sec:backend-comby}.}
+  {The contract registry}
+
+\vspace{1cm}
 
 Every record carries its own history, and the platform shows it without
 interpretation. Figure~\ref{fig:ui-audit-trail} shows the audit-log tab
@@ -125,8 +135,7 @@ it is served only to a user who may already read the contract itself.
 \uishot[The audit-log view of a contract]{ui-audit-trail}
   {a contract's audit-log tab showing the event list with actor,
    timestamp and payload of each entry.}
-  {The audit-log view of a contract: the raw event stream rendered
-   with actor, timestamp and payload.}
+  {The audit-log view of a contract}
 
 %--------------------------------------------------------------------
 \section{Fitting the platform to the organisation}
@@ -154,11 +163,7 @@ is saved, not merely suggested in the browser
 The second piece of configuration connects the organisation's own
 document storage. Figure~\ref{fig:ui-settings-integrations} shows the
 integrations area, where an administrator authorises CLMPilot against
-Google~Drive or SharePoint once and for the whole tenant. What the
-connection grants is deliberately narrow: the platform links to
-documents and reads them when asked, and never takes a copy into its own
-storage. Users afterwards pick a file through the provider's own picker
-and see it appear on the contract as a link.
+Google~Drive or SharePoint once and for the whole tenant.
 
 \uishot[The integrations settings of a tenant]{ui-settings-integrations}
   {the Settings page, Integrations tab, with the Google Drive card in
@@ -228,18 +233,13 @@ few seconds of the link, the platform has read the document and proposes
 what it found: the counterparty, the dates, the value, the contract type
 and the clauses it could quote.
 Figure~\ref{fig:ui-enrichment-review} shows those suggestions on a
-contract overview. The review is field by field --- accept, edit or undo
---- and nothing a person typed is ever overwritten, because only empty
-fields are proposed for filling (Section~\ref{sec:intel-esign}). A
-suggestion the user rejects leaves no trace on the record.
+contract overview.
 
 \uishot[Enrichment suggestions on a contract]{ui-enrichment-review}
   {a contract overview right after linking a document, with the
    intelligence suggestions shown per field and the accept / edit /
    undo controls visible.}
-  {Enrichment suggestions on a contract of the demo tenant, reviewed
-   field by field (accept, edit or undo); only fields the user left
-   empty are filled.}
+  {Enrichment suggestions on a contract of the demo tenant}
 
 The same document can be sent for signature without leaving the
 contract. Figure~\ref{fig:ui-esign-status} shows the signature panel of
@@ -252,10 +252,8 @@ everything else, and a contract still in draft becomes active on the
 spot.
 
 \uishot[The signature request on a contract]{ui-esign-status}
-  {a contract's signature panel with a request in progress (signers
-   and their statuses), against the DocuSeal sandbox.}
-  {The signature request on a contract: ordered signers and per-signer
-   status, updated by the webhook return path.}
+  {a contract's signature panel with a request in progress}
+  {The signature request on a contract}
 
 %--------------------------------------------------------------------
 \section{Reporting and the dashboard}
@@ -269,16 +267,12 @@ chooses the columns, the grouping and the chart, sees the result
 immediately, saves the configuration under their own name and, if the
 report is one they need regularly, schedules it as a recurring export
 delivered by email. The available measures include portfolio value,
-per-department and per-counterparty rollups, and a risk score whose
-contributing factors --- value, expiry proximity, missing documents ---
-stay visible, so a reviewer can always see why a contract scored as it
-did.
+per-department and per-counterparty rollups, and a risk score.
 
 \uishot[The report builder]{ui-report-builder}
   {the report builder with columns, a grouping and a chart type
    selected, and the rendered chart visible.}
-  {The report builder on the demo tenant: self-service columns,
-   groupings and chart over the reporting projections.}
+  {The report builder on the demo tenant}
 
 The dashboard is where a user lands after signing in, and it is the
 clearest view of what the automation has been doing.
@@ -290,8 +284,7 @@ platform maintains as events arrive (Section~\ref{sec:backend-comby}).
 \uishot[The dashboard]{ui-dashboard}
   {the dashboard after login: KPI tiles, the expiring-contracts list
    and the deadline overview.}
-  {The dashboard, with the expiring-contracts view served by the
-   dedicated read model of Section~\ref{sec:backend-comby}.}
+  {The dashboard, with the main metrics}
 
 %--------------------------------------------------------------------
 \section{The product in 2 languages}
@@ -313,11 +306,12 @@ in both languages. Figure~\ref{fig:ui-help-de} shows it in German. A
 user who upgrades therefore never reads documentation for a version they
 are not running.
 
+\vspace{1cm}
+
 \uishot[The bundled help area in German]{ui-help-de}
   {the in-app help area in the German locale, to show the bundled
    bilingual documentation.}
-  {The bundled help area in German: documentation versioned and
-   shipped with the code it describes.}
+  {The bundled help area in German}
 
 %--------------------------------------------------------------------
 \section{The platform from the operator's side}
@@ -340,35 +334,8 @@ screen (Section~\ref{sec:iam-practice}).
   {the cross-tenant administration area listing the provisioned tenants
    (demo tenants visible), with the provision-tenant action shown ---
    captured from a system-tenant operator account.}
-  {The cross-tenant administration area: tenant provisioning,
-   first-administrator invitation and archival, available only to
-   platform operators of the system tenant.}
+  {The cross-tenant administration area}
 
-%--------------------------------------------------------------------
-\section{One contract, end to end}
-\label{sec:walk-scenario}
-% intent: Tie the preceding sections into a single narrative so the chapter
-% reads as a product, not a catalogue of screens.
-
-The screens above meet in a single working sequence. A legal manager
-registers a contract on the form of
-Figure~\ref{fig:ui-contract-form-custom-fields}, where the fixed fields
-are followed by the ones their organisation defined. They link the
-signed document from the company's own Drive through the connection of
-Figure~\ref{fig:ui-settings-integrations}; the link returns within a
-second, and a few seconds later the suggestions of
-Figure~\ref{fig:ui-enrichment-review} are on the record. The manager
-accepts the extracted dates and corrects the counterparty.
-
-Nothing else has to be done by hand. The accepted dates have already
-created the deadlines of Figure~\ref{fig:ui-deadline-timeline}, with
-their reminders scheduled. The contract has appeared in the registry of
-Figure~\ref{fig:ui-contract-list} and in the expiring-contracts view of
-the dashboard of Figure~\ref{fig:ui-dashboard}. And the audit tab of
-Figure~\ref{fig:ui-audit-trail} already carries every one of those
-steps, in order, with the actor behind each. What took a manager a
-morning of spreadsheet work and calendar entries in the situation the
-project set out to address is, here, one form and one review.
 %--------------------------------------------------------------------
 \section{Measured performance in production}
 \label{sec:runtime-perf}
@@ -395,10 +362,7 @@ happened since the last release, with no extra infrastructure to run.
 
 The backend ships with an operator dashboard that shows these numbers
 live, as charts for the whole system and as a table per message type,
-next to the request traces and the logs. The dashboard is not exposed
-on the Internet: the reverse proxy only forwards the API and webhook
-paths, so an operator opens it through an SSH tunnel to the host and
-signs in as a system administrator.
+next to the request traces and the logs. 
 Figure~\ref{fig:ui-comby-metrics} shows it running against the pilot.
 
 \uishot[The runtime metrics dashboard]{ui-comby-metrics}
