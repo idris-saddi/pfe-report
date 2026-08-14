@@ -159,6 +159,7 @@ workload, and both carry a tenant context on every event and every query.
 The price is eventual consistency, long-lived event schemas and a learning
 curve, accepted because state can be re-derived later, a missing history
 cannot (Section~\ref{sec:cqrs-es-pattern}).
+\vspace{1cm}
 
 \subsection{CQRS and Event Sourcing}
 \label{sec:cqrs-es-pattern}
@@ -189,17 +190,17 @@ heavy query never blocks a write, and it expresses the domain in the terms
 of Domain-Driven Design~\cite{Evans2003,Vernon2013}.
 Figure~\ref{fig:cqrs-es} shows both paths.
 
-\pumlfig{cqrs-es}{0.90\textwidth}{The CQRS and Event Sourcing flow}{fig:cqrs-es}
+\pumlfig{cqrs-es}{\textwidth}{The CQRS and Event Sourcing flow}{fig:cqrs-es}
 
-Figure~\ref{fig:cqrs-seq} shows the same flow as a sequence, for
-registering a contract. The command path is short and synchronous:
-validate, append an event, answer the caller. The reactions come after: a
-projection updates the read models, and a reactor turns the new event into a
-follow-up command that creates the contract's deadlines. That is the reactor
-pattern, and the point where eventual consistency becomes visible.
+Figure~\ref{fig:cqrs-seq} shows the same flow in time. The command path
+is short and synchronous: validate, append an event, answer the caller.
+The reactions come after, once the caller already holds its answer: a
+projection updates the read models, and a reactor turns the new event
+into a follow-up command. That is the reactor pattern, and the point
+where eventual consistency becomes visible.
 
-\pumlfig{cqrs-sequence}{\textwidth}{Registering a contract as a
-sequence}{fig:cqrs-seq}
+\pumlfig{cqrs-sequence}{0.8\textwidth}{The command path and its reactions,
+in time}{fig:cqrs-seq}
 
 The costs anticipated in Section~\ref{sec:arch-choice} are now concrete.
 Read models are eventually consistent: a new contract
@@ -208,6 +209,7 @@ which for CLM is acceptable. Events are a long-lived schema, so they need a
 versioning convention. And the pattern has a learning curve, mitigated
 here because an existing framework can supply the mechanics; the choice of
 that framework is the subject of the next section.
+\vspace{1cm}
 
 
 %--------------------------------------------------------------------
@@ -261,6 +263,7 @@ cross-cutting concerns apart.
 
 \pumlfig{backend-packages}{\textwidth}{Packages structure of the backend}{fig:backend-packages}
 
+\vspace{1cm}
 \subsection{Justification of choice}
 \label{sec:comby-choice}
 
@@ -271,16 +274,25 @@ partly to exercise it, so its authors are on hand to support it.
 Table~\ref{tab:framework-comparison} sets it against the alternatives that
 were considered.
 
-\begin{table}[H]
-  \centering
-  \caption{CQRS and Event~Sourcing platforms considered for CLMPilot,
-           assessed against the project's decisive criteria.}
-  \footnotesize
-  \begin{tabularx}{\linewidth}{|>{\bfseries}l|l|X|X|}
+% Breakable (xltabular, not a float): the table is taller than the space it
+% usually lands in, and as a [H] float it was pushed whole to the next page,
+% leaving the page before it half empty. As a longtable it starts under this
+% sentence and continues overleaf, with the header row repeated there.
+{\footnotesize
+  \begin{xltabular}{\linewidth}{|>{\bfseries}l|l|X|X|}
+    \caption{CQRS and Event~Sourcing platforms considered for CLMPilot,
+             assessed against the project's decisive criteria.}
+    \label{tab:framework-comparison}\\
     \hline
     Option & Ecosystem & CQRS/ES core \& built-in tenancy, identity, RBAC
       & Support and strategic fit \\
     \hline\hline
+    \endfirsthead
+    \hline
+    Option & Ecosystem & CQRS/ES core \& built-in tenancy, identity, RBAC
+      & Support and strategic fit \\
+    \hline\hline
+    \endhead
     comby~v3 & Go & Command/query buses, append-only event store,
       projection runner and reactors, \emph{plus} tenant, account,
       identity, group and invitation defaults out of the box. & Authored
@@ -309,9 +321,7 @@ were considered.
       of re-implementing all of the above. & No external dependency, but
       unmaintainable by one engineer alongside the product itself. \\
     \hline
-  \end{tabularx}
-  \label{tab:framework-comparison}
-\end{table}
+  \end{xltabular}}
 
 3 points decide it: comby is Go-native, so the backend stays one
 language. Its CQRS/ES primitives are proven, so they need not be rebuilt.
@@ -437,7 +447,9 @@ the frontend consumes through its generated client. The backend requires
 \texttt{Email} from the mail provider, and \texttt{DocumentStore} behind
 which the cloud storage adapters sit.
 
-\pumlfig{component-view}{0.5\textwidth}{CLMPilot component view}{fig:component-view}
+% 0.72 rather than 0.45: the diagram is now laid out wide, so it needs more of
+% the line to keep its boxes at the size they had when it was narrow.
+\pumlfig{component-view}{0.85\textwidth}{CLMPilot component view}{fig:component-view}
 
 \subsection{Deployment topology}
 \label{sec:deployment-topology}
@@ -459,7 +471,7 @@ horizontally. An \textbf{object store} keeps exports, signed
 documents and other assets. One reverse proxy terminates TLS in front of
 them.
 
-\pumlfig{topology}{0.9\textwidth}{CLMPilot deployment topology}{fig:topology}
+\pumlfig{topology}{\textwidth}{CLMPilot deployment topology}{fig:topology}
 
 Network isolation is built into the topology: only the reverse proxy is reachable
 from outside, while the intelligence service and the stores are reachable only from
@@ -520,7 +532,7 @@ another tenant, is refused at the boundary; and because the tenant context
 is taken from the session rather than from the request, the ordinary API
 has no way to address another tenant's data at all.
 
-\pumlfig{security-pipeline}{0.88\textwidth}{The request security pipeline}
+\pumlfig{security-pipeline}{0.9\textwidth}{The request security pipeline}
 {fig:security-pipeline}
 
 The authorisation check itself is a short, ordered cascade in which the first
@@ -531,10 +543,10 @@ that role membership alone cannot express; a platform administrator is allowed
 across tenants; any request whose target tenant differs from the caller's is
 denied outright; and otherwise access is granted only if one of the caller's
 tenant groups carries the matching permission. The framework offers a finer,
-workspace-scoped grant beneath the tenant as well, which CLMPilot does not yet
+workspace-scoped grant beneath the tenant, which CLMPilot does not yet
 exercise.
 
-\pumlfig{authz-decision}{0.95\textwidth}{Authorisation process of commands and queries}
+\pumlfig{authz-decision}{\textwidth}{Authorisation process of commands and queries}
 {fig:authz-decision}
 
 \subsection{Defence in depth and tenant isolation}
@@ -550,7 +562,8 @@ layers is the tenant isolation that all of the compliance guarantees depend on,
 and at the core the immutable event log, which serves as both the system of
 record and the audit trail.
 
-\pumlfig{security-layers}{0.8\textwidth}{Defence in depth}{fig:security-layers}
+\pumlfig{security-layers}{\textwidth}{Defence in depth}{fig:security-layers}
+\vspace{1cm}
 
 Tenant isolation today is enforced in the application: every command, query
 and event carries a tenant context, and a single logical event store is

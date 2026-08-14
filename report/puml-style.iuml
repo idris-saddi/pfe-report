@@ -22,7 +22,13 @@ skinparam linetype polyline
 ' Wrap long sequence-message labels instead of spreading the lifelines —
 ' keeps sequence diagrams narrow enough to stay readable at page width.
 ' (Do NOT add skinparam ParticipantPadding here: current PlantUML deprecates
-' it and renders a warning banner INTO the diagram.)
+' it and renders a warning banner INTO the diagram. When ONE figure needs its
+' lifelines spread, put a CSS style block in that .puml instead -- it widens
+' identically, prints no banner, and leaves the colours above intact:
+'     <style>
+'     sequenceDiagram { participant { Padding 30 } }
+'     </style>
+' Keep it per-file: a global padding would reflow every sequence figure.)
 skinparam maxMessageSize 150
 
 skinparam rectangle {

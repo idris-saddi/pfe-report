@@ -1,6 +1,8 @@
 @startuml cqrs-es
 '==============================================================================
-' Figure (Chapter II): CQRS + Event Sourcing flow in CLMPilot.
+' Figure (Chapter III): CQRS + Event Sourcing flow in CLMPilot, in structure.
+' The same flow seen in time is cqrs-sequence.puml; keep the participant
+' vocabulary of the 2 figures identical.
 ' Render:  plantuml -tpdf cqrs-es.puml      (or -tpng)
 '==============================================================================
 skinparam shadowing false
@@ -35,8 +37,10 @@ reactor ..> cmd       : follow-up command
 client  --> qry       : query
 qry     --> rm        : read
 
-note bottom of es
-  The event store is the system of record.
-  Every read model can be rebuilt by replay.
+note left of es
+  The event store is
+  the system of record.
+  Every read model can
+  be rebuilt by replay.
 end note
 @enduml

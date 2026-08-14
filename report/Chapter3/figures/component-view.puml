@@ -4,13 +4,19 @@
 ' three required interfaces, each named so the implementation is swappable.
 ' Conceptual on purpose (supervisor feedback): roles, not products -- the
 ' concrete tools behind each component are named in Chapter IV.
+' Shape: laid out WIDE -- the backend fans out to its 3 required interfaces
+' side by side, with the frontend beside it. A tall, narrow version of this
+' diagram had to be included at a small width to fit, which shrank the boxes.
+' The width comes from nodesep (horizontal gap within a rank) against a small
+' ranksep (vertical gap between ranks); do NOT use `left to right direction`,
+' which collapses the fan-out into a single column and makes it far taller.
 ' Render:  plantuml -tpdf component-view.puml      (or -tpng)
 '==============================================================================
 skinparam shadowing false
 skinparam defaultFontName Helvetica
 skinparam componentStyle rectangle
-skinparam ranksep 26
-skinparam nodesep 22
+skinparam ranksep 16
+skinparam nodesep 120
 
 component "Frontend\n(SPA)" as fe
 component "Backend" as be
@@ -18,7 +24,7 @@ component "Backend" as be
 ' Provided interface: the generated REST/OpenAPI contract.
 interface "REST / OpenAPI" as rest
 be -up- rest
-fe -up-( rest : consumes\n(generated client)
+fe -up-( rest : \nconsumes
 
 ' Required interfaces: named seams behind which providers are swappable.
 interface "IntelligenceClient" as iIntel

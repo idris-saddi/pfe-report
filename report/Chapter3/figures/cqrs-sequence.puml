@@ -1,9 +1,18 @@
 @startuml cqrs-sequence
 '==============================================================================
-' Figure (Chapter II): CQRS + Event Sourcing as a temporal sequence.
-' Scenario: registering a contract, with automatic deadline creation by a
-' reactor -- illustrates the command path, the event append, and the
-' asynchronous projection + reactor reactions (eventual consistency).
+' Figure (Chapter III): the CQRS + Event Sourcing flow of cqrs-es.puml seen in
+' time rather than in structure. Architecture level: same participants and same
+' vocabulary as cqrs-es.puml, with NO routes, status codes or concrete
+' command/event names -- those belong to the realisation chapter, whose
+' backend-paths.puml carries the realised command and query paths.
+' The point of this figure is the ORDERING: the caller is answered while the
+' command path is still the only thing that has run, and the read side catches
+' up afterwards. That is what a component view cannot show.
+'
+' SHAPE: a sequence diagram is scaled to \textwidth, so its ASPECT RATIO decides
+' how much page it eats -- a narrow diagram renders tall. Keep the participant
+' labels long (they also match cqrs-es.puml) and the message count low; do not
+' "simplify" either without re-checking the rendered height.
 ' Render:  plantuml -tpdf cqrs-sequence.puml      (or -tpng)
 '==============================================================================
 skinparam shadowing false
@@ -11,46 +20,46 @@ skinparam defaultFontName Helvetica
 skinparam defaultFontSize 20
 skinparam sequenceMessageAlign center
 
-actor       "Legal Manager"        as lm
-participant "REST API"              as api
-participant "Command bus"           as cmd
-participant "Contract\naggregate"   as agg
-database    "Event store"           as es
-queue       "Message broker"        as broker
-participant "Projection runner"     as proj
-participant "Deadline-creation\nreactor" as reactor
+' Spread the lifelines so the diagram is wide rather than tall (see SHAPE
+' above). This MUST be the CSS style form: `skinparam ParticipantPadding` is
+' deprecated in current PlantUML and prints a warning banner into the rendered
+' figure, which then ships in the report.
+<style>
+sequenceDiagram {
+  participant {
+    Padding 30
+  }
+}
+</style>
+
+actor       "Client"                             as client
+participant "Command bus"                        as cmd
+participant "Aggregate\n(validates business rules)" as agg
+database    "Event store\n(append-only)"         as es
+queue       "Message broker"                     as broker
+participant "Projections\n(read models)"         as proj
+participant "Reactors\n(side effects)"           as reactor
 
 == Command path (synchronous) ==
-lm  -> api    : POST /contracts
-activate api
-api -> cmd    : dispatch(RegisterContract)
+client -> cmd  : command
 activate cmd
-cmd -> agg    : validate business rules + apply
+cmd -> agg     : validate and apply
 activate agg
-agg -> es     : append ContractRegisteredEvent
-activate es
-es --> agg    : ok
-deactivate es
-agg --> cmd   : ok
+agg -> es      : append event
 deactivate agg
-cmd --> api   : contract id
+cmd --> client : acknowledged
 deactivate cmd
-api --> lm    : 201 Created
-deactivate api
 
 == Reactions (asynchronous) ==
-es -> broker  : publish ContractRegisteredEvent
-broker -> proj : ContractRegisteredEvent
-activate proj
-proj -> proj  : update read models
-deactivate proj
-broker -> reactor : ContractRegisteredEvent
+es -> broker      : publish event
+broker -> proj    : update read models
+broker -> reactor : trigger
 activate reactor
-reactor -> cmd : dispatch(SetDeadline)
-note right of reactor
-  90/60/30-day reminder markers
-  derived from the end date and
-  the cancellation-notice period
-end note
+reactor -> cmd    : follow-up command
 deactivate reactor
+
+note over proj, reactor
+  The client already holds its answer;
+  the read side catches up here.
+end note
 @enduml
