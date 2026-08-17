@@ -22,6 +22,16 @@
 
 \chapter{Appendices}
 \graphicspath{{Appendix1/figures/}}
+
+% Body size for the whole appendix: \footnotesize (10pt/12pt) against the 12pt
+% body. Closed by the matching \endgroup at the very end of this file -- without
+% the group it would leak into BackCover/backcover.tex, which is \input right
+% after this chapter. Three things do NOT follow it, by design: the \section
+% headings (\Large etc. are absolute sizes, so the hierarchy is unchanged), the
+% code listings (report-idris.tex pins basicstyle to \footnotesize\ttfamily) and
+% the catalogue table below, which sets its own \begin{small}.
+\begingroup
+\scriptsize
 %==============================================================================
 % Contents follow the body's promises: A.2 is referenced from Section IV.2
 % (command/query/event catalogue), A.3 from Sections IV.1, IV.7 and IV.9
@@ -432,3 +442,9 @@ build context. The lesson is recorded here because it generalises:
 whatever a build bundles from the repository must be present in the
 image build context, and a bundle that can silently be empty deserves a
 CI assertion.
+
+% \par before \endgroup: the last paragraph has to be broken into lines while
+% \footnotesize's \baselineskip is still in force, or it is set with the body
+% leading.
+\par
+\endgroup
