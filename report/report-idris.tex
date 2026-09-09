@@ -186,14 +186,14 @@
 \EncadrantS {}{Artur}{SUSDORF}   % Gradient Zero company supervisor (CTO)
 
 \Filiere{Software Engineering}
-\datesout{24/09/2026}
+\datesout{XX/09/2026}
 
 % \President and \RapporteurA take TWO arguments (first name, last name); the
 % class appends the "(President)" / "(Reviewer)" role itself. A third argument
 % is not absorbed by the macro and gets typeset at the top of the cover page.
 % TODO: replace with the real jury members once the defence panel is assigned.
-\President  {Aymen}{SELLAOUTI}
-\RapporteurA{Aymen}{SELLAOUTI}
+\President  {X}{X}
+\RapporteurA{Y}{Y}
 
 \AnneeUniv{2025/2026}
 
@@ -216,11 +216,14 @@
 \frontmatter
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[R]{Acknowledgements}
+\fancyhead[R]{Dedication}
 \fancyfoot[R]{\thepage}
 \renewcommand{\headrulewidth}{0.5pt}
 \renewcommand{\footrulewidth}{0pt}
 
+\include{Dedication/dedication}
+
+\fancyhead[R]{Acknowledgements}
 \include{Acknowledgments/acknowledgments}
 
 % --- TOC --------------------------------------------------------------------
