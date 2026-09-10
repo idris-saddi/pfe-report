@@ -1,0 +1,142 @@
+%%==============================================================================
+%% CLMPilot -- INSAT PFE report (English) - PLAGIARISM CHECK VERSION
+%% Contains: General Introduction + Chapter 2-5 + General Conclusion only
+%%==============================================================================
+\documentclass[oneside,12pt]{Classes/aesm_edspia}
+
+% --- Extra packages (encoding/fonts/hyperref/natbib/minitoc come from .cls) --
+\usepackage{amsmath}
+\usepackage{lettrine}
+\usepackage{tabularx}
+% Breakable, non-floating tables (longtable + X columns): used for the
+% page-sized use-case description tables so they sit exactly after the
+% paragraph that introduces them and continue across page breaks.
+\usepackage{xltabular}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{textcomp}
+\usepackage{setspace}
+\usepackage{soul}
+\usepackage[nottoc]{tocbibind}
+\usepackage[leftcaption]{sidecap}
+\usepackage[labelsep=endash,
+            textfont={footnotesize,singlespacing},
+            margin=10pt,
+            format=plain,
+            labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage[Conny]{Classes/fncychap}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{enumitem}
+% --- Arabic support for the trilingual abstract ------------------------------
+\makeatletter
+\let\clm@ltx@begin\begin
+\let\clm@ltx@end\end
+\makeatother
+\usepackage{arabtex}
+\usepackage{utf8}
+\makeatletter
+\let\begin\clm@ltx@begin
+\let\end\clm@ltx@end
+\makeatother
+% Keep figures within the section that introduces them
+\usepackage[section]{placeins}
+% Never place a float BEFORE its position in the source
+\usepackage{flafter}
+% Bar floats at SUBSECTION boundaries too
+\makeatletter
+\let\clm@subsection\subsection
+\renewcommand{\subsection}{\FloatBarrier\clm@subsection}
+\makeatother
+
+% --- Small adjustments ------------------------------------------------------
+\newcommand{\ie}{i.e.~}
+\hbadness=10000
+\hfuzz=50pt
+
+\makeatletter
+\renewcommand{\SC@figure@vpos}{c}
+\renewcommand{\fnum@figure}{\small\textbf{Figure~\thefigure}}
+\renewcommand{\fnum@table}{\small\textbf{Table~\thetable}}
+\renewcommand*{\l@figure}{\@dottedtocline{1}{1.5em}{3.2em}}
+\renewcommand*{\l@table}{\@dottedtocline{1}{1.5em}{3.2em}}
+\makeatother
+
+\def\thechapter{\Roman{chapter}}
+
+% --- Code listings ----------------------------------------------------------
+\lstloadlanguages{xml,java}
+\lstset{
+  basicstyle      = \footnotesize\ttfamily,
+  numberstyle     = \tiny,
+  numbersep       = 5pt,
+  tabsize         = 2,
+  extendedchars   = true,
+  breaklines      = true,
+  keywordstyle    = \color[rgb]{0.43,0,0}\bfseries,
+  frame           = b,
+  commentstyle    = \color[rgb]{0.51,0.51,0.51}\itshape,
+  stringstyle     = \ttfamily\color[rgb]{0,0.44,0},
+  showspaces      = false,
+  showtabs        = false,
+  xleftmargin     = 17pt,
+  framexleftmargin   = 17pt,
+  framexrightmargin  = 5pt,
+  framexbottommargin = 4pt,
+  showstringspaces   = false
+}
+
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFont{black}{\color{black}}
+\DeclareCaptionFormat{listing}{%
+  \colorbox[cmyk]{0.43,0.35,0.35,0.01}{%
+    \parbox{\textwidth}{\hspace{15pt}#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,
+                          labelfont=black,
+                          textfont=white,
+                          singlelinecheck=false,
+                          margin=0pt,
+                          font={bf,footnotesize}}
+
+%%==============================================================================
+\begin{document}
+%%==============================================================================
+\renewcommand\figurename{\small\textbf{Figure}}
+\addtocounter{page}{-1}
+
+\onehalfspacing
+
+\mainmatter
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{General Introduction}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\include{Introduction/introduction}
+
+% Chapter 2: Analysis and Requirements Specification
+\include{Chapter2/chapter2}
+
+% Chapter 3: Architecture and Design
+\include{Chapter3/chapter3}
+
+% Chapter 4: Technical realisation of the platform
+\include{Chapter4/chapter4}
+
+% Chapter 5: The delivered platform
+\include{Chapter5/chapter5}
+
+\backmatter
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\chaptermark}[1]{\markboth{Conclusion and Perspectives}{}}
+\fancyhead[R]{Conclusion and Perspectives}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\include{Conclusion/conclusion}
+
+\end{document}

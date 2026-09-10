@@ -49,6 +49,7 @@
 \usepackage{listings}
 \usepackage{courier}
 \usepackage{enumitem}
+\usepackage{pdfpages}
 % --- Arabic support for the trilingual abstract ------------------------------
 % ArabTeX lets the Arabic abstract be written in real Arabic script while the
 % whole report stays on pdflatex. `\setcode{utf8}` is switched on only around
@@ -201,12 +202,8 @@
 \makethese
 
 % --- Signature page ---------------------------------------------------------
-% The cover repeated with a box per supervisor to sign and date, as in the
-% INSAT model. It must follow \makethese: that macro is what shifts \hoffset
-% for both pages. Placed before \onehalfspacing so it is set solid, like the
-% cover.
-\newpage
-\makesignature
+% Signed by Artur (Gradient Zero CTO) - included as PDF
+\includepdf{ArturSigned.pdf}
 
 \onehalfspacing
 
