@@ -31,7 +31,6 @@ _minted-*/
 report/build/
 
 # Build PDFs (figure PDFs under figures/ subdirs stay tracked)
-*.pdf
 !**/figures/*.pdf
 
 # Editor metadata
