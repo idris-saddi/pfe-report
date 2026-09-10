@@ -1,21 +1,189 @@
-\chapter*{Abstract}
-\addcontentsline{toc}{chapter}{Abstract}
+%==============================================================================
+% Abstract in four languages (English / German / French / Arabic).
+%
+% The Arabic page is typeset with ArabTeX (loaded in report-idris.tex), which
+% keeps the whole report on pdflatex. Two rules apply inside `arabtext`:
+%   * `\setcode{utf8}` must be active so UTF-8 Arabic input is read as Arabic;
+%     it is switched back to `arabtex` afterwards so the rest of the document
+%     is untouched.
+%   * Latin runs (product names, acronyms, URLs) must be wrapped in `\LR{...}`,
+%     otherwise their ASCII letters are read as ArabTeX transliteration.
+% Parentheses are avoided in the Arabic text: ArabTeX does not mirror them for
+% right-to-left, so they would render the wrong way round.
 %==============================================================================
 
-% TODO: ~250-word English abstract.
-% Suggested skeleton:
-%   - 1 sentence on the host company and the domain (Mittelstand CLM).
-%   - 1-2 sentences on the problem (scattered contracts, missed deadlines,
-%     compliance gaps).
-%   - 1-2 sentences on the contribution (CLMPilot platform, release-based
-%     delivery, CQRS+ES on the comby framework).
-%   - 1-2 sentences on the realised scope (Phase 0 + Phase 1 shipped to
-%     production at clmpilot.com).
-%   - 1 sentence on the perspectives (Phase 2 + Phase 3 roadmap).
+\fancyhead[R]{Abstract}
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\begin{spacing}{1.2}
+%==============================================================================
 
-Contract Lifecycle Management (CLM) is \dots
+In the European mid-sized enterprises that form
+the economic backbone of the DACH region (Germany, Austria and Switzerland), contracts are
+still managed by hand, scattered across email inboxes, shared drives and
+filing cabinets. Renewal and cancellation windows pass unnoticed, approvals
+leave no auditable record, and the contract portfolio can be surveyed only
+through a manual exercise that is stale the moment it is finished. This
+happens at a time when GoBD, the European data-protection regulation and
+ISO~27001 all expect business records to be retained immutably and traced to
+an actor and a moment. The Contract Lifecycle Management (CLM) platforms that
+could close this gap are scoped and priced for the large enterprise, or
+require the customer to migrate every document into the vendor's own storage.
+
+This report presents \textbf{CLMPilot}, an integration-first contract
+lifecycle management platform for the DACH \textit{Mittelstand}, designed and
+built during an end-of-studies internship at Gradient~Zero. Its defining
+decision is to manage the lifecycle of a contract (its metadata, deadlines,
+approvals and audit trail) while the document itself stays in the customer's
+own storage, so adoption carries no migration cost. The platform is built on
+\texttt{comby}, an in-house Go framework providing Command-Query
+Responsibility Segregation and Event~Sourcing; that choice makes the
+compliance-grade audit trail a property of the architecture itself rather
+than a bolt-on feature.
 
 \vspace{0.5cm}
 
-\noindent\textbf{Keywords:} Contract Lifecycle Management, CQRS, Event Sourcing,
-Domain-Driven Design, Vue 3, Go, Hetzner.
+\noindent\textbf{Keywords:} Contract Lifecycle Management, CQRS,
+Event Sourcing, Domain-Driven Design, regulation, audit trail, DACH \textit{Mittelstand}.
+
+\end{spacing}
+
+%==============================================================================
+% GERMAN
+%==============================================================================
+\fancyhead[R]{Zusammenfassung}
+\chapter*{Zusammenfassung}
+\begin{spacing}{1.2}
+
+In den mittelständischen Unternehmen, die das wirtschaftliche Rückgrat der
+DACH-Region (Deutschland, Österreich und die Schweiz) bilden, werden Verträge
+nach wie vor von Hand verwaltet und verteilen sich über E-Mail-Postfächer,
+gemeinsame Laufwerke und Aktenschränke. Verlängerungs- und Kündigungsfristen
+verstreichen unbemerkt, Freigaben hinterlassen keine prüfbare Spur, und das
+Vertragsportfolio lässt sich nur durch eine manuelle Erhebung überblicken, die
+bereits veraltet ist, sobald sie abgeschlossen wurde. Dies geschieht zu einer
+Zeit, in der die GoBD, die europäische Datenschutz-Grundverordnung und
+ISO~27001 gleichermaßen verlangen, dass geschäftsrelevante Aufzeichnungen
+unveränderbar aufbewahrt und einem Akteur sowie einem Zeitpunkt zugeordnet
+werden. Die Plattformen für Contract Lifecycle Management (CLM), die diese
+Lücke schließen könnten, sind auf Großunternehmen zugeschnitten und
+entsprechend bepreist, oder sie zwingen den Kunden, sämtliche Dokumente in den
+Speicher des Anbieters zu migrieren.
+
+Dieser Bericht stellt \textbf{CLMPilot} vor, eine integrationsorientierte
+Plattform für das Vertrags-lebenszyklus-Management für den DACH-\textit{Mittelstand},
+die im Rahmen eines Abschlusspraktikums bei Gradient~Zero entworfen und
+umgesetzt wurde. Ihre bestimmende Entscheidung besteht darin, den Lebenszyklus
+eines Vertrags (seine Metadaten, Fristen, Freigaben und Prüfspur) zu verwalten,
+während das Dokument selbst im Speicher des Kunden verbleibt, sodass die
+Einführung keine Migrationskosten verursacht. Die Plattform baut auf
+\texttt{comby} auf, einem internen Go-Framework, das Command-Query
+Responsibility Segregation und Event~Sourcing bereitstellt; diese Entscheidung
+macht die revisionssichere Prüfspur zu einer Eigenschaft der Architektur selbst
+und nicht zu einer nachträglich ergänzten Funktion.
+
+\vspace{0.5cm}
+
+\noindent\textbf{Schlüsselwörter:} Vertragslebenszyklus-Management, CQRS,
+Event Sourcing, Domain-Driven Design, Regulierung, Prüfspur,
+DACH-\textit{Mittelstand}.
+
+\end{spacing}
+
+%==============================================================================
+% FRENCH
+%==============================================================================
+\fancyhead[R]{Résumé}
+\chapter*{Résumé}
+\begin{spacing}{1.2}
+
+Dans les moyennes entreprises qui constituent l'épine dorsale économique de 
+la région DACH (l'Allemagne, l'Autriche
+et la Suisse), les contrats sont encore gérés manuellement et
+dispersés entre boîtes de messagerie, disques partagés et armoires
+d'archives. Les fenêtres de résiliation et de renouvellement passent
+inaperçues, les validations ne laissent aucune trace auditable, et le
+portefeuille contractuel ne peut être recensé que par un exercice manuel,
+périmé dès qu'il est achevé. Or le GoBD, le règlement européen sur la
+protection des données et la norme ISO~27001 exigent désormais que les
+documents d'activité soient conservés de façon immuable et rattachés à un
+acteur et à un instant. Les plateformes de gestion du cycle de vie des
+contrats (CLM) susceptibles de combler ce manque sont dimensionnées et
+tarifées pour les grands comptes, ou imposent au client de migrer l'ensemble
+de ses documents vers le stockage de l'éditeur.
+
+Ce rapport présente \textbf{CLMPilot}, une plateforme de gestion du cycle de
+vie des contrats orientée intégration et destinée au \textit{Mittelstand} de
+la région DACH, conçue et réalisée au cours d'un stage de fin d'études chez
+Gradient~Zero. Le but fondamental de la plateforme est de gérer le cycle de vie du contrat
+(ses métadonnées, ses échéances, ses validations et sa piste d'audit) tandis
+que le document lui-même reste dans le stockage du client : l'adoption
+n'entraîne donc aucun coût de migration. La plateforme repose sur
+\texttt{comby}, un framework Go interne mettant en {\oe}uvre la séparation
+des responsabilités entre commandes et requêtes ainsi que l'\textit{Event
+Sourcing} ; ce choix fait de la piste d'audit conforme aux exigences
+réglementaires une propriété de l'architecture elle-même, et non une
+fonctionnalité ajoutée.
+
+
+\vspace{0.5cm}
+
+\noindent\textbf{Mots-clés :} gestion du cycle de vie des contrats, CQRS,
+Event Sourcing, conception pilotée par le domaine, règlement, piste
+d'audit, \textit{Mittelstand} de la région DACH.
+
+\end{spacing}
+
+%==============================================================================
+% ARABIC
+%==============================================================================
+% `\setcode{utf8}` is switched on here, at the top level and before the
+% heading: inside a `\chapter*` argument that is still read under the default
+% `arabtex` code, `\RL` swallows the title and re-emits it into the body.
+\setcode{utf8}
+\novocalize
+
+\fancyhead[R]{Abstract (Arabic)}
+\chapter*{\RL{ملخص}}
+% ArabTeX's bidirectional line breaker fills a column about 4 lines short of
+% the normal text height, which would push the last block onto a second page.
+\enlargethispage{5\baselineskip}
+\begin{spacing}{1.2}
+
+% One `arabtext` per paragraph: a blank line inside the environment is read as
+% an ordinary space, so paragraphs cannot be separated within a single block.
+\begin{arabtext}
+في الشركات الأوروبية المتوسطة الحجم التي تمثل العمود الفقري لاقتصاد منطقة \LR{DACH}
+(ألمانيا والنمسا وسويسرا)، لا تزال العقود تدار يدويًا وتتوزع بين صناديق البريد
+الإلكتروني والأقراص المشتركة وخزائن الملفات. ونتيجة لذلك، تفوت مواعيد التجديد
+والإلغاء دون ملاحظتها، ولا تترك الموافقات أي أثر قابل للتدقيق، كما تعتري النظرة الشاملة
+على محفظة العقود صعوبة بالغة إذ تتطلب جهدًا يدويًا يفقد صلاحيته بمجرد إنجازه.
+يحدث هذا في وقت تشترط فيه قواعد \LR{GoBD} واللائحة الأوروبية لحماية البيانات ومعيار
+\LR{ISO 27001} حفظ سجلات الأعمال بصورة غير قابلة للتعديل وتتبعها إلى المستخدم
+واللحظة المحددة. أما منصات إدارة دورة حياة العقود (\LR{CLM}) القادرة على سد هذه
+الفجوة، فإما أن تكون مصممة ومسعرة للمؤسسات الكبرى، أو تلزم العميل بترحيل جميع
+وثائقه إلى بيئة التخزين الخاصة بالمزود.
+\end{arabtext}
+
+\begin{arabtext}
+يقدم هذا التقرير منصة \LR{CLMPilot}، وهي منصة لإدارة دورة حياة العقود قائمة
+على أولوية دمج الخصائص والوثائق وموجهة للشركات المتوسطة (\LR{Mittelstand}) في منطقة \LR{DACH}，
+تم تصميمها وتطويرها خلال تدريب نهاية الدراسة في شركة \LR{Gradient Zero}. ويكمن
+الهدف الأساسي للمنصة في إدارة دورة حياة العقد (بياناته الوصفية، وآجاله، وموافقاته،
+وسجل تدقيقه) مع بقاء الوثيقة ذاتها في بيئة التخزين الخاصة بالعميل، مما يلغي تكاليف
+الترحيل عند اعتمادها. تعتمد المنصة على \LR{comby}، وهو إطار عمل داخلي بلغة
+\LR{Go} يطبق نمط فصل مسؤوليات الأوامر والاستعلامات (\LR{CQRS}) ونمط مصادر الأحداث
+(\LR{Event Sourcing})؛ مما يجعل سجل التدقيق المطابق للمتطلبات التنظيمية خاصية أصيلة
+في بنية النظام ذاته وليست مجرد ميزة إضافية.
+\end{arabtext}
+
+\vspace{0.3cm}
+
+\begin{arabtext}
+الكلمات المفتاحية: إدارة دورة حياة العقود، \LR{CQRS}، \LR{Event Sourcing}，
+، التصميم الموجه بالمجال، لوائح تنظيمية، سجل التدقيق، الشركات المتوسطة في منطقة \LR{DACH} .
+\end{arabtext}
+
+\setcode{arabtex}
+
+\end{spacing}

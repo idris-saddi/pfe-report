@@ -1,0 +1,60 @@
+@startuml backend-paths
+'==============================================================================
+' Figure (Chapter IV, Backend service architecture on comby): the realised
+' command path and query path, side by side. Both pass the same authorisation
+' stage at dispatch; commands validate on the aggregate and append events,
+' queries read projections and write nothing.
+' Render:  plantuml -tsvg backend-paths.puml  then  rsvg-convert -f pdf
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 20
+skinparam sequenceMessageAlign center
+
+participant "Generated API\nclient (SPA)" as cli
+participant "REST handler" as api
+participant "Auth\nmiddleware" as auth
+participant "Command bus" as cbus
+participant "Contract\naggregate" as agg
+database "Event store\n(PostgreSQL)" as es
+participant "Query bus" as qbus
+participant "Contract-list\nprojection" as proj
+
+== Command path: update a contract ==
+cli -> api : PATCH /contracts/{id}
+activate api
+api -> auth : resolve session:\nidentity + tenant
+auth -> auth : permission check\n(command name)
+auth -> cbus : dispatch(ContractCommandUpdate)
+activate cbus
+cbus -> agg : validate against current state
+activate agg
+agg -> es : append ContractUpdatedEvent
+es --> agg : ok
+agg --> cbus : ok
+deactivate agg
+cbus --> api : ok
+deactivate cbus
+api --> cli : 200 (patched fields recorded)
+deactivate api
+
+== Query path: list contracts ==
+cli -> api : GET /contracts?status=active
+activate api
+api -> auth : resolve session:\nidentity + tenant
+auth -> auth : permission check\n(query name)
+auth -> qbus : dispatch(ContractQueryList)
+activate qbus
+qbus -> proj : read projection\n(filter, order, page)
+proj --> qbus : result page
+qbus --> api : result page
+deactivate qbus
+api --> cli : 200 (read model only)
+deactivate api
+
+note over auth
+  Authorisation is attached to dispatch:
+  a handler that read a store directly
+  would bypass this stage.
+end note
+@enduml

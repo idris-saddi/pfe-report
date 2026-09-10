@@ -1,0 +1,80 @@
+@startuml usecase-overview
+'==============================================================================
+' Figure (Chapter II): High-level use-case diagram for CLMPilot.
+' Standard use-case arrangement: human actors on the LEFT, one use case per
+' functional area inside the system boundary in the MIDDLE, secondary /
+' external actors (System clock, LLM) on the RIGHT.
+' Colour legend (this diagram contains out-of-scope actors): RED = out of the
+' project's scope (Super Admin + the framework-default User parent);
+' YELLOW = in scope.
+' Render:  make figures   (or: plantuml -tsvg usecase-overview.puml &&
+'          rsvg-convert -f pdf -o usecase-overview.pdf usecase-overview.svg)
+'==============================================================================
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam linetype polyline
+skinparam ranksep 110
+skinparam nodesep 14
+skinparam usecase {
+  BorderColor      #34495E
+  BackgroundColor  #FDFEFE
+  ArrowColor       #5D6D7E
+}
+skinparam actor {
+  BorderColor      #34495E
+}
+
+' ---------------- Human actors (left) ----------------
+actor "Super Admin"   as sa    #E74C3C
+actor "Admin"         as admin #F1C40F
+actor "User"          as user  #E74C3C
+actor "Legal Manager" as lm    #F1C40F
+actor "Approver"      as appr  #F1C40F
+actor "Auditor"       as aud   #F1C40F
+
+' The human roles specialise a common User, inheriting authentication.
+sa    --|> user
+admin --|> user
+lm    --|> user
+appr  --|> user
+aud   --|> user
+
+' ---------------- System boundary: one use case per functional area ----------------
+rectangle "CLMPilot" {
+  usecase "Provision & administer\ntenants"           as UC_tenants
+  usecase "Administer users,\nroles & policies"       as UC_iam
+  usecase "Authenticate\n(password + email OTP)"      as UC_auth
+  usecase "Manage contracts\n& documents"             as UC_contracts
+  usecase "Run approval\nworkflows"                    as UC_approvals
+  usecase "Track deadlines\n& obligations"            as UC_deadlines
+  usecase "View dashboards\n& reports"                as UC_reporting
+  usecase "Audit & reconstruct\nhistory"              as UC_audit
+}
+
+' ---------------- Associations ----------------
+sa    -- UC_tenants
+admin -- UC_iam
+admin -- UC_audit
+user  -- UC_auth
+lm    -- UC_contracts
+lm    -- UC_approvals
+lm    -- UC_deadlines
+lm    -- UC_reporting
+appr  -- UC_approvals
+aud   -- UC_audit
+
+' ---------------- Secondary / external actors (right) ----------------
+actor "System clock"                as clock #F1C40F
+actor "LLM\n(intelligence service)" as llm   #F1C40F
+UC_deadlines -- clock
+UC_contracts -- llm
+
+legend right
+  |<#E74C3C>| Out of project scope |
+  |<#F1C40F>| In project scope |
+endlegend
+
+@enduml

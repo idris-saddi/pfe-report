@@ -1,0 +1,55 @@
+@startuml uc-reporting-audit
+'==============================================================================
+' Detailed use cases: Dashboard & reporting and Audit & compliance.
+' Standard arrangement: actors LEFT, use cases in the boundary MIDDLE.
+' No out-of-scope actor appears here, so no scope colouring (supervisor
+' feedback).
+' Render:  make figures
+'==============================================================================
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam linetype polyline
+skinparam ranksep 110
+skinparam nodesep 20
+skinparam usecase {
+  BorderColor      #34495E
+  BackgroundColor  #FDFEFE
+  ArrowColor       #5D6D7E
+}
+skinparam actor {
+  BorderColor      #34495E
+}
+
+actor "Legal Manager" as lm
+actor "Admin"         as admin
+actor "Auditor"       as aud
+
+rectangle "Dashboard, reporting & audit" {
+  usecase "Generate report"       as UC_report
+  usecase "View dashboard"        as UC_dash
+  usecase "Schedule recurring\nreport" as UC_schedule
+  usecase "Review system\naudit log"   as UC_sysaudit
+  usecase "Read full event log"   as UC_readlog
+  usecase "Export audit trail"    as UC_export
+  usecase "Reconstruct past\ncontract state" as UC_reconstruct
+}
+
+lm    -- UC_report
+lm    -- UC_dash
+admin -- UC_dash
+admin -- UC_sysaudit
+aud   -- UC_readlog
+aud   -- UC_export
+aud   -- UC_reconstruct
+' Base use case on the left; the extending use case sits to its right,
+' with the «extend» arrowhead still pointing at the base (UML standard).
+UC_report <.. UC_schedule : <<extend>>
+
+note left of UC_reconstruct
+  Any past date within the
+  10-year GoBD retention window
+end note
+@enduml

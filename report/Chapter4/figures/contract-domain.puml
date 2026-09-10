@@ -1,0 +1,78 @@
+@startuml contract-domain
+'==============================================================================
+' Figure (Chapter IV, The contract domain and its lifecycle): the realised
+' Contract + DocumentLink model with its events, the per-tenant custom-field
+' definitions the contract validates against, and the provider adapters
+' behind the DocumentStore interface.
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+' Changed from ortho to polyline to fix horizontal text centering and line rendering
+skinparam linetype ortho
+left to right direction
+hide circle
+hide methods
+
+package "Contract context" {
+  class Contract <<aggregate>> {
+    counterparty
+    type, department
+    status : lifecycle
+    value, currency
+    start / end dates
+    renewal terms
+    custom-field values : typed
+    detected clauses
+  }
+  class "Contract events" as CEv <<event>> {
+    Registered / Updated
+    Terminated / Archived / Restored
+    ClausesDetected
+    AuditReportRequested
+  }
+  ' Added extra dashes to make the arrow longer and prevent text overlap
+  Contract .right....> CEv : emits
+}
+
+package "CustomField context" {
+  class CustomFieldDefinition <<aggregate>> {
+    key : immutable
+    type : immutable
+    label, required
+    options, order
+  }
+}
+
+package "DocumentLink context" {
+  class DocumentLink <<aggregate>> {
+    provider
+    external reference
+    file name, MIME type
+    last synchronised
+  }
+  class "DocumentLink events" as DEv <<event>> {
+    Linked / Unlinked
+    MetadataRefreshed
+  }
+  ' Added extra dashes to make the arrow longer and prevent text overlap
+  DocumentLink .right....> DEv : emits
+
+  interface DocumentStore <<interface>>
+  class GoogleDriveAdapter <<adapter>>
+  class SharePointAdapter <<adapter>>
+  class UrlAdapter <<adapter>>
+  DocumentStore <|.. GoogleDriveAdapter
+  DocumentStore <|.. SharePointAdapter
+  DocumentStore <|.. UrlAdapter
+  DocumentLink ....> DocumentStore : metadata at link/refresh
+}
+
+' Explicit right/down positioning keeps the graph clean and wide
+Contract "1" -right- "0..*" DocumentLink
+Contract ....> CustomFieldDefinition : values validated against definitions
+
+note top of DocumentLink
+  A typed reference only: the platform
+  never stores the document's contents.
+end note
+@enduml

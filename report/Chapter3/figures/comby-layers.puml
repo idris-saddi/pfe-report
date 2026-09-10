@@ -1,0 +1,74 @@
+@startuml comby-layers
+'==============================================================================
+' Figure (Chapter III): Layering of CLMPilot on the comby framework.
+' Vertical layer stack: Browser -> custom domains -> comby -> data stores.
+' Layout notes:
+'  - context components are gridded 2x2 with hidden node-to-node edges
+'    (cluster-to-cluster hidden edges do not constrain ranks);
+'  - the REST API sits at the TOP of the comby stack so the browser's HTTPS
+'    edge lands on it directly;
+'  - each data store is wired from the comby component that actually uses
+'    it (node-to-node), which keeps the arrows attached and untangled.
+' Shared look comes from puml-style.iuml (injected by the Makefile).
+' Render:  make figures
+'==============================================================================
+skinparam componentStyle rectangle
+skinparam ranksep 36
+skinparam nodesep 24
+
+package "CLMPilot backend service (Go)" {
+  package "CLMPilot domains (custom)" as custom {
+    package "Core contexts" as corectx {
+      component "Contract" as c1
+      component "Approval" as c2
+      component "Deadline" as c3
+      component "DocumentLink" as c4
+      c1 -[hidden]-> c3
+      c2 -[hidden]-> c4
+    }
+    package "Enterprise contexts" as entctx {
+      component "Signature" as e1
+      component "Obligation" as e2
+      component "CustomField" as e3
+      component "Reporting\n(read-side projections)" as e4
+      e1 -[hidden]-> e3
+      e2 -[hidden]-> e4
+    }
+    component "Cross-cutting: archived-tenant middleware,\nsystem-admin seed reactor" as xcut
+    c3 -[hidden]-> xcut
+    e3 -[hidden]-> xcut
+  }
+  package "comby framework (defaults + core)" as comby {
+    component "Auto-generated REST API (OpenAPI)" as api
+    component "Command bus  /  Query bus" as buses
+    component "Event store  /  projection runner  /  reactors" as core
+    component "Defaults: tenant, account, identity,\ngroup, invitation, asset, webhook" as defaults
+    api   -[hidden]-> buses
+    buses -[hidden]-> core
+    core  -[hidden]-> defaults
+  }
+  ' Anchor comby centred BELOW both context packages (node-level rank
+  ' constraints; cluster-to-cluster hidden edges do not constrain ranks).
+  xcut -[hidden]-> api
+
+  custom --> comby
+}
+
+' ---------------- Data stores: one row below comby --------------------------
+database "Relational DB\n(event / command / data store)" as pg
+queue    "Message broker\n(event distribution)" as nats
+database "Cache DB\n(sessions, cache)" as redis
+database "Object store\n(assets, exports)" as minio
+
+' All 4 stores form one row BELOW the comby stack (rank anchors from its
+' bottom element)…
+defaults -[hidden]-> pg
+defaults -[hidden]-> nats
+' …and each store is wired from the comby component that uses it
+' (node-to-node, so the arrows stay attached and untangled).
+core     --> pg
+core     --> nats
+defaults --> redis
+defaults --> minio
+
+@enduml

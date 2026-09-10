@@ -1,0 +1,54 @@
+@startuml deadline-automation
+'==============================================================================
+' Figure (Chapter IV, Workflow and temporal automation): contract registration
+' fires the deadline-creation reactor; the cron scheduler later promotes due
+' reminder markers and the reminder reactor sends the mail. Grounded in the
+' realised Deadline domain (auto-created deadlines, 90/60/30 markers, hourly
+' CheckDeadlines batch, per-user notification preference).
+' Render:  plantuml -tsvg deadline-automation.puml  then  rsvg-convert -f pdf
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 20
+skinparam sequenceMessageAlign center
+
+queue "Broker (NATS)" as broker
+participant "Deadline-creation\nreactor" as create
+participant "Command bus" as cbus
+participant "Deadline\naggregate" as agg
+database "Event store\n(PostgreSQL)" as es
+participant "Cron scheduler" as cron
+participant "Reminder\nreactor" as remind
+participant "Email sender\n(SendGrid)" as mail
+
+== At contract registration ==
+broker -> create : ContractRegisteredEvent
+activate create
+create -> cbus : dispatch(SetDeadline)
+note right of create
+  Up to three deadlines derived
+  from the record: expiry,
+  cancellation window, renewal.
+  Each carries 90/60/30-day
+  reminder markers.
+end note
+deactivate create
+cbus -> agg : create + validate
+agg -> es : append DeadlineSetEvent
+
+== Every hour, once per tenant ==
+cron -> cbus : dispatch(CheckDeadlines)
+cbus -> agg : promote due reminder markers
+agg -> es : append ReminderSentEvent
+es -> broker : publish
+broker -> remind : ReminderSentEvent
+activate remind
+remind -> remind : recipient opted in?\n(per-user preference)
+remind -> mail : send to responsible person
+deactivate remind
+
+note over create, remind
+  Reactors skip replayed events on restart: a projection
+  rebuild re-sends no email and re-creates no deadline.
+end note
+@enduml

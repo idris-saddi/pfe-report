@@ -1,0 +1,560 @@
+\setcounter{chapter}{4}
+\chapter{The delivered platform}\label{chap:delivered}
+\graphicspath{{Chapter5/figures/}}
+
+%==============================================================================
+%% This chapter is the RESULT half of the realisation: the platform as its
+%% users and operators meet it, walked screen by screen on the pilot's demo
+%% tenant, closing with the measurements the running system produced. It
+%% carries every UI screenshot and the runtime table; the engineering
+%% narrative and all 8 UML views stay in Chapter IV.
+%% Register: what the product does and what the user sees -- never how it is
+%% built. A sentence that explains a mechanism belongs in Chapter IV; here it
+%% simply does not appear here -- and not as a parenthetical
+%% "(Section ...)" pointer either: the walkthrough reads as prose, so a
+%% reader who wants the mechanism goes to Chapter IV on their own.
+%==============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\bfseries\rightmark}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\chaptermark}[1]{\markboth{{\chaptername~\thechapter.\ #1}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection~ #1}}
+
+% --- Screenshot sizing -------------------------------------------------------
+% Every screenshot is a 16:9 desktop capture (3344x1860), so its rendered
+% HEIGHT is what drives pagination: at full width a figure block runs to ~11cm
+% inside a 22cm text block, which means 2 blocks fill a page with no room for
+% prose and the second one is pushed, leaving a large hole at the bottom. The
+% float spacing below is tightened for the same reason. Figures keep [H] so
+% each one stays exactly where its paragraph puts it.
+%
+% One width for every screenshot, so the gallery reads as a single series: a
+% figure printed larger than its neighbours reads as more important, and none
+% of these is. \uiscale is the single knob for the whole chapter.
+\newcommand{\uiscale}{0.68}
+\newcommand{\uishot}[4][]{%
+  \begin{figure}[H]\centering
+    \IfFileExists{Chapter5/figures/ui/#2.png}
+      {{\setlength{\fboxsep}{0pt}\fbox{\includegraphics[width=\uiscale\linewidth]{ui/#2}}}}
+      {\fbox{\parbox{0.88\linewidth}{\centering\vspace{2.2em}
+        \textbf{Screenshot placeholder} --- \texttt{Chapter5/figures/ui/#2.png}\\[0.4em]
+        \textit{To capture (demo tenant): #3}\vspace{2.2em}}}}
+    \ifblank{#1}{\caption{#4}}{\caption[#1]{#4}}
+    \label{fig:#2}
+  \end{figure}}
+
+\begin{spacing}{1.2}
+% Tighter separation around the in-text figures and above their captions, for
+% the same packing reason. These MUST stay inside the spacing environment:
+% \setlength is global, and the environment's group is what keeps the change
+% from leaking into the Conclusion and the Appendix.
+\setlength{\intextsep}{7pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{5pt}
+%==============================================================================
+
+\section*{Introduction}
+% intent: Frame this chapter as the result rather than the mechanism: the
+% platform as its users and operators actually meet it, walked screen by
+% screen on the pilot's demo tenant, closing with the measurements the running
+% system produced. Per the report-wide rule, the chapter intro must not
+% reference other chapters.
+A platform is judged on what it puts in front of the people who use it.
+This chapter walks the delivered CLMPilot platform as its users and its
+operators actually meet it, on the pilot running in
+production at \url{https://clmpilot.com}. The tour opens where a user does, at the sign-in and the dashboard
+that greets them, then goes down into the registry that holds the
+contracts and remembers every change made to them, the settings that
+shape the product around one organisation, and the work it then does on
+that organisation's behalf, before closing on the interface in 2
+languages and the operator's own administration surface. One contract
+carried end to end draws the threads together, and the chapter ends
+with what the running system measured, so that the walkthrough answers
+to recorded values rather than to claims.
+
+%--------------------------------------------------------------------
+\section{Access and onboarding}
+\label{sec:walk-access}
+% intent: Open the walkthrough where a user opens the product: the two-step
+% sign-in. Show the result of the authentication journey without repeating its
+% mechanism.
+
+A user reaches CLMPilot at a single address and signs in through 2
+steps: the credentials first, then a one-time code delivered by email.
+Figure~\ref{fig:ui-login-otp} shows the second of them. Only once the
+code is confirmed does the session begin, and it is renewed quietly
+before it expires, so a working day never ends in an unexpected
+sign-out.
+
+\uishot[Two-step sign-in]{ui-login-otp}
+  {the sign-in page at the second step, where the emailed one-time code
+   is entered.}
+  {Two-step sign-in: the one-time-code confirmation that completes
+   authentication}
+
+A new colleague arrives by invitation instead. The invitation mail is
+written in the language chosen by the person who sent it, and the page
+it opens asks for an explicit click before anything is consumed, so a
+corporate mail scanner cannot burn the single-use token on the
+recipient's behalf. Accepting it costs the new user exactly one code:
+registration and first sign-in complete together, and the user lands
+inside the tenant already authenticated.
+
+%--------------------------------------------------------------------
+\section{Reporting and the dashboard}
+\label{sec:walk-reporting}
+% intent: The landing dashboard and the self-service reporting surface, at
+% portfolio level. Placed directly after the sign-in because the dashboard is
+% the first thing a signed-in user actually sees; the individual contract
+% follows in the next section.
+
+Signing in lands the user on the dashboard, and it is the clearest view
+of what the platform has been doing while nobody was watching.
+Figure~\ref{fig:ui-dashboard} shows it: the portfolio indicators, the
+contracts approaching expiry and the deadlines coming up. None of it is
+compiled by hand: every tile is a query over the read models the
+platform keeps up to date as events arrive.
+
+\uishot[The dashboard]{ui-dashboard}
+  {the dashboard after login: KPI tiles, the expiring-contracts list
+   and the deadline overview.}
+  {The dashboard, with the main metrics}
+
+The tiles answer the questions everybody asks; the questions one
+organisation asks are its own, so the user can also build the report.
+Figure~\ref{fig:ui-report-builder} shows the report builder: the user
+chooses the columns, the grouping and the chart, sees the result
+immediately, saves the configuration under their own name and, if the
+report is one they need regularly, schedules it as a recurring export
+delivered by email. The available measures include portfolio value,
+per-department and per-counterparty rollups, and a risk score.
+
+\uishot[The report builder]{ui-report-builder}
+  {the report builder with columns, a grouping and a chart type
+   selected, and the rendered chart visible.}
+  {The report builder on the demo tenant}
+
+%--------------------------------------------------------------------
+\section{The contract registry and its audit trail}
+\label{sec:walk-registry}
+% intent: The core of the product as the user sees it -- the filterable
+% registry and the per-contract event history.
+
+Every tile and every column of those 2 views resolves to the same
+place, and that is where the working day is actually spent: the
+registry that holds the contracts themselves.
+Figure~\ref{fig:ui-contract-list} shows it as the demo tenant's users
+see it: every contract of the organisation in one filterable listing,
+with a free-text search across the descriptive fields and filters on
+department, category, status and counterparty. Opening a record gives
+the business metadata, the status, the linked document, the deadlines
+derived from it and the people involved.
+
+\uishot[The contract registry]{ui-contract-list}
+  {the contract registry with the filter bar and the free-text search
+   active (e.g.\ filtered to one department).}
+  {The contract registry}
+
+Every record carries its own history, and the platform shows it without
+interpretation. Figure~\ref{fig:ui-audit-trail} shows the audit-log tab
+of a contract: each entry names the actor, the moment and what changed.
+Nothing in the interface can remove an entry, because nothing in the
+platform can; a deletion is recorded as one more event. The same
+history is available as an
+exportable file for an auditor who needs it outside the application, and
+it is served only to a user who may already read the contract itself.
+
+\uishot[The audit-log view of a contract]{ui-audit-trail}
+  {a contract's audit-log tab showing the event list with actor,
+   timestamp and payload of each entry.}
+  {The audit-log view of a contract}
+
+%--------------------------------------------------------------------
+\section{Fitting the platform to the organisation}
+\label{sec:walk-config}
+% intent: What a tenant administrator configures -- custom fields and the
+% document-provider connections. Both are the visible half of Phase-2 work.
+
+No 2 legal departments track the same attributes, so the contract form
+is only partly fixed. A tenant administrator defines the fields that
+matter to the organisation, choosing a type for each, and the form grows
+accordingly: Figure~\ref{fig:ui-contract-form-custom-fields} shows the
+fixed fields followed by the tenant's own, one widget per definition,
+with the date pickers, numeric inputs and selection lists that each type
+implies. 
+
+\uishot[The contract form with custom fields]{ui-contract-form-custom-fields}
+  {the contract form of the demo tenant, scrolled to the
+   tenant-defined custom fields so the data-driven widgets are
+   visible.}
+  {The contract form: fixed fields followed by the tenant's typed
+   custom fields}
+
+The second piece of configuration connects the organisation's own
+document storage. Figure~\ref{fig:ui-settings-integrations} shows the
+integrations area, where an administrator authorises CLMPilot against
+Google~Drive or SharePoint once and for the whole tenant.
+
+\uishot[The integrations settings of a tenant]{ui-settings-integrations}
+  {the Settings page, Integrations tab, with the Google Drive card in
+   the Connected state.}
+  {The integrations settings of a tenant administrator: the per-tenant
+   OAuth connections behind the \texttt{DocumentStore} adapters.}
+
+%--------------------------------------------------------------------
+\section{Approvals, deadlines and obligations}
+\label{sec:walk-workflow}
+% intent: The three time/workflow contexts as the user experiences them: an
+% inbox, a horizon of dates, a list of owned tasks.
+
+A contract that needs review before it takes effect carries an approval
+chain, and each approver meets it as an inbox.
+Figure~\ref{fig:ui-approval-inbox} shows that inbox: the steps waiting
+on this user, in the order the chain defines. An approver acts only on
+their own step, and a single rejection ends the chain for everybody. When
+the last approver signs off, the contract becomes active without anyone
+having to remember to activate it.
+
+\uishot[The approval inbox]{ui-approval-inbox}
+  {the approval inbox of a user with at least one pending step; one
+   workflow expanded to show the ordered steps.}
+  {The approval inbox: ordered steps, each awaiting its designated
+   approver.}
+
+Deadlines are the part of the product that works while nobody is
+watching. Registering a contract is enough to create them: the expiry,
+the cancellation window computed back from the notice period, and the
+renewal date when the contract renews itself, each with reminders at 90,
+60 and 30 days. Figure~\ref{fig:ui-deadline-timeline} shows the result:
+the horizon of what is coming, with the reminders that will announce it.
+A deadline a user has edited is left alone by the automation, and
+reminder mail is sent only to users who asked for it.
+
+\uishot[The deadline view]{ui-deadline-timeline}
+  {the deadline view with upcoming deadlines and reminder markers (90,
+   60, 30 days) visible.}
+  {The deadline view: automation-created markers with their reminder}
+
+Obligations answer a different question: not what date is approaching,
+but what somebody has to do. Figure~\ref{fig:ui-obligations} shows one
+recurring commitment with its occurrences. A user creates the
+obligation, owns it and completes it; completing a recurring one makes
+the next occurrence appear straight away, on the calendar day the
+original set, and never in the past. The reminders sit closer, at 14, 7
+and 1 days, because operational tasks have shorter warning than contract
+dates.
+
+\uishot[Obligation tracking]{ui-obligations}
+  {the obligation view with a recurring obligation and its
+   completed/upcoming occurrences.}
+  {Obligation tracking: person-owned recurring tasks with the shorter
+   14/7/1-day reminder}
+
+%--------------------------------------------------------------------
+\section{Reading and signing the document}
+\label{sec:walk-intel}
+% intent: The two Phase-2 enterprise subsystems as a user meets them: the
+% enrichment review UX and the signature panel.
+
+Linking a document changes what the record knows about itself. Within a
+few seconds of the link, the platform has read the document and proposes
+what it found: the counterparty, the dates, the value, the contract type
+and the clauses it could quote.
+Figure~\ref{fig:ui-enrichment-review} shows those suggestions on a
+contract overview.
+
+\uishot[Enrichment suggestions on a contract]{ui-enrichment-review}
+  {a contract overview right after linking a document, with the
+   intelligence suggestions shown per field and the accept / edit /
+   undo controls visible.}
+  {Enrichment suggestions on a contract of the demo tenant}
+
+The same document can be sent for signature without leaving the
+contract. Figure~\ref{fig:ui-esign-status} shows the signature panel of
+a request in progress: the signers in the order they will be asked, and
+where each one stands. The panel updates itself as the provider reports
+progress; nobody has to refresh a status by hand. When the last signer
+finishes, the executed document comes back and attaches itself to the
+contract as an ordinary link, so it enters the same audit trail as
+everything else, and a contract still in draft becomes active on the
+spot.
+
+\uishot[The signature request on a contract]{ui-esign-status}
+  {a contract's signature panel with a request in progress}
+  {The signature request on a contract}
+
+%--------------------------------------------------------------------
+\section{The product in 2 languages}
+\label{sec:walk-i18n}
+% intent: Internationalisation as a delivered property, shown through the
+% bundled help area -- the one screen that proves the docs ship with the code.
+
+The platform is delivered in English and German, and the choice follows
+the user rather than the browser: it is stored on the identity, so it
+holds across devices, and it travels with the notifications the platform
+sends, so each recipient reads their own language. Dates, numbers and
+currencies follow the same locale, including the day-first date ordering
+the European users of the English interface expect.
+
+The user documentation is delivered the same way. It is not a separate
+site to be kept in step but a help area inside the application, built
+from the documentation sources at the same time as the code and shipped
+in both languages. Figure~\ref{fig:ui-help-de} shows it in German. A
+user who upgrades therefore never reads documentation for a version they
+are not running.
+
+\vspace{1cm}
+
+\uishot[The bundled help area in German]{ui-help-de}
+  {the in-app help area in the German locale, to show the bundled
+   bilingual documentation.}
+  {The bundled help area in German}
+
+%--------------------------------------------------------------------
+\section{The platform from the operator's side}
+\label{sec:walk-admin}
+% intent: The cross-tenant administration area -- the one surface that is not
+% part of any customer tenant.
+
+One surface of the platform belongs to nobody's tenant.
+Figure~\ref{fig:ui-admin-tenants} shows the cross-tenant administration
+area, reachable only by the platform's own operators: the provisioned
+organisations, the action that creates a new one, and the archival that
+ends a subscription. Provisioning a tenant from here creates the
+organisation, waits for its role groups to be in place and sends the
+first administrator their invitation, after which the customer
+administers themselves. Archiving is not a deletion --- the tenant's
+history stays intact and its users meet an explicit end-of-service
+screen.
+
+\uishot[The cross-tenant administration area]{ui-admin-tenants}
+  {the cross-tenant administration area listing the provisioned tenants
+   (demo tenants visible), with the provision-tenant action shown ---
+   captured from a system-tenant operator account.}
+  {The cross-tenant administration area}
+\vspace{1cm}
+
+%--------------------------------------------------------------------
+\section{Measured performance in production}
+\label{sec:runtime-perf}
+% intent: Close the chapter with evidence, in 3 subsections: where the numbers
+% come from, what the week measured, and how that compares with the budget. The framework's in-process
+% instrumentation at the dispatch chokepoint; the embedded operator dashboard
+% (figure), deliberately off the public surface; then the analysis of one
+% production window -- traffic mix dominated by the temporal automation,
+% read-path costs orders of magnitude inside the Ch II budgets, external
+% round-trips absorbed on the async event path, sub-ms dispatch overhead,
+% zero internal failures, every rejection a rule holding. Numbers were read
+% off the pilot's runtime table on 2026-08-05 (~8 days after the last stack
+% restart); counters accumulate since process start, so a later capture
+% shows the same shape at larger counts.
+
+The chapter closes with measurements from the running pilot: what the
+platform was asked to do over one week of production, how long it took
+and how that compares with the budget set for it.
+
+\subsection{The runtime instrumentation}
+\label{sec:runtime-instrumentation}
+% intent: Where the numbers come from -- the in-process counters at the
+% dispatch chokepoint, and the operator dashboard that reads them.
+
+Since every command, query and event goes through the same dispatch point,
+the framework can count them all: how many succeeded, failed or were
+rejected, how many arrive per second, and for each message type the
+shortest, average and longest handling time. It also records how long
+a message waits between its dispatch and the start of its handler.
+These counters live in the backend's memory and build up from the
+moment the process starts, so they always cover everything that
+happened since the last release, with no extra infrastructure to run.
+
+The backend ships with an operator dashboard that shows these numbers
+live, as charts for the whole system and as a table per message type,
+next to the request traces and the logs. 
+Figure~\ref{fig:ui-comby-metrics} shows it running against the pilot.
+
+\uishot[The runtime metrics dashboard]{ui-comby-metrics}
+  {NOT the demo tenant: the backend operator dashboard
+   (\texttt{/admin/} on the backend itself, via an SSH tunnel to the
+   pilot host), Metrics area, Overview tab --- the three live charts
+   (number per second, average processing times, average latencies)
+   and the per-type entries table visible.}
+  {The runtime metrics dashboard of the backend}
+
+\subsection{Traffic, response times and reliability}
+\label{sec:runtime-measured}
+% intent: The week itself: the mix, dominated by the scheduler, with what users
+% trigger almost all reads; then the cost of each path -- reads near a
+% millisecond, writes around a hundred, the heavy work moved off the request,
+% the one deliberate exception -- and the reliability of the whole run.
+
+The numbers below come from that dashboard, after the pilot had run
+untouched for a little over a week. In that time the backend handled
+5{,}672 messages: 3{,}046 queries of 39 kinds, 2{,}583 commands of 18
+kinds and 43 domain events of 16 kinds. All but 22 of the commands came
+from the scheduler, whose hourly deadline, obligation and report checks
+run once per tenant whether anyone is signed in or not, so what users
+trigger directly is almost entirely reads.
+Table~\ref{tab:runtime-perf} groups representative operations by the
+path they belong to.
+
+\begin{table}[H]
+  \centering
+  \caption[Dispatch measurements from the production pilot.]
+          {Representative dispatch measurements over roughly one week of
+           production: runs, mean and maximum processing time each.}
+  \label{tab:runtime-perf}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{|X|l|r|r|r|}
+    \hline
+    \textbf{Operation} & \textbf{Kind} & \textbf{Runs}
+      & \textbf{Mean} & \textbf{Max} \\
+    \hline\hline
+    \multicolumn{5}{|l|}{\textit{Interactive read path}} \\
+    \hline
+    Contract detail retrieval & Query & 744 & 1.5~ms & 49.9~ms \\
+    \hline
+    Contract registry listing & Query & 21 & 21.7~ms & 36.2~ms \\
+    \hline
+    Per-contract risk scoring & Query & 11 & 2.8~ms & 13.9~ms \\
+    \hline
+    Tenant resolution (per request) & Query & 1{,}030 & 1.6~ms & 10.3~ms \\
+    \hline\hline
+    \multicolumn{5}{|l|}{\textit{Interactive write path}} \\
+    \hline
+    Contract update & Command & 1 & 10.3~ms & 10.3~ms \\
+    \hline
+    Role-group creation & Command & 5 & 14.6~ms & 18.5~ms \\
+    \hline
+    Sign-in credential verification & Command & 2 & 183.6~ms & 205.8~ms \\
+    \hline\hline
+    \multicolumn{5}{|l|}{\textit{Scheduled automation (hourly / nightly, per tenant)}} \\
+    \hline
+    Deadline sweep & Command & 833 & 152.7~ms & 1{,}074.2~ms \\
+    \hline
+    Obligation sweep & Command & 833 & 124.0~ms & 721.7~ms \\
+    \hline
+    Scheduled-report tick & Command & 829 & 32.4~ms & 142.3~ms \\
+    \hline\hline
+    \multicolumn{5}{|l|}{\textit{Asynchronous event handling}} \\
+    \hline
+    Obligation reminder delivered & Event & 9 & 10.6~ms & 19.6~ms \\
+    \hline
+    Invitation e-mail delivered & Event & 1 & 488.0~ms & 488.0~ms \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+The middle chart of the figure sums it up: queries stay near one
+millisecond while commands sit around a hundred. In detail, the
+3{,}046 queries averaged 1.3~ms of processing, the heaviest list
+query 31~ms, and the slowest single query of the whole week took
+52~ms. That is a tenth of the 500~ms search budget set for the platform,
+before the network and the browser add their part. The heavier work runs where nobody is waiting for it. The
+scheduled checks average between 32 and 153~ms, with a worst case
+just over one second, and the slowest events, the invitation and
+approval notifications at about half a second, are e-mails sent
+through the external provider after the user's request has already
+returned. The one visible exception is sign-in, at about 184~ms; that
+is the cost of checking the password, and it is intentional. The
+dispatch layer itself is cheap: on average a command waits 0.3~ms
+between its dispatch and the start of its handler.
+
+Reliability over the same week: no message failed, and the 4
+rejections were correct behaviour, not bugs. They were list requests refused by the access rules. A
+quiet pilot says nothing about heavy load, which stays the job of the
+performance tests, but it does replace the response-time assumptions
+with measured values for every message type the platform uses.
+
+\subsection{Against the non-functional requirements}
+\label{sec:nfr-review}
+% intent: Close the section by setting the delivery against all 7
+% non-functional axes, not performance alone -- one line per axis, gaps
+% included. Every cell is sourced from what the report evidences elsewhere;
+% nothing is claimed here that the delivery does not show.
+
+Table~\ref{tab:nfr-vs-delivered} sets the delivery against each of them.
+
+\begin{table}[H]
+  \centering
+  \caption[The delivery against each non-functional requirement.]
+          {The delivery against each non-functional requirement.}
+  \label{tab:nfr-vs-delivered}
+  \footnotesize
+  \begin{tabularx}{\linewidth}%
+    {|>{\bfseries\raggedright\arraybackslash}p{2.6cm}|X|X
+     |>{\raggedright\arraybackslash}p{1.7cm}|}
+    \hline
+    Requirement & \textbf{Asked for} & \textbf{Delivered}
+      & \textbf{Verdict} \\
+    \hline\hline
+    Security & Transport encryption, data encrypted at rest, every
+      message authorised, a second factor. & TLS~1.2 and 1.3, 2-step
+      sign-in, authorisation on every dispatch; the event store is not
+      encrypted at rest. & Partly met \\
+    \hline
+    Compliance and resi\-dency & EU processing, 10-year immutable
+      retention, erasure of personal data. & EU host and append-only
+      history; no retention policy configured, and erasure from the log
+      unresolved. & Partly met \\
+    \hline
+    Availability and recovery & 99.5\% in business hours, 24-hour
+      recovery point, 4-hour recovery time. & Health probe every
+      5~minutes; a production restore drill finished in under a minute.
+      No availability figure computed yet. & Partly met \\
+    \hline
+    Performance & Page loads under 1~s, search under 500~ms,
+      document-link resolution under 2~s. & 2 orders of magnitude inside
+      the budgets on the server; the browser's share and the store
+      round-trip unmeasured. & Met, server side \\
+    \hline
+    Audit\-ability & Immutable attributed events, no destructive delete,
+      an export, the state as of a past date. & Events, the audit tab and
+      the per-contract export, under the record's own access rules; no
+      as-of-date view. & Partly met \\
+    \hline
+    Internation\-alisation & English and German, locale on the user,
+      time-stamps shown in the user's zone. & Both languages in the
+      interface, the notifications and the help; locale on the identity.
+      & Met \\
+    \hline
+    Maintain\-ability & Narrow stack, conventional commits, 3 test
+      layers, documentation beside the code. & 40 releases with one
+      rollback; lint, tests, build and image on every push, 198 unit
+      tests; help built from the docs. & Met \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+3 gaps carry the most weight: the event store is not encrypted at rest,
+the 10-year retention follows from an append-only log rather than from a
+configured policy, and the probe's record has not yet been turned into
+an availability figure.
+
+%--------------------------------------------------------------------
+\section*{Conclusion}
+% intent: Close the walkthrough and the realisation as a whole, then bridge to
+% the general conclusion. Per the report-wide rule, the conclusion may
+% reference the NEXT chapter only -- here the Conclusion and Perspectives.
+This chapter showed the delivered platform rather than its construction:
+the sign-in that admits a user, the dashboard and the reports that put
+the whole portfolio on one screen, the registry and the audit trail
+behind every record, the configuration that fits the product to an
+organisation, the approvals, deadlines and obligations it then watches
+on that organisation's behalf, the suggestions and the signature
+requests raised on a linked document, the interface in 2 languages with
+its documentation shipped alongside, and the operator's own
+administration surface. The closing measurements complete the
+picture from the other end, replacing the platform's response-time
+assumptions with values recorded for every message type it dispatches,
+and a closing review sets the delivery against each non-functional
+requirement, the unmet ones included.
+
+With the platform realised across 3 phases and shown here as it runs,
+the contribution of this report is complete. The general conclusion that
+follows recaps that contribution and sets out the perspectives for the
+evolution of the event-sourced system beneath the platform.
+
+%==============================================================================
+\end{spacing}

@@ -1,0 +1,304 @@
+%%==============================================================================
+%% CLMPilot -- INSAT PFE report (English).
+%%
+%% Four-chapter TOC (no \part divisions):
+%%   I.   General Context and Project Scope        (Chapter1/)
+%%   II.  Analysis and Requirements Specification  (Chapter2/)
+%%   III. Architecture and Design                  (Chapter3/)
+%%   IV.  Realisation of the CLMPilot platform  (Chapter4/, Phases 0-2 by theme)
+%% Chapter V (improvements in the event-sourced system) was dropped as a
+%% standalone chapter on 2026-08-04 and its folder deleted: the work will not
+%% be continued, so its material moves into the Perspectives half of the
+%% general conclusion, backed by the comby framework audit
+%% (planning-doc/AUDIT.md). The \part divisions were removed at the same time.
+%% The earlier per-phase chapters (Phase 0/1/2/3) are retired and removed.
+%% See outline.md in this folder for the rationale and section breakdown.
+%%
+%% Build:
+%%   pdflatex report
+%%   bibtex   report
+%%   pdflatex report
+%%   pdflatex report
+%%
+%% Or simply:  latexmk -pdf report-idris.tex
+%%==============================================================================
+\documentclass[oneside,12pt]{Classes/aesm_edspia}
+
+% --- Extra packages (encoding/fonts/hyperref/natbib/minitoc come from .cls) --
+\usepackage{amsmath}
+\usepackage{lettrine}
+\usepackage{tabularx}
+% Breakable, non-floating tables (longtable + X columns): used for the
+% page-sized use-case description tables so they sit exactly after the
+% paragraph that introduces them and continue across page breaks.
+\usepackage{xltabular}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{textcomp}
+\usepackage{setspace}
+\usepackage{soul}
+\usepackage[nottoc]{tocbibind}
+\usepackage[leftcaption]{sidecap}
+\usepackage[labelsep=endash,
+            textfont={footnotesize,singlespacing},
+            margin=10pt,
+            format=plain,
+            labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage[Conny]{Classes/fncychap}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{enumitem}
+% --- Arabic support for the trilingual abstract ------------------------------
+% ArabTeX lets the Arabic abstract be written in real Arabic script while the
+% whole report stays on pdflatex. `\setcode{utf8}` is switched on only around
+% the Arabic text (see Abstract/abstract.tex) and switched back afterwards, so
+% the accented Latin text of the rest of the report is untouched.
+%
+% ArabTeX overwrites \begin and \end with a copy of the pre-2020 LaTeX
+% kernel's versions. That copy runs \begin{document} inside a group, so every
+% package that loads another one from an \AtBeginDocument hook (backref via
+% hyperref, epstopdf-base via graphicx, ragged2e via caption) fails with
+% "Loading a class or package in a group" and its definitions are lost when
+% the group closes. LaTeX's own \begin/\end are therefore saved here and put
+% back after ArabTeX is loaded; \begin{arabtext} still works, because
+% arabtext/endarabtext are ordinary macros that the standard \begin finds.
+\makeatletter
+\let\clm@ltx@begin\begin
+\let\clm@ltx@end\end
+\makeatother
+\usepackage{arabtex}
+\usepackage{utf8}
+\makeatletter
+\let\begin\clm@ltx@begin
+\let\end\clm@ltx@end
+\makeatother
+% Keep figures within the section that introduces them (stops floats from
+% drifting to the end of the chapter, away from their referencing text).
+\usepackage[section]{placeins}
+% Never place a float BEFORE its position in the source: figures appear in
+% reading order, at or after the paragraph that introduces them.
+\usepackage{flafter}
+% Bar floats at SUBSECTION boundaries too: a figure may never drift past the
+% next \subsection heading into content it does not belong to.
+\makeatletter
+\let\clm@subsection\subsection
+\renewcommand{\subsection}{\FloatBarrier\clm@subsection}
+\makeatother
+
+% --- Small adjustments ------------------------------------------------------
+\newcommand{\ie}{i.e.~}
+\hbadness=10000
+\hfuzz=50pt
+
+% Sections number as <Chapter>.<section> (e.g. II.3, III.4.1 for
+% subsections) so cross-references carry the chapter, per supervisor
+% feedback. This is the book-class default; do not override \thesection.
+\makeatletter
+\renewcommand{\SC@figure@vpos}{c}
+\renewcommand{\fnum@figure}{\small\textbf{Figure~\thefigure}}
+\renewcommand{\fnum@table}{\small\textbf{Table~\thetable}}
+% Widen the number column of the figure/table lists: the book-class
+% default (2.3em) is too narrow for two-digit numbers like III.10, whose
+% titles would otherwise start flush against the number.
+\renewcommand*{\l@figure}{\@dottedtocline{1}{1.5em}{3.2em}}
+\renewcommand*{\l@table}{\@dottedtocline{1}{1.5em}{3.2em}}
+\makeatother
+
+\def\thechapter{\Roman{chapter}}
+
+% --- Code listings ----------------------------------------------------------
+\lstloadlanguages{xml,java}
+\lstset{
+  basicstyle      = \footnotesize\ttfamily,
+  numberstyle     = \tiny,
+  numbersep       = 5pt,
+  tabsize         = 2,
+  extendedchars   = true,
+  breaklines      = true,
+  keywordstyle    = \color[rgb]{0.43,0,0}\bfseries,
+  frame           = b,
+  commentstyle    = \color[rgb]{0.51,0.51,0.51}\itshape,
+  stringstyle     = \ttfamily\color[rgb]{0,0.44,0},
+  showspaces      = false,
+  showtabs        = false,
+  xleftmargin     = 17pt,
+  framexleftmargin   = 17pt,
+  framexrightmargin  = 5pt,
+  framexbottommargin = 4pt,
+  showstringspaces   = false
+}
+
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFont{black}{\color{black}}
+\DeclareCaptionFormat{listing}{%
+  \colorbox[cmyk]{0.43,0.35,0.35,0.01}{%
+    \parbox{\textwidth}{\hspace{15pt}#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,
+                          labelfont=black,
+                          textfont=white,
+                          singlelinecheck=false,
+                          margin=0pt,
+                          font={bf,footnotesize}}
+
+%%==============================================================================
+\begin{document}
+%%==============================================================================
+\renewcommand\figurename{\small\textbf{Figure}}
+\addtocounter{page}{-1}
+
+% --- Cover-page banner ------------------------------------------------------
+% The class draws the official INSAT banner itself (\CoverHeader): INSAT seal
+% left, ministerial address block centred, Carthage University seal right.
+% Override \CoverLogoLeft / \CoverLogoRight / \CoverInstitution here to swap
+% a logo or add a line -- nothing to do while the standard banner is wanted.
+
+% --- Host company logo ------------------------------------------------------
+% Gradient Zero hosted the internship, so its G0 mark goes under "Hosted by"
+% on the cover. gzero.svg is the tracked vector source; the Makefile converts
+% it to gzero.pdf, which is what \includegraphics embeds (extension omitted so
+% the .pdf is picked up by \DeclareGraphicsExtensions). The mark is square, so
+% its height is what drives the cover's vertical budget -- see the comment on
+% \CoverHostBlock in the class before enlarging it. gzero.svg is cropped to the
+% glyphs, so this height is the height of the G0 itself.
+\renewcommand{\CoverHostLogos}{\includegraphics[height=1.9cm]{gzero}}
+
+% --- Cover-page metadata ----------------------------------------------------
+% The class prints one \AUTEURS line per author slot A-D; with a single author
+% the three unused slots come out as empty bold lines, leaving a big hole
+% between the name and the supervisor block. Only slot A is printed here, with
+% no trailing \\ -- the class already ends the line itself, and a second \\
+% raises "There's no line here to end".
+\renewcommand{\AUTEURS}{{\Large\textbf{\AUTEURA}}}
+% \ENCADRANT/\JURY names are "<title> <first> <last>"; with no honorific the
+% leading \  put a stray space in front of every name. Drop the title slot.
+\renewcommand{\ENCADRANT}{\ENCn\ \ENCp}
+\renewcommand{\ENCADRANTSoc}{\ENCSn\ \ENCSp}
+
+\TitreProjet{CLMPilot: an integration-first
+              Contract Lifecycle Management
+              platform, built on a CQRS and
+              Event Sourcing Architecture}
+
+\AuteurA{Idris}{SADDI}
+
+\Encadrant {}{Aymen}{SELLAOUTI}  % INSAT academic supervisor
+\EncadrantS {}{Artur}{SUSDORF}   % Gradient Zero company supervisor (CTO)
+
+\Filiere{Software Engineering}
+\datesout{XX/09/2026}
+
+% \President and \RapporteurA take TWO arguments (first name, last name); the
+% class appends the "(President)" / "(Reviewer)" role itself. A third argument
+% is not absorbed by the macro and gets typeset at the top of the cover page.
+% TODO: replace with the real jury members once the defence panel is assigned.
+\President  {X}{X}
+\RapporteurA{Y}{Y}
+
+\AnneeUniv{2025/2026}
+
+%%==============================================================================
+\makethese
+
+% --- Signature page ---------------------------------------------------------
+% The cover repeated with a box per supervisor to sign and date, as in the
+% INSAT model. It must follow \makethese: that macro is what shifts \hoffset
+% for both pages. Placed before \onehalfspacing so it is set solid, like the
+% cover.
+\newpage
+\makesignature
+
+\onehalfspacing
+
+\newpage\thispagestyle{empty}\addtocounter{page}{-3}
+\null\newpage\thispagestyle{empty}
+
+\frontmatter
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{Dedication}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\include{Dedication/dedication}
+
+\fancyhead[R]{Acknowledgements}
+\include{Acknowledgments/acknowledgments}
+
+% --- TOC --------------------------------------------------------------------
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\renewcommand{\contentsname}{Table of Contents}
+
+\dominitoc
+\nomtcrule
+\renewcommand{\mtctitle}{Summary}
+
+\tableofcontents
+
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyhead[R]{Table of Contents}
+
+% --- List of figures --------------------------------------------------------
+\makeatletter
+\@addtoreset{figure}{chapter}
+\makeatother
+
+\renewcommand\listfigurename{List of Figures}
+\listoffigures \mtcaddchapter
+\fancyhead[R]{List of Figures}
+\newpage
+
+% --- List of tables ---------------------------------------------------------
+\renewcommand\listtablename{List of Tables}
+\listoftables \mtcaddchapter
+\fancyhead[R]{List of Tables}
+
+% --- Abstract ---------------------------------------------------------------
+\include{Abstract/abstract}
+
+%%==============================================================================
+\mainmatter
+\pagestyle{fancy}
+\fancyhead[R]{General Introduction}
+\include{Introduction/introduction}
+\fancyhf{}
+\fancyhead[R]{General Introduction}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\include{Chapter1/chapter1}   % I.   General Context and Project Scope
+\include{Chapter2/chapter2}   % II.  Analysis and Requirements Specification
+\include{Chapter3/chapter3}   % III. Architecture and Design
+\include{Chapter4/chapter4}   % IV.  Technical realisation of the platform (mechanism)
+\include{Chapter5/chapter5}   % V.   The delivered platform (walkthrough + measurements)
+
+\backmatter
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\chaptermark}[1]{\markboth{Conclusion and Perspectives}{}}
+\fancyhead[R]{Conclusion and Perspectives}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\include{Conclusion/conclusion}
+
+\bibliographystyle{Bibliography/unsrt_modif}
+\singlespacing
+\renewcommand{\bibname}{References}
+\bibliography{Bibliography/references}
+
+\onehalfspacing
+\appendix
+\include{Appendix1/appendix1}
+
+% --- Back cover ("page de garde verso"): five-line summaries, INSAT format ---
+% \input, not \include: \include's trailing \clearpage adds a blank page after
+% what has to be the physically last page of the report.
+\input{BackCover/backcover}
+
+\end{document}

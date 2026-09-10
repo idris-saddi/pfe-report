@@ -1,0 +1,59 @@
+@startuml security-pipeline
+'==============================================================================
+' Figure (Chapter III, Security): the request security pipeline.
+' The caller lifeline is the Browser, not "User" (supervisor feedback): what
+' talks to the edge is the user agent carrying the session cookie.
+' How comby secures a request -- authentication is established once at the edge
+' from the session, then every command or query is authorised at dispatch,
+' within the caller's tenant, before any domain code runs. Two outcomes are
+' shown: the authorised path, and refusal at the boundary.
+' Render:  plantuml -tpdf security-pipeline.puml   (or -tpng)
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 20
+skinparam sequenceMessageAlign center
+
+participant "Browser"                            as user
+participant "Reverse proxy\n(TLS edge)"          as edge
+participant "Authentication\nmiddleware (comby)" as authn
+participant "Identity & access\nread model"      as arm
+participant "Command/query\ndispatcher"          as disp
+participant "Authorization\nmiddleware (comby)"  as authz
+participant "Domain handler\n(CLMPilot)"         as domain
+
+== Establish identity (once, at the edge) ==
+user -> edge  : HTTPS request + session cookie
+activate edge
+edge -> authn : forward over the internal network
+activate authn
+authn -> arm  : resolve session
+arm --> authn : account, identity, tenant\n(or none)
+alt missing or expired session
+  authn --> user : 401 Unauthorised
+end
+note right of authn
+  The tenant context comes from
+  the session, never from the client.
+end note
+
+== Authorise (on every dispatch) ==
+authn -> disp : dispatch(command / query)\n+ request context
+activate disp
+disp -> authz : check permission, within tenant
+activate authz
+authz -> arm  : caller's groups -> permissions
+arm --> authz : permission set
+alt authorised within tenant
+  authz -> domain : handle
+  activate domain
+  domain --> user : 200 / 201
+  deactivate domain
+else not permitted, or cross-tenant
+  authz --> user : 403 Forbidden
+end
+deactivate authz
+deactivate disp
+deactivate authn
+deactivate edge
+@enduml

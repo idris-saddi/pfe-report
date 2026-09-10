@@ -1,0 +1,115 @@
+%==============================================================================
+% Back cover ("page de garde verso") -- the last page of the report.
+%
+% Adapted from the INSAT template in `_Modele PFE old FR/page de garde
+% verso/PageGardeVerso.tex`. Three deliberate departures from that template:
+%   * The template is a standalone document that loads babel with the arabic
+%     option; this report has no babel and typesets Arabic with ArabTeX, so the
+%     Arabic block follows the same rules as Abstract/abstract.tex --
+%     `\setcode{utf8}` around the block, `\LR{...}` around every Latin run, and
+%     no parentheses (ArabTeX does not mirror them for right-to-left).
+%   * Order is English / French / Arabic, matching the order the abstracts are
+%     presented in this report; the old French template led with Arabic.
+%   * The three blocks and the logo sit in one \textheight-tall box. A plain
+%     \vfill lets the logo drift onto a second page as soon as the summaries
+%     grow; the fixed-height box turns that into an "Overfull \vbox" warning at
+%     build time instead, which is what keeps this a single page.
+% Each summary is capped at five lines, as the template requires -- check the
+% rendered page, not the source, after any edit.
+%
+% This is \input rather than \include on purpose: \include appends a \clearpage
+% that ships an extra blank page after the back cover.
+%==============================================================================
+
+\clearpage
+
+% Bare page: no header, no page number, only the institute footer.
+\fancypagestyle{backcover}{%
+  \fancyhf{}%
+  \large\centering\textbf{CLMPilot: an integration-first Contract Lifecycle Management platform, built on a CQRS and Event Sourcing Architecture}
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{1pt}%
+}
+\thispagestyle{backcover}
+
+\begingroup
+\setlength{\parindent}{0pt}
+\singlespacing
+% Body size of all three summaries -- the one knob to turn. Larger sizes cost
+% lines: the five-line cap needs the text trimmed to match.
+\newcommand{\bcbodysize}{\fontsize{12}{14.5}\selectfont}
+% This page prints no running header, so reclaim the ~2 cm band reserved for
+% one: without this the first rule starts that much lower than in the INSAT
+% template, which zeroes \headheight and \headsep on the back cover.
+\vspace*{-\dimexpr\headheight+\headsep\relax}
+% Height is three lines short of the reclaimed text height. The box sits on a
+% paragraph line, so a full-height box overflows by its own leading; the
+% leftover then ships as a blank page *after* the back cover, which must stay
+% physically last.
+\noindent\begin{minipage}[t][\dimexpr\textheight+\headheight+\headsep-4\baselineskip\relax][s]{\textwidth}
+
+%------------------------------------------------------------------ ENGLISH ---
+\rule{\textwidth}{1pt}\\[0.3cm]
+\textbf{Abstract}\\[0.25cm]
+{\bcbodysize
+Mid-sized DACH enterprises manage contracts by hand: deadlines pass unnoticed,
+approvals leave no auditable record, and GoBD, GDPR and ISO~27001 demand
+immutable records. \textbf{CLMPilot} is an integration-first CLM platform for
+the DACH \textit{Mittelstand}: it owns metadata, deadlines, approvals and audit
+trail; the document stays in the customer's storage.
+Built on \texttt{comby}, an in-house Go CQRS and Event~Sourcing framework, its
+audit trail is architectural.
+\\[0.25cm]
+\textbf{Keywords:} Contract Lifecycle Management, CQRS, Event Sourcing,
+DACH \textit{Mittelstand}.\par}
+
+\vfill
+
+%------------------------------------------------------------------- FRENCH ---
+\rule{\textwidth}{1pt}\\[0.3cm]
+\textbf{Résumé}\\[0.25cm]
+{\bcbodysize
+Les moyennes entreprises du DACH gèrent leurs contrats à la main : les échéances
+passent inaperçues, les validations ne laissent nulle trace, quand le GoBD, le
+RGPD et l'ISO~27001 imposent l'immuabilité. \textbf{CLMPilot} est
+une plateforme CLM orientée intégration pour le \textit{Mittelstand} : elle
+gère métadonnées, échéances, validations et audit ; le document reste chez le
+client. Bâtie sur \texttt{comby}, framework Go interne CQRS/\textit{Event
+Sourcing}, l'audit est architectural.
+\\[0.25cm]
+\textbf{Mots-clés :} gestion du cycle de vie des contrats, CQRS, Event
+Sourcing, piste d'audit.\par}
+
+\vfill
+
+%------------------------------------------------------------------- ARABIC ---
+\setcode{utf8}
+\novocalize
+\rule{\textwidth}{1pt}\\[0.3cm]
+% \mbox: without it ArabTeX justifies the heading across the full column and
+% stretches the letters with kashida.
+{\raggedleft\textbf{\mbox{\RL{ملخص}}}\par}\vspace{0.25cm}
+{\bcbodysize
+\begin{arabtext}
+تدير الشركات المتوسطة في \LR{DACH} عقودها يدويًا، فتفوت مواعيد التجديد ولا تترك
+الموافقات أثرًا قابلًا للتدقيق، بينما تشترط \LR{GoBD} واللائحة الأوروبية لحماية
+البيانات ومعيار \LR{ISO 27001} سجلات غير قابلة للتعديل ومنسوبة. و\LR{CLMPilot}
+منصة لإدارة دورة حياة العقود قائمة على أولوية الدمج، تدير البيانات الوصفية
+والآجال والموافقات وسجل التدقيق مع بقاء الوثيقة لدى العميل، وتعتمد على
+\LR{comby}، وهو إطار داخلي بلغة \LR{Go} يطبق \LR{CQRS} ومصادر الأحداث، فيغدو سجل
+التدقيق خاصية أصيلة في النظام.
+\end{arabtext}
+\vspace{0.25cm}
+\begin{arabtext}
+الكلمات المفتاحية: إدارة دورة حياة العقود، \LR{CQRS}، \LR{Event Sourcing}، سجل التدقيق.
+\end{arabtext}\par}
+\setcode{arabtex}
+
+\vfill
+
+\begin{center}
+\includegraphics[width=4cm]{insat.jpg}
+\end{center}
+
+\end{minipage}
+\endgroup

@@ -1,0 +1,44 @@
+@startuml uc-identity
+'==============================================================================
+' Detailed use cases: Identity & access administration.
+' Standard arrangement: actor LEFT, use cases in the boundary MIDDLE.
+' The authentication cases shared by every role live in uc-authentication;
+' this diagram keeps the Admin-side administration cases. No out-of-scope
+' actor appears here, so no scope colouring (supervisor feedback).
+' Render:  make figures
+'==============================================================================
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam linetype polyline
+skinparam ranksep 110
+skinparam nodesep 20
+skinparam usecase {
+  BorderColor      #34495E
+  BackgroundColor  #FDFEFE
+  ArrowColor       #5D6D7E
+}
+skinparam actor {
+  BorderColor      #34495E
+}
+
+actor "Admin" as admin
+
+rectangle "Identity & access administration" {
+  usecase "Provision /\ndecommission user" as UC_users
+  usecase "Invite user"                   as UC_invite
+  usecase "Assign roles"                  as UC_roles
+  usecase "Revoke access"                 as UC_revoke
+  usecase "Configure organisation-\nwide policies" as UC_policy
+  usecase "Define per-tenant\ncustom fields"  as UC_custom
+}
+
+admin -- UC_users
+admin -- UC_invite
+admin -- UC_roles
+admin -- UC_revoke
+admin -- UC_policy
+admin -- UC_custom
+@enduml

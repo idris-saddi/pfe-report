@@ -1,0 +1,49 @@
+@startuml spa-structure
+'==============================================================================
+' Figure (Chapter IV, The web application): package structure of the SPA.
+' Pages and components render; composables package reusable view logic;
+' Pinia stores own client state and every server call; the generated OpenAPI
+' client is the single integration point with the backend.
+' Render:  plantuml -tsvg spa-structure.puml  then  rsvg-convert -f pdf
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+skinparam ranksep 28
+skinparam nodesep 22
+
+package "Single-page application (Vue 3 + Quasar)" {
+  [pages] as pages
+  [components] as comps
+  [composables\n(useContracts, usePermissions, useDeadlines, useApprovals)] as compos
+  [stores (Pinia)] as stores
+  [utils\n(pure functions)] as utils
+  package "boot" as boot {
+    [HTTP client\n(cookies, error translation)] as http
+    [i18n\n(EN / DE catalogues)] as i18n
+    [router guard\n(authentication)] as guard
+  }
+  package "services/api" as api {
+    [Generated OpenAPI\nclient types] as gen
+  }
+}
+
+component "Backend REST API" as be
+
+pages --> comps
+pages --> compos
+comps --> compos
+compos --> stores
+stores --> utils
+stores --> gen
+stores --> http
+http --> be : /api (same origin, session cookies)
+gen ..> be : types regenerated from the OpenAPI document
+
+note bottom of utils
+  Unit tests target stores, composables
+  and utils; the .vue components stay thin.
+end note
+@enduml

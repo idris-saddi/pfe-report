@@ -1,0 +1,75 @@
+@startuml backend-packages
+'==============================================================================
+' Figure (Chapter III): Package (module) structure of the backend.
+' Layout: hierarchical so the dependency structure is visible at a glance —
+' satellites gridded 2 rows deep ABOVE contract, every "references" arrow
+' fanning downward into it (contract is the hub, tinted for emphasis);
+' comby at the bottom (the layer the groups register on) with internal
+' beside it; integration below the enterprise group, next to its consumers.
+' Hidden node-to-node edges pin the ranks (cluster-to-cluster hidden edges
+' do not constrain ranks). Reporting note: read-side projections only.
+' Shared look from puml-style.iuml (injected by the Makefile).
+' Render:  make figures
+'==============================================================================
+skinparam packageStyle rectangle
+skinparam ranksep 44
+skinparam nodesep 26
+
+package "domain" as dom {
+  package "core contexts" as coregrp {
+    package approval
+    package deadline
+    package documentlink
+    package contract #DCE8F7
+    approval -[hidden]-> deadline
+    approval     .[#AC0D0D].> contract : references
+    deadline     .[#AC0D0D].> contract : references
+    documentlink .[#AC0D0D].> contract : references
+  }
+  package "enterprise contexts" as entgrp {
+    package customfield
+    package signature
+    package obligation
+    customfield -[hidden]-> obligation
+  }
+  signature   .[#AC0D0D].> contract : references
+  obligation  .[#AC0D0D].> contract : references
+  customfield .[#AC0D0D].> contract : references
+}
+
+note left of customfield
+  Reporting is read-side
+  projections over emitted
+  events, not a write-side
+  context.
+end note
+
+package "comby framework" as comby <<framework>>
+package "internal" {
+  package archived
+  package seed
+}
+
+contract   .[#4C7FB0].> comby : <<register>>
+obligation .[#4C7FB0].> comby : <<register>>
+archived .[#4C7FB0].> comby
+seed     .[#4C7FB0].> comby
+' internal sits BELOW the domain hub (node-level rank anchor).
+contract -[hidden]-> archived
+
+package "integration" {
+  package docstorage
+  package esignature
+  package intelligence
+  docstorage -[hidden]-> intelligence
+}
+
+documentlink .[#B8912E].> docstorage   : uses
+documentlink .[#B8912E].> intelligence : uses (enrichment)
+signature    .[#B8912E].> esignature   : uses (e-signature)
+legend bottom right
+  |<#AC0D0D>| references |
+  |<#4C7FB0>| «register» |
+  |<#B8912E>| uses |
+endlegend
+@enduml

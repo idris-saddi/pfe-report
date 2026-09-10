@@ -1,5 +1,6 @@
 \setcounter{chapter}{1}
-\chapter{Architecture and Design}\label{chap:arch}
+\chapter{Analysis and Requirements Specification}
+\label{chap:analysis}
 \graphicspath{{Chapter2/figures/}}
 
 %==============================================================================
@@ -10,613 +11,605 @@
 \renewcommand{\headrulewidth}{0.5pt}
 \renewcommand{\footrulewidth}{0pt}
 \renewcommand{\chaptermark}[1]{\markboth{{\chaptername~\thechapter.\ #1}}{}}
-\renewcommand{\sectionmark}[1]{\markright{\thechapter.\thesection~ #1}}
-
-% --- Self-healing figure helper --------------------------------------------
-% Renders Chapter2/figures/<name>.{pdf,png} once it exists; until then shows a
-% labelled placeholder naming the PlantUML source. Keeps the document
-% compiling whether or not the diagram has been rendered yet.
-%   #1 = base filename   #2 = width   #3 = caption   #4 = \label key
-\makeatletter
-\newcommand{\pumlfig}[4]{%
-  \begin{figure}[!ht]\centering
-    \IfFileExists{Chapter2/figures/#1.pdf}{\includegraphics[width=#2]{#1}}{%
-    \IfFileExists{Chapter2/figures/#1.png}{\includegraphics[width=#2]{#1}}{%
-      \fbox{\parbox{0.85\linewidth}{\centering\vspace{1.8em}%
-        \textit{Diagram to be rendered from} \texttt{figures/#1.puml}.\\[0.4em]
-        \footnotesize #3\vspace{1.8em}}}}}%
-    \caption{#3}\label{#4}%
-  \end{figure}}
-\makeatother
+\renewcommand{\sectionmark}[1]{\markright{\thesection~ #1}}
 
 \begin{spacing}{1.2}
 %==============================================================================
 
 \section*{Introduction}
-Chapter~I focused on \emph{what} CLMPilot needs to do, and under which constraints; 
-this chapter addresses the \emph{how}. It details an architecture 
-designed to satisfy those requirements by construction rather than through continuous 
-development effort. Instead of assembling the design feature by feature, we let a few 
-core forces drive the system's foundational choices.
-
-Three primary forces shape our approach. \textbf{Integration-first}: contract 
-documents remain entirely within the customer’s own storage, meaning the platform 
-handles only their lifecycle management (Section~\ref{sec:competitive-landscape}). 
-\textbf{Compliance by architecture}: rather than bolting on compliance after the fact, 
-our storage model natively provides the immutable, reconstructable audit trails 
-demanded by GoBD, GDPR, and ISO~27001 (Section~\ref{sec:nfr-compliance}). 
-\textbf{Multi-tenant isolation}: the architecture ensures that a single deployment 
-can securely serve multiple customer organizations, keeping each tenant's data 
-strictly isolated.
-
-The remainder of this chapter is structured as follows. We first restate these 
-concerns as formal architectural drivers (Section~\ref{sec:arch-drivers}) and 
-justify our choice of CQRS and Event~Sourcing to address them 
-(Section~\ref{sec:why-cqrs-es}). Next, we introduce the \emph{comby} framework 
-that implements these patterns (Section~\ref{sec:comby}). From there, we map out 
-the domain model (Section~\ref{sec:domain-model}), system topology 
-(Section~\ref{sec:topology}), and our approaches to security and internationalization 
-(Sections~\ref{sec:security}--\ref{sec:i18n}). Finally, we highlight the architectural 
-seams left open for future evolution (Section~\ref{sec:seams}).
-
+This chapter specifies what CLMPilot is required to do. We start from
+the users: we first catalogue the actors who interact with the
+platform. From the problem statement and the actors we then derive the
+functional requirements, stated as capabilities, not implementation
+detail, and the non-functional requirements: the qualities the platform
+must exhibit while delivering them. We close by expanding the use cases
+the actors initiate, from a single high-level overview down to the
+individual cases of each functional area, with the most important
+scenarios described step by step.
 
 %--------------------------------------------------------------------
-\section{Architectural drivers}
-\label{sec:arch-drivers}
+\section{Actors}
+\label{sec:actors}
 
-The non-functional requirements become five drivers. Each is a
-constraint any acceptable design must meet, and each reappears in the later
-chapters as the reason for a delivery-time decision.
+The actor model is intentionally narrow. CLMPilot is a multi-tenant
+platform: each customer organisation is an isolated tenant, so the
+catalogue below centres on the roles \emph{within} a single tenant,
+mapping onto the functions that already exist in a Mittelstand
+legal-operations team. Outside the tenant, a platform-level
+\emph{Super~Admin} provisions and isolates the tenants themselves; that
+role belongs to the operator rather than the customer, and lies outside
+the scope of this project's contribution, but it is catalogued here so
+the actor model is complete.
 
-\textbf{Auditability and immutability.} GoBD requires contract records to be
-kept immutably and recoverable as of any past date for up to ten years;
-ISO~27001 adds change tracking (Section~\ref{sec:nfr-audit}). This is the
-strongest driver. It rules out any design in which history can be mutated,
-or in which the audit trail is reconstructed after the fact. What happened
-must be the primary record, not a by-product.
+\subsection{Actor catalogue}
+\label{sec:actors-catalogue}
 
-\textbf{Integration-first.} A contract's document stays in cloud storage or any URL; 
-the platform stores a reference, never the contents
-(Section~\ref{sec:competitive-landscape}). So the architecture needs an
-explicit integration boundary with interchangeable providers, and it must
-keep working when a store is unreachable. This one is non-negotiable: it is
-the product's differentiator.
+Table~\ref{tab:actors} catalogues the 4 per-tenant actors, together
+with the platform-level Super~Admin, and the use cases each one
+initiates.
 
-\textbf{EU data residency.} The GDPR requires personal data to stay in the
-European Union (Section~\ref{sec:nfr-compliance}). The stack hosts in the EU
-by default, and every external dependency -- email, the document stores, the
-intelligence service -- counts as a data-processing boundary.
+2 non-human actors complete the catalogue. The system clock is the
+trigger for the scheduled use cases of the deadline-management
+subsystem; we treat it separately to make the provenance of
+system-initiated actions explicit in the audit log. And the LLM (the
+intelligence service) is an external secondary actor: it supports the
+intelligence-assisted capture of contract metadata and clauses when a
+document is linked.
 
-\textbf{Multi-tenant isolation.} One deployment, many tenants
-(Section~\ref{sec:actors}). Every command and query carries a tenant
-context, and cross-tenant access is blocked by construction. Isolation that
-relies on code remembering to filter by tenant will eventually fail.
-
-\textbf{Maintainability under solo development.} One engineer builds and
-runs the platform (Section~\ref{sec:methodology}). This driver selects
-against complexity: a narrow stack, conventional patterns, automation over
-manual work. Every component added is one person's to carry.
-
-Availability and performance (Section~\ref{sec:nfr-perf}) matter too, but at
-MVP scale they constrain operations more than structure.
-Chapter~\ref{chap:realisation} takes them up where they can be measured.
-
-%--------------------------------------------------------------------
-\section{Why CQRS and Event Sourcing for CLM?}
-\label{sec:why-cqrs-es}
-
-A contract's life is a sequence of events: registered, document linked,
-approval granted or refused, deadline passed, terminated. These are facts
-that accumulate, not states that overwrite one another.
-\textit{Event~Sourcing} stores that sequence and derives the current state
-by replaying it, instead of mutating state in
-place~\cite{FowlerEventSourcing,Young2010}. \textit{CQRS} is its
-companion~\cite{FowlerCQRS,Young2010}: it splits the write model (commands,
-which validate rules and emit events) from the read model (queries, which
-read purpose-built projections). The two are independent but reinforce each
-other~\cite{MicrosoftCQRS,MicrosoftEventSourcing}.
-
-This pairing satisfies the auditability driver. Under
-Event~Sourcing the immutable, time-stamped, actor-attributed record that
-GoBD and ISO~27001 demand (Section~\ref{sec:nfr-audit}) \emph{is} the event
-log -- there is no separate audit table to maintain or to fake.
-\textit{Who approved this contract, when, and against which version} is
-answered by replaying its events. That is why the pattern was chosen before
-any feature was designed.
-
-CQRS also fits the workload. Reads dominate and are aggregate-shaped: the
-dashboard counts expiring contracts and sums value by quarter. Writes are
-rarer and careful: an approval or an edit must pass validation. Splitting
-them lets each read model be its own projection~\cite{Fowler2003}, so a
-heavy query never blocks a write, and it expresses the domain in the terms
-of Domain-Driven Design~\cite{Evans2003,Vernon2013}.
-Figure~\ref{fig:cqrs-es} shows both paths.
-
-\pumlfig{cqrs-es}{0.90\textwidth}{The CQRS and Event~Sourcing flow:
-commands validate and append immutable events; the event store is the
-system of record; projections and reactors consume events asynchronously;
-queries read from projections.}{fig:cqrs-es}
-
-Figure~\ref{fig:cqrs-seq} shows the same machinery as a sequence, for
-registering a contract. The command path is short and synchronous:
-validate, append an event, answer the caller. The reactions come after -- a
-projection updates the read models, and a reactor turns the new event into a
-follow-up command that creates the contract's deadlines. That is the reactor
-pattern, and the visible face of eventual consistency.
-
-\pumlfig{cqrs-sequence}{0.90\textwidth}{Registering a contract as a
-sequence: a synchronous command path that appends an event, then
-asynchronous projection updates and a reactor that derives the contract's
-deadline reminders.}{fig:cqrs-seq}
-
-The alternatives lose on the same driver. CRUD with audit columns makes the
-trail a side-structure that can be forgotten or edited, and it cannot
-reconstruct a past state -- exactly the guarantee the regulator wants. A
-document database has no transactional model for a multi-step approval. A
-workflow engine would model approvals, but adds a heavy runtime and
-lock-in and still leaves the contract's own audit trail unsolved.
-
-The costs are real. Read models are eventually consistent: a new contract
-may show in its detail view a moment before it shows in a dashboard count.
-For CLM that is fine. Events are a long-lived schema, so they need a
-versioning convention. And the pattern has a learning curve -- mitigated
-here because a framework supplies the mechanics, which is the next section.
-
-
-%--------------------------------------------------------------------
-\section{The comby framework}
-\label{sec:comby}
-
-comby is Gradient~Zero's in-house Go framework
-(Section~\ref{sec:gradient-zero}). It supplies the CQRS/ES building blocks
--- command and query buses, an append-only event store, a projection runner,
-a reactor scaffold, and a message broker -- and a set of \textit{defaults}:
-tenants, accounts and identities, group-based access control, invitations,
-asset storage, webhooks, and an auto-generated REST API with an OpenAPI
-specification. CLMPilot runs on comby~v3.
-
-\subsection{Role in the architecture}
-\label{sec:comby-role}
-
-\pumlfig{comby-layers}{0.9\textwidth}{Layering of CLMPilot on comby: the four
-core domains, the enterprise contexts that extend them, and two cross-cutting
-additions sit on comby's CQRS/ES core and its multi-tenant defaults, which sit
-on the shared data stores.}{fig:comby-layers}
-
-CLMPilot is a thin layer of domain meaning over a thick layer of framework
-mechanics (Figure~\ref{fig:comby-layers}). comby owns the \emph{how}:
-dispatching and authorising a command, persisting and publishing an event,
-rebuilding a projection, isolating a tenant. CLMPilot owns the \emph{what}:
-what a contract is, when an approval advances, how a deadline raises
-reminders. That split is the maintainability driver in practice.
-
-What CLMPilot inherits is large: tenancy, accounts, identities, groups,
-invitations, asset storage, and the whole authentication surface. The REST
-API and its OpenAPI document are generated from the registered commands and
-queries, so the frontend uses a generated, type-safe client. What CLMPilot
-adds is small: the four core domains of Section~\ref{sec:domain-model}, the
-handful of enterprise contexts that extend them on the same pattern
-(Section~\ref{sec:extension-contexts}), and two cross-cutting pieces -- a
-middleware that screens archived tenants, and a boot-time reactor that seeds
-the system administrators.
-Figure~\ref{fig:backend-packages} shows the same split as packages: the
-domains register on comby, the satellites depend on Contract, and the
-integration and internal packages keep the external services and
-cross-cutting concerns apart.
-
-\pumlfig{backend-packages}{0.82\textwidth}{Package structure of the backend:
-the core and enterprise domains register on comby, the satellites reference
-Contract, and the integration and internal packages isolate the external
-services and the cross-cutting concerns.}{fig:backend-packages}
-
-\subsection{Justification of choice}
-\label{sec:comby-choice}
-
-Choosing comby is a build-versus-buy decision, settled by fit rather than
-feature count. comby is a strategic asset of Gradient~Zero, not a
-convenience library (Section~\ref{sec:gradient-zero}): CLMPilot exists
-partly to exercise it, so its authors are on hand to support it.
-Table~\ref{tab:framework-comparison} sets it against the alternatives that
-were genuinely weighed.
-
-\begin{table}[!ht]
+\begin{table}[H]
   \centering
-  \caption{CQRS and Event~Sourcing platforms considered for CLMPilot,
-           assessed against the project's decisive criteria.}
+  \caption{Actors recognised by CLMPilot, with their primary use cases.}
   \footnotesize
-  \begin{tabularx}{\linewidth}{|>{\bfseries}l|l|X|X|}
+  \begin{tabularx}{\linewidth}{|>{\bfseries}l|X|}
     \hline
-    Option & Ecosystem & CQRS/ES core \& built-in tenancy, identity, RBAC
-      & Support and strategic fit \\
+    Actor & Primary use cases \\
     \hline\hline
-    comby~v3 & Go & Command/query buses, append-only event store,
-      projection runner and reactors, \emph{plus} tenant, account,
-      identity, group and invitation defaults out of the box. & Authored
-      in-house; the framework team supports the product directly; reused
-      across the company's portfolio. \\
+    Admin & Provision and decommission users; assign roles; configure
+      organisation-wide policies; review the system audit log. \\
     \hline
-    EventStoreDB + Go & Go & A mature event store only; the command and
-      query buses, projection wiring, multi-tenancy, identity and RBAC
-      must all be hand-built. & External product; the entire application
-      framework remains the project's burden. \\
+    Legal~Manager & Create and edit contract records; attach document
+      links; initiate approval workflows; consult the dashboard and
+      reports; receive deadline reminders for owned contracts. \\
     \hline
-    Axon Framework & Java/JVM & Mature CQRS and Event~Sourcing, but no
-      multi-tenant identity layer; would require a JVM service. &
-      Open-source; adopting it would split the stack across two languages.
-      \\
+    Approver & Receive approval requests; approve, reject or request
+      changes; consult the history of past approval decisions in
+      scope. \\
     \hline
-    EventFlow & .NET & CQRS/ES primitives for the .NET ecosystem; tenancy
-      and identity not provided. & Open-source, but the wrong ecosystem
-      for a Go house. \\
+    Auditor & Read-only access to the full event log; export the audit
+      trail; reconstruct the state of any contract at any past date
+      within the retention window. \\
     \hline
-    Bespoke (in Go) & Go & Full control over every primitive, at the cost
-      of re-implementing all of the above. & No external dependency, but
-      unmaintainable by one engineer alongside the product itself. \\
+    Super~Admin & Provision and archive tenants; issue the first
+      administrator invitation of a tenant; operate the platform across
+      tenants. A platform-operator role, outside the scope of this
+      project's contribution. \\
     \hline
   \end{tabularx}
-  \label{tab:framework-comparison}
+  \label{tab:actors}
 \end{table}
 
-Three points decide it. comby is Go-native, so the backend stays one
-language. Its CQRS/ES primitives are proven, so they need not be rebuilt.
-And -- the biggest saving -- its defaults supply the tenancy, identity, RBAC
-and invitation machinery that every other option would leave to the project.
-EventStoreDB and a bespoke build leave the whole framework to build; Axon
-and EventFlow are the wrong ecosystem. The choice is not close.
+%--------------------------------------------------------------------
+\section{Functional requirements}
+\label{sec:functional-requirements}
+
+The functional requirements that follow flow directly from the 4 pain
+points of the problem statement. They are stated as outcomes, not mechanisms:
+each subsection identifies the actor that initiates
+the use case, the outcome the platform must produce, and the constraints
+the surrounding context imposes. The architectural decomposition into
+domains, commands and events is deferred to Chapter~\ref{chap:arch}.
+
+\subsection{Contract registry}
+The contract registry is the platform's central object and the entry
+point for every other capability. The Legal~Manager creates a contract
+record by supplying the counterparty, the contract category, the start
+and end dates, the notice window and the contract value. The same actor
+edits these attributes over the contract's lifetime and decommissions
+the record by archiving rather than deleting it: the immutability
+requirement of Section~\ref{sec:nfr-audit} forbids hard deletion. The
+registry supports filtering by status, category, business unit and
+counterparty, full-text search on free-form fields, and pagination over
+the result set. Performance targets for these operations are stated in
+Section~\ref{sec:nfr-perf}.
+
+\subsection{Document linking}
+A contract record is connected to the document that embodies it
+through a \textit{link} -- a typed reference to a file held in the
+customer's own document store (Google~Drive, SharePoint, or any
+HTTP-addressable location). The Legal~Manager attaches and detaches
+links; the platform resolves them at display time, showing the file
+name, last-modified timestamp and a click-through to the original
+location. The platform never copies the document contents into its own
+storage: the integration-first stance of
+Section~\ref{sec:competitive-landscape} is enforced at this boundary.
+
+\subsection{Deadline and renewal management}
+Every contract carries up to 3 temporal markers: its expiry date,
+the start of its notice window, and, where applicable, its
+auto-renewal date. The platform must highlight each of these markers
+before it passes, through a reminder workflow that emits notifications
+at 90, 60 and 30~days before the notice window opens, and again on the
+day the window closes. The notification target is the contract's
+designated owner, by default the Legal~Manager who created the record.
+The reminder schedule is generated by the platform itself: the actor
+who triggers the use case is the system clock, not a human user.
+
+\subsection{Approval workflows}
+A contract under negotiation moves through a sequence of approvals
+before it is signed. The Legal~Manager initiates an approval request
+and selects a workflow template: a sequence of approval steps, each
+addressed to one or several Approvers. Each Approver receives a request
+and answers with one of 3 decisions: approve, reject, or request
+changes. A reject or request-changes outcome interrupts the workflow
+and returns the contract to the initiator; an approval advances it to
+the next step. The platform records every decision, its author, its
+timestamp and any comment, and these records are not editable after
+the fact.
+
+\subsection{Compliance and audit trail}
+Every action that changes the state of a contract (creation, edit,
+link attachment, approval decision, archiving) is recorded in an
+immutable audit log. The Auditor accesses the log read-only and exports
+it in a format independent of the application: a tabular file usable in
+spreadsheet software, with one row per recorded action, and columns for
+the actor, the timestamp, the contract identifier and the action type.
+The log must satisfy the GoBD retention requirement of 10 years and
+must be reproducible at any date within that window, even after the
+underlying business state has changed.
+
+\subsection{Dashboard and reporting}
+The dashboard is the Legal~Manager's daily view. It shows the
+portfolio at a glance: counts of active, expired and pending contracts;
+the contracts whose notice windows open in the next 30, 60 and 90~days;
+the approval requests awaiting the user's decision; and the aggregate
+value of the active portfolio. Beyond the standing dashboard, the
+platform supports parametric reports (contracts by counterparty,
+spend by quarter, renewals by business unit) to answer the portfolio
+questions raised in the problem statement.
+
+\subsection{Identity and access management}
+Identity and access management (IAM) gates every other capability.
+The Admin creates user accounts, assigns roles and revokes
+access; users authenticate with an email address, a password and a
+second factor delivered as a one-time code by email. The platform enforces role-based access
+control along the actor catalogue of
+Section~\ref{sec:actors-catalogue}: the same query can return different
+projections depending on the caller's role, and any command that
+exceeds the caller's authority is refused before it reaches the domain.
+The reset, invitation and lockout flows are required at this layer
+because they are the flows through which non-Admin users actually
+exercise IAM.
+
+\subsection{Advanced capabilities extending the core registry}
+\label{sec:fr-enterprise}
+Beyond the core registry, the platform is required to support a tier of
+enterprise capabilities that address the same 4 pain
+points more fully. Document linking is expected to trigger \textit{intelligence-assisted
+capture}: when a contract's document is attached, the platform proposes
+counterparty, dates, value and detected clauses for the Legal~Manager to
+confirm, rather than leaving every field to manual entry. The platform must
+take a contract through \textit{electronic signature} with an external
+counterparty and reflect the signed outcome on the record, so that execution
+is part of the tracked lifecycle.
+\textit{Per-tenant custom fields} let each organisation extend the contract
+schema to its own taxonomy without a code change. \textit{Post-signature
+obligation tracking} extends standard deadline management so the
+organisation tracks the commitments a signed contract creates (payments,
+reviews, renewals) for as long as it runs. And \textit{advanced, schedulable
+reporting} answers the portfolio questions of the problem statement on a
+recurring basis rather than on demand. These capabilities are stated here
+as requirements; how they were built is the subject of
+Chapter~\ref{chap:realisation}, and Chapter~\ref{chap:delivered} shows
+them in the delivered product.
 
 %--------------------------------------------------------------------
-\section{Domain model overview}
-\label{sec:domain-model}
+\section{Non-functional requirements}
 
-Chapter~I's requirements decompose into four core \textit{bounded
-contexts}, each with its own aggregate, events
-and rules. We give them here at the conceptual level (responsibilities and
-relationships) and their realisation in Chapter~\ref{chap:realisation}.
-The enterprise capabilities of Section~\ref{sec:fr-enterprise} add a handful
-of further contexts that follow the same pattern; they are introduced at the
-end of this section so the core spine stays legible.
+Non-functional requirements describe the qualities the platform must
+exhibit while delivering the functional capabilities of the previous
+section. We group them along 7 axes (security, compliance,
+availability, performance, auditability, internationalisation and
+maintainability), each justified by a constraint of the deployment
+context.
 
-\subsection{Bounded contexts}
-\label{sec:bounded-contexts}
+\subsection{Security}
+\label{sec:nfr-security}
+All traffic between the client and the platform is carried over
+Transport-Layer Security (TLS) in its current widely-deployed version;
+data at rest in the event store and the relational projections is
+encrypted with a key under the operator's control. Every command and
+query is authenticated; authorisation is enforced before the request
+reaches the domain layer, on the basis of the caller's role. Passwords
+are stored as salted hashes computed with a modern key-derivation
+function. A second factor of authentication, a one-time code delivered by
+email, is mandatory for Admin accounts and offered to every other
+role.
 
-Figure~\ref{fig:domains} shows the four. Contract is central; Approval,
-Deadline and DocumentLink each reference it. All four sit inside a tenant
-boundary -- every instance belongs to one tenant, and no relationship
-crosses it. Identity and the audit log are absent on purpose: they are
-platform concerns owned by the framework (Section~\ref{sec:comby-role}), not
-business contexts.
+\subsection{Compliance and data residency}
+\label{sec:nfr-compliance}
+The platform must satisfy 3 regulatory baselines simultaneously.
+GoBD requires that contract records be retained immutably and
+recoverable in their state as of any past date, for a period of up to
+10 years. The GDPR requires that
+personal data be processed under documented purposes, subject to access
+and erasure requests, and stored within the European Union. ISO~27001
+imposes a documented information-security management system, with
+access controls, change tracking and incident response procedures. The
+production environment is hosted in the European Union by default,
+under a contract with an EU-resident provider; no customer data is
+processed or stored outside the EU without an explicit opt-in.
 
-\pumlfig{domain-model}{0.85\textwidth}{The four bounded contexts and their
-relationships, within the enclosing tenant boundary.}{fig:domains}
+\subsection{Availability and reliability}
+The minimum viable product (MVP) carries an availability target rather
+than a contractually committed Service-Level Objective (SLO):
+99.5\% monthly during DACH business hours and
+99.0\% outside them, to be validated against operational
+data once production traffic is observed. Recovery-Point Objective
+(RPO) is set at 24 hours, sustained by nightly off-site
+backups; Recovery-Time Objective (RTO) at 4 hours. These figures
+are MVP targets and will be tightened or relaxed based on customer
+commitments in later phases. The platform degrades gracefully when
+external document stores are unreachable: contract metadata and
+workflow remain available, and document previews show a
+transient-error state rather than failing the surrounding page.
 
-\subsection{Aggregate responsibilities}
-\label{sec:aggregate-responsibilities}
+\subsection{Performance}
+\label{sec:nfr-perf}
+The performance budget for the MVP is expressed as engineering
+targets to be measured and tuned against, not as contractual
+guarantees. On a contemporary EU broadband connection, median
+page-load latency aims for under 1 second on the dashboard and the
+contract list; search and filter operations over a portfolio of 10{,}000
+contracts aim for under 500 milliseconds; and
+document-link resolution (the round-trip to the external store,
+plus the metadata fetch) aims for under 2 seconds in the median
+case. Failure modes degrade to the graceful state described above.
+Table~\ref{tab:perf-metrics} states these budgets as the metrics
+against which the performance tests measure the platform; each row can
+be exercised by an automated test against a seeded environment. The
+availability and recovery objectives of the previous subsection are
+not testable this way: they are validated operationally, through the
+uptime probe and the periodic restore drill.
 
-\textbf{Contract} is the record of a contract's metadata and status --
-counterparty, type, value, dates, renewal terms. It does not hold the
-document; that is a DocumentLink. Every other context points at it, and it
-anchors the audit trail.
+\begin{table}[H]
+  \centering
+  \caption{Performance test metrics: the measured operation, the metric
+           observed, the test condition, and the MVP target.}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{|X|l|l|l|}
+    \hline
+    \textbf{Operation under test} & \textbf{Metric} & \textbf{Condition}
+      & \textbf{Target} \\
+    \hline\hline
+    Dashboard page load & Median latency & EU broadband client
+      & $<$ 1~s \\
+    \hline
+    Contract-list page load & Median latency & EU broadband client
+      & $<$ 1~s \\
+    \hline
+    Search / filter over the registry & Latency & 10{,}000-contract
+      portfolio & $<$ 500~ms \\
+    \hline
+    Document-link resolution & Median latency & external store
+      round-trip & $<$ 2~s \\
+    \hline
+  \end{tabularx}
+  \label{tab:perf-metrics}
+\end{table}
 
-\textbf{Approval} is the multi-step review a contract passes before it goes
-active. It is its own aggregate, not a status field on Contract. That gives
-the approval chain its own lifecycle and its own immutable record of who
-decided what, and when.
+\subsection{Auditability}
+\label{sec:nfr-audit}
+Every state-changing action in the platform is recorded as an immutable,
+time-stamped, actor-attributed event. There is no primitive for
+in-place update or destructive delete at the storage layer: a correction
+is itself an event, layered on top of the prior history. The audit log
+is exportable in a tabular format independent of the application's
+runtime and is reconstructible at any point in time within the GoBD
+retention window. This requirement aligns directly with the principle of
+compliance by architecture and drives the architectural choices
+presented in Chapter~\ref{chap:arch}.
 
-\textbf{Deadline} tracks cancellation windows, renewal and expiry dates, and
-the reminders before them. It is a first-class aggregate, so one
-contract can carry several independent deadlines. That is how the platform
-answers the missed-deadline problem: a deadline is something it owns, not a
-field it stores.
+\subsection{Internationalisation}
+\label{sec:nfr-i18n}
+English is the primary language of the user interface, with German
+maintained alongside it; other languages can be added later, with
+translation slots reserved in the user-interface
+layer from the outset. Dates, numbers and currencies are formatted
+according to the user's declared locale rather than the server's,
+and the platform stores time-stamps in Coordinated Universal Time (UTC)
+and renders them in the user's time zone. Email notifications inherit
+the recipient's locale.
 
-\textbf{DocumentLink} is the integration boundary turned into a domain
-object. It records that a contract is materialised by a file in an external
-store -- Drive, SharePoint, or any URL -- without ingesting the file. One
-aggregate serves all providers, through provider-specific adapters.
-
-\subsection{Behavioural views: lifecycle and workflow}
-\label{sec:behavioural-views}
-
-Two contexts are clearest through their behaviour.
-Figure~\ref{fig:contract-states} is the Contract state machine. A contract
-starts as a \textit{draft}, goes \textit{active} once approved, may turn
-\textit{expiring} near its end date and then \textit{expire}; an active
-contract can instead be \textit{terminated} early. Both paths end in
-\textit{archived}. Each transition is a command or a time-driven event, so the diagram
-is a compressed reading of a contract's audit trail.
-
-\pumlfig{contract-lifecycle}{0.8\textwidth}{State machine of the Contract
-aggregate.}{fig:contract-states}
-
-Figure~\ref{fig:approval-activity} shows the approval workflow as activity.
-The Legal~Manager starts it against a template of ordered steps. Each
-approver either advances it or interrupts it by rejecting or requesting
-changes; only when every step is approved does the contract go active. The
-diagram makes the key rule explicit -- a single rejection returns the whole
-contract to its initiator.
-
-\pumlfig{approval-activity}{0.4\textwidth}{Activity diagram of the approval
-workflow}{fig:approval-activity}
-
-\subsection{Extension contexts}
-\label{sec:extension-contexts}
-
-The enterprise capabilities of Section~\ref{sec:fr-enterprise} did not bend
-the core model; they simply added new contexts that follow the same aggregate-and-events
-discipline, referencing \texttt{Contract} exactly as the core satellites do. 
-
-\textbf{Signature} manages the electronic-signature lifecycle of a contract---tracking 
-the envelope sent to external counterparties and individual signer outcomes. Modeled 
-similarly to \emph{Approval}, this is built as a distinct multi-step aggregate rather 
-than a simple flag on \texttt{Contract}. \textbf{Obligation} handles post-signature 
-commitments and their recurrence, to track what the organization is actually required to do once a 
-contract goes active. \textbf{CustomField} enables per-tenant schema extensions, 
-allowing organizations to record their own custom attributes against contracts without 
-altering the core aggregate. \textbf{Reporting and analytics}, finally, are handled by a family of read projections driven 
-by the events that other contexts already emit. 
-
-The fact that these capabilities 
-arrived as new contexts and projections, rather than as intrusive edits to the four 
-core aggregates, is the clearest evidence that our system decomposition holds: the 
-model extends naturally at its seams rather than at its center.
-
-%--------------------------------------------------------------------
-\section{System topology}
-\label{sec:topology}
-
-The structure has two views: a \textit{component} view (which services
-exist, and through which interfaces) and a \textit{deployment} view (where
-the code runs and the data lives). Both describe the design; the operational
-detail -- the host, the reverse proxy, the backups, the release process --
-is Chapter~\ref{chap:realisation}.
-
-\subsection{Component view}
-\label{sec:component-view}
-
-\pumlfig{component-view}{0.5\textwidth}{CLMPilot component view}{fig:component-view}
-
-The services connect through a small set of named interfaces
-(Figure~\ref{fig:component-view}). The
-backend provides one interface, the generated REST/OpenAPI contract, which
-the frontend consumes through its generated client. The backend requires
-three: \texttt{IntelligenceClient} from the intelligence service,
-\texttt{Email} from the mail provider, and \texttt{DocumentStore} behind
-which the cloud storage adapters sit.
-
-\subsection{Deployment topology}
-\label{sec:deployment-topology}
-
-\pumlfig{topology}{0.9\textwidth}{CLMPilot deployment topology}{fig:topology}
-
-The deployment runs as a single EU-hosted Docker~Compose stack
-(Figure~\ref{fig:topology}). Three runtime services come from their own
-repositories -- the \textbf{backend} (Go, on comby), the \textbf{frontend}
-(Vue~3 SPA) and the \textbf{intelligence} service (Python, backed by a large
-language model) -- while a fourth repository carries the deployment stack
-itself. Four stores sit behind them. \textbf{PostgreSQL} is the system of
-record -- the event store and the command store -- and the source every read
-model is rebuilt from. \textbf{Redis} holds sessions and accelerates read
-models. \textbf{NATS} is the message broker that carries events to
-projections and reactors and is designed to distribute them across backend
-instances -- the seam on which horizontal scaling depends
-(Section~\ref{sec:seams}). \textbf{MinIO} stores exports, signed documents
-and other assets. One reverse proxy terminates TLS, and the services bind to
-loopback only.
-
-Network isolation is by design. A public edge faces out; an internal network
-does not. Only the reverse proxy is reachable from outside; the intelligence
-service and the stores are reachable only from the backend -- the most
-sensitive parts are not just access-controlled but unaddressable. Outward,
-the system uses SendGrid for email, Users own cloud storages for documents,
-and DocuSeal for electronic signature, each behind a named interface so the
-concrete provider is interchangeable; ERP systems are designed-for but dark
-until later work.
-
-\subsection{Why a four-repository split}
-\label{sec:repo-split}
-
-The four repositories separate by concern and release cadence, not by
-microservice~\cite{Newman2021}. There is one backend, not many. The split
-buys independence: the frontend ships without rebuilding the backend; a Go
-domain, a TypeScript UI, a Python service and a YAML operations stack stay in
-their own toolchains; a broken intelligence build cannot block a release;
-and each repository carries a small, fast CI pipeline. The cost is that a
-cross-cutting change (like a new API field) touches two repositories.
-That is accepted, because the OpenAPI contract makes the seam an explicit,
-regenerated artefact rather than a silent risk.
+\subsection{Maintainability}
+The platform was built by a single developer during a brief internship, so
+every architectural choice had to minimise the long-term maintenance burden.
+The platform relies on a narrow, well-understood technology
+stack rather than a fragmented mix of specialised tools.
+To keep the project manageable for future developers, it incorporates
+conventional commit messages, a predictable release-train cadence
+(Section~\ref{sec:methodology}), and 3 distinct layers of automated
+testing (unit, integration, and end-to-end). Finally, documentation is stored
+directly alongside the code and compiled straight into the running application's
+help system, preventing the documentation from drifting out of date.
 
 %--------------------------------------------------------------------
-\section{Security and compliance model}
-\label{sec:security}
+\section{Use cases}
+\label{sec:usecases}
 
-Security is a property of the architecture, not a subsystem beside it. The
-comby framework supplies the machinery -- identity, access control and tenant
-isolation -- and CLMPilot inherits it (Section~\ref{sec:comby-role}). We
-describe the identity and access model it provides, the layered pipeline that
-enforces that model on every request, the defence in depth that keeps tenants
-apart, and finally the compliance posture, which proves to be mostly a
-restatement of structure already in place.
+The requirements above are exercised through the use cases the actors
+initiate. This section expands them from a single high-level overview
+down to the individual cases of each functional area, and closes with
+the most critical scenarios described step by step. Where a diagram
+contains actors outside the scope of this project's contribution (the
+platform-level Super~Admin and the default \emph{User} parent supplied
+by the framework), the actors carry a colour code for identification:
+red marks the out-of-scope actors, yellow the actors within scope.
 
-\subsection{Identity and access model}
-\label{sec:identity-model}
+\subsection{Use-case diagram}
+Figure~\ref{fig:usecase} gives a high-level view of the platform: each
+use case inside the system boundary names one functional area, and every
+actor is linked to the areas it drives. The 4 human roles specialise a
+common \emph{User} and inherit the shared authentication case from it,
+and the platform-level \emph{Super~Admin} administers the tenants
+themselves. 2 secondary actors complete the picture: the \emph{System
+clock} drives the scheduled deadline and renewal reminders, and the
+\emph{LLM} (the intelligence service) supports the intelligence-assisted
+capture of contract data. The individual use
+cases inside each area, with their relationships and constraints, are
+expanded one subsystem per figure in
+Figures~\ref{fig:uc-identity}--\ref{fig:uc-reporting}.
 
-The model has four levels from the comby defaults, shown in
-Figure~\ref{fig:identity-model}. A \textbf{tenant} is a customer
-organisation. An \textbf{account} is a person's login, which may hold an
-\textbf{identity} in more than one tenant -- the same person can act in
-several organisations without sharing a password. A \textbf{group} is a role
-within a tenant (Legal, Finance, Admin); a \textbf{permission} is the right
-to run a given command or query. Access control is role-based and always
-scoped to a tenant.
+\begin{figure}[H]\centering
+  \IfFileExists{Chapter2/figures/usecase-overview.pdf}
+    {\includegraphics[width=0.9\linewidth,keepaspectratio]{usecase-overview}}
+    {\fbox{\parbox{0.7\linewidth}{\centering\vspace{2em}
+      \textit{Diagram to be rendered from} \texttt{figures/usecase-overview.puml}\vspace{2em}}}}
+  \caption{High-level use-case diagram for CLMPilot}
+  \label{fig:usecase}
+\end{figure}
+\vspace{1cm}
 
-\pumlfig{identity-model}{0.52\textwidth}{The IAM : identity and access model.}{fig:identity-model}
+\subsection{Authentication use cases}
+Authentication is deliberately identical for every role: each human
+actor signs in through the same use case, which \emph{includes} the
+verification of a second factor (a one-time code by email), mandatory
+for administrators and offered to every role; password reset and
+invitation acceptance follow the same shared rails.
+Figure~\ref{fig:uc-auth} makes that symmetry explicit: a single
+\emph{Client~User} actor stands for the 4 tenant roles (Admin,
+Legal~Manager, Approver and Auditor), which all share the same
+authentication cases with the Super~Admin.
 
-Above the per-tenant model sits the platform \textbf{system administrator}:
-a small, seeded set of operator accounts in a reserved system tenant, able
-to provision, inspect and archive tenants through a cross-tenant interface.
+\begin{figure}[H]\centering
+  \includegraphics[width=0.9\linewidth,keepaspectratio]{uc-authentication}
+  \caption{Detailed use cases: authentication}
+  \label{fig:uc-auth}
+\end{figure}
 
-\subsection{Authentication and the request security pipeline}
-\label{sec:security-pipeline}
+\subsection{Use cases by functional area}
+Each functional area is then expanded into its individual use cases.
+Identity and access (Figure~\ref{fig:uc-identity}) covers the
+administration of identities: the Admin provisions users, invites them,
+assigns roles, revokes access, and configures organisation-wide
+policies and custom fields; the authentication cases shared by every
+role were expanded in Figure~\ref{fig:uc-auth}.
 
-Authentication establishes who is calling, and does so once, at the edge. A
-user signs in with an email and a password -- held only as a salted hash -- 
-and a second factor, a one-time code sent by email. What the browser then carries is a
-cookie backed by an opaque, server-side session, not a self-contained bearer
-token: the session holds no claims a client could read or replay, and it can
-be revoked at will. comby's account and session machinery owns this surface.
+\begin{figure}[H]\centering
+  \includegraphics[width=0.4\linewidth,keepaspectratio]{uc-identity}
+  \caption{Detailed use cases: identity and access administration}
+  \label{fig:uc-identity}
+\end{figure}
 
-From that point, authorisation is not a gate the application must remember to
-call but a stage every request passes through. The framework resolves the
-caller's identity and tenant once, from the session, then checks each command
-or query against the caller's permissions \emph{before} it reaches a domain
-handler. Figure~\ref{fig:security-pipeline} shows the two halves: identity is
-established at the edge, and authorisation runs at dispatch, within the
-caller's tenant. A request beyond the caller's authority, or one aimed at
-another tenant, is refused at the boundary -- and because the tenant context
-is taken from the session rather than from the request, the ordinary API
-surface has no way to address another tenant's data at all.
+Contracts and documents (Figure~\ref{fig:uc-contracts}) covers the
+registry and its document links: archiving never hard-deletes a record,
+and intelligence-assisted capture, supported by the LLM, extends the
+attachment of a document link.
 
-$$$$
-$$$$
+\begin{figure}[H]\centering
+  \includegraphics[width=\linewidth,keepaspectratio]{uc-contracts}
+  \caption{Detailed use cases: contracts and documents}
+  \label{fig:uc-contracts}
+\end{figure}
 
-\pumlfig{security-pipeline}{0.88\textwidth}{The request security pipeline}
-{fig:security-pipeline}
+Approvals and deadlines (Figure~\ref{fig:uc-approvals}) combine the
+workflow (where initiating an approval includes defining the workflow
+template, and a reject or request-changes outcome returns the contract
+to its initiator) with the time-driven reminders the system clock issues
+before each notice window.
 
-The authorisation check itself is a short, ordered cascade in which the first
-rule that resolves decides the outcome (Figure~\ref{fig:authz-decision}).
-Internal operations -- a seed at boot, a reactor acting on an event -- run
-without a caller and are allowed; a command may carry a custom rule for a case
-that role membership alone cannot express; a platform administrator is allowed
-across tenants; any request whose target tenant differs from the caller's is
-denied outright; and otherwise access is granted only if one of the caller's
-tenant groups carries the matching permission. The framework offers a finer,
-workspace-scoped grant beneath the tenant as well, which CLMPilot does not yet
-exercise.
+\begin{figure}[H]\centering
+  \includegraphics[width=\linewidth,keepaspectratio]{uc-approvals-deadlines}
+  \caption{Detailed use cases: approvals and deadlines}
+  \label{fig:uc-approvals}
+\end{figure}
 
-\pumlfig{authz-decision}{0.95\textwidth}{Authorisation process of commands and queries}
-{fig:authz-decision}
+Dashboard, reporting and audit (Figure~\ref{fig:uc-reporting}) groups
+the portfolio views and reports, where scheduled reporting extends
+report generation, with the read-only audit capabilities through which
+any past contract state can be reconstructed within the 10-year
+retention window.
 
-\subsection{Defence in depth and tenant isolation}
-\label{sec:defense-in-depth}
+\begin{figure}[H]\centering
+  \includegraphics[width=\linewidth,keepaspectratio]{uc-reporting-audit}
+  \caption{Detailed use cases: dashboard, reporting and audit}
+  \label{fig:uc-reporting}
+\end{figure}
 
-No single control is trusted to be enough. The same request crosses several
-independent layers, each of which would hold if an outer one were bypassed
-(Figure~\ref{fig:security-layers}). The network perimeter exposes only the
-reverse proxy and keeps the stores on an internal-only network, unaddressable
-from outside (Section~\ref{sec:deployment-topology}). Authentication and
-per-tenant authorisation are the two layers just described. Beneath them sits
-the isolation the whole compliance posture leans on, and at the core the
-immutable event log that is at once the system of record and the audit trail.
+Across these areas, the enterprise capabilities of
+Section~\ref{sec:fr-enterprise} (intelligence-assisted capture,
+electronic signature, post-signature obligation tracking, scheduled
+reporting and per-tenant custom fields) extend the core registry rather
+than replacing it.
 
-\pumlfig{security-layers}{0.8\textwidth}{Defence in depth: concentric controls
-around the immutable event log, each independent of the others. The data-layer
-row-security control is a comby~v3 affordance not yet activated.}{fig:security-layers}
+\subsection{Detailed use-case descriptions}
+\label{sec:uc-descriptions}
 
-Tenant isolation today is enforced in the application: every command, query
-and event carries a tenant context, and a single logical event store is
-partitioned by that context rather than split into physical per-tenant streams
-(Section~\ref{sec:identity-model}). That isolation is therefore only as strong
-as the authorisation layer above it, which refuses cross-tenant requests.
-comby~v3 adds a deeper reinforcement -- row-level security in the database
-itself, so that the data layer would refuse a cross-tenant read even if the
-application layer were wrong -- which CLMPilot does not yet activate.
+The most critical use cases to the
+platform are: the creation of a contract record, the approval workflow, and
+the reconstruction of past contract state for an audit.
+Tables~\ref{tab:uc-contract-creation}--\ref{tab:uc-audit-reconstruction}
+describe each of them in the structure of a standard use-case
+description (goal, actors, preconditions, main scenario, alternative
+and exception flows, and postconditions).
+Table~\ref{tab:uc-contract-creation} opens with the registration of a
+contract, the first step before any other capability.
 
-\subsection{Compliance positioning}
-\label{sec:compliance-positioning}
+{\footnotesize
+  \begin{xltabular}{\linewidth}{|>{\bfseries}l|X|}
+    \caption{Use-case description: register a contract.}
+    \label{tab:uc-contract-creation}\\
+    \hline
+    Goal            & Register a new contract as a structured record in
+                      the organisation's contract registry. \\ \hline
+    Actor(s)        & Legal~Manager (primary). \\ \hline
+    Preconditions   & The Legal~Manager is authenticated in their tenant
+                      and holds a role authorised to create contract
+                      records. \\ \hline
+    Main scenario   & \begin{enumerate}[nosep,leftmargin=*]
+                        \item The Legal~Manager opens the contract
+                          registry and starts a new record.
+                        \item The Legal~Manager supplies the counterparty,
+                          the contract category, the start and end dates,
+                          the notice window and the contract value.
+                        \item The Legal~Manager attaches a document link
+                          to the file that embodies the contract in
+                          the organisation's own storage («extend»:
+                          intelligence-assisted capture proposes
+                          counterparty, dates, value and detected clauses
+                          for confirmation).
+                        \item The Legal~Manager confirms the record; the
+                          platform validates it.
+                        \item The platform creates the contract in
+                          \textit{draft} status, records the creation in
+                          the audit log, and derives the contract's
+                          deadline reminders from its dates.
+                      \end{enumerate} \\ \hline
+    \shortstack[l]{Alternative /\\exception flows}
+                    & \textit{3a.} No document is attached: the record is
+                      created without a link, and one can be attached
+                      later. \textit{3b.} The intelligence proposal is
+                      absent or wrong: the Legal~Manager fills or corrects
+                      the fields manually. \textit{4a.} Validation fails
+                      (missing mandatory attribute, inconsistent dates):
+                      the platform rejects the submission and returns the
+                      Legal~Manager to the form. \\ \hline
+    Postconditions  & The contract exists in the registry in
+                      \textit{draft} status; its creation is immutably
+                      recorded in the audit log; its deadline reminders
+                      are scheduled against its notice window and
+                      expiry. \\ \hline
+  \end{xltabular}}
 
-The compliance posture falls out of the architecture. GoBD's
-immutable-retention requirement is met by the event store
-(Section~\ref{sec:why-cqrs-es}) -- the audit trail \emph{is} the log. The
-GDPR's residency requirement is met by EU hosting; its data-minimisation
-principle, by integration-first design, since the platform never holds the
-documents at all. ISO~27001's access-control and change-tracking
-expectations are met by per-tenant RBAC and, again, the log.
+Table~\ref{tab:uc-approval-workflow} then follows a contract through the
+approval chain it must complete before it becomes active.
 
-One tension is worth naming: an append-only store versus the right to
-deletion. The platform reconciles them by \textit{tombstoning} -- a deletion
-is itself an event that strips the personal data but keeps the structure and
-ordering of the history. The record that something happened survives; the
-personal data within it does not. That is only possible because corrections
-here are events, not in-place edits.
+{\footnotesize
+  \begin{xltabular}{\linewidth}{|>{\bfseries}l|X|}
+    \caption{Use-case description: approve a contract.}
+    \label{tab:uc-approval-workflow}\\
+    \hline
+    Goal            & Take a contract through an ordered chain of recorded
+                      approval decisions before it becomes active. \\ \hline
+    Actor(s)        & Legal~Manager (initiator); Approver (decides on the
+                      steps addressed to them). \\ \hline
+    Preconditions   & The contract record exists and is not yet active; a
+                      workflow template describing the ordered approval
+                      steps is available; the Legal~Manager is authorised
+                      to initiate approvals. \\ \hline
+    Main scenario   & \begin{enumerate}[nosep,leftmargin=*]
+                        \item The Legal~Manager initiates an approval
+                          request on the contract («include»: defining
+                          the workflow template that fixes the ordered
+                          steps and their Approvers).
+                        \item The platform opens the first step and
+                          notifies its Approver(s).
+                        \item An Approver reviews the request and records
+                          the decision \textit{approve}, with an optional
+                          comment.
+                        \item The platform records the decision (author,
+                          timestamp and comment) immutably, and advances
+                          the workflow to the next step.
+                        \item Steps 2--4 repeat until every step is
+                          approved.
+                        \item The workflow completes and the contract
+                          becomes \textit{active}.
+                      \end{enumerate} \\ \hline
+    \shortstack[l]{Alternative /\\exception flows}
+                    & \textit{3a.} The Approver records \textit{reject}:
+                      the workflow is interrupted and the contract returns
+                      to its initiator («extend»: return contract to
+                      initiator), with the decision and its comment
+                      recorded. \textit{3b.} The Approver records
+                      \textit{request changes}: as 3a, with the requested
+                      changes recorded for the initiator. \\ \hline
+    Postconditions  & Every decision is immutably recorded with its
+                      author, timestamp and comment, and is not editable
+                      after the fact; on full approval the contract is
+                      active; on interruption the contract is back with
+                      its initiator and the workflow's record is
+                      preserved. \\ \hline
+  \end{xltabular}}
 
-%--------------------------------------------------------------------
-\section{Internationalisation strategy}
-\label{sec:i18n}
+Finally, Table~\ref{tab:uc-audit-reconstruction} describes the audit
+consultation that compliance must support at any time.
 
-Internationalisation is an architectural decision, not a file format,
-because it spans server and client. English is the platform's primary
-language, with German maintained alongside it from the start. Treating an
-extra language as deferred content, not deferred capability, keeps its later
-activation cheap.
-
-Human-readable text lives in two places, one per process. The single-page
-application carries message catalogues, one per locale, for every label and
-message; the backend renders its own outbound text -- email above all -- in
-the recipient's locale. The two are connected by the locale itself: a user's
-chosen locale is threaded through to the point where an email is rendered, so
-the language a user reads is the language the platform writes back in. Locale
-resolution prefers an explicit per-user setting and falls back to English. The
-chosen locale also governs date, number and currency formats, which differ
-across the German-speaking markets; time-stamps are stored in UTC and rendered
-in the user's zone.
-
-%--------------------------------------------------------------------
-\section{Designed seams for evolution}
-\label{sec:seams}
-
-The architecture described so far is the structure the realised platform runs
-on. It also fixes where that structure is meant to grow. Three seams were left 
-open.
-
-The first seam is \textbf{multi-tenancy in the framework itself}. Isolation
-today rests on a tenant context carried by every command, query and event, and
-on per-tenant role-based access control (Section~\ref{sec:identity-model}); a
-single logical event store is partitioned by that context rather than split
-into physical per-tenant streams. The framework already reaches further than
-the product uses -- it carries a finer workspace scope below the tenant that
-CLMPilot's own contexts do not yet exercise -- and consolidation \emph{across}
-tenants, for customers that are themselves corporate groups, has no model at
-all. Deepening tenancy in the event-sourced core, without weakening the
-isolation the compliance posture depends on, is left open here fro the moment.
-
-The second seam is \textbf{scalability and the growth of the event store}.
-Read models are projections held in memory and rebuilt by replaying the event
-log (Section~\ref{sec:why-cqrs-es}); the log is append-only and never
-compacted, and the write side assumes a single active instance. At MVP volume
-this is the right trade -- it keeps operations simple -- but
-it sets three clear growth points: snapshotting and projection persistence so
-that start-up does not depend on a full replay, an archival and partitioning
-strategy as the log grows without bound, and the multi-instance, broker-fanned
-topology that Section~\ref{sec:deployment-topology} already wires for but does
-not yet run.
-
-The third seam is \textbf{the intelligence and extraction pipeline}. The
-intelligence service is a stateless boundary behind the \texttt{IntelligenceClient}
-interface (Section~\ref{sec:component-view}): the backend fetches a document's
-bytes and asks the service for structured metadata and clauses, which a reactor
-folds back onto the contract. That pipeline is built around \emph{contract
-documents}. The same shape -- fetch, extract, event-source the result, enrich a
-domain object -- generalises to the unstructured broker communications that
-surround a contract, which the realised platform does not touch at all.
+{\footnotesize
+  \begin{xltabular}{\linewidth}{|>{\bfseries}l|X|}
+    \caption{Use-case description: reconstruct past contract state for an
+             audit.}
+    \label{tab:uc-audit-reconstruction}\\
+    \hline
+    Goal            & Reconstruct the state of a contract as of any past
+                      date, and export the audit trail in a format
+                      independent of the application. \\ \hline
+    Actor(s)        & Auditor (primary). \\ \hline
+    Preconditions   & The Auditor is authenticated with read-only audit
+                      access; the requested date lies within the 10-year
+                      GoBD retention window. \\ \hline
+    Main scenario   & \begin{enumerate}[nosep,leftmargin=*]
+                        \item The Auditor selects a contract and a past
+                          date of interest.
+                        \item The platform reconstructs the contract's
+                          state as of that date from its immutable
+                          history, even where the current business state
+                          has since changed.
+                        \item The platform presents the reconstructed
+                          state together with the actions recorded up to
+                          that date: one row per action, with the actor,
+                          the timestamp, the contract identifier and the
+                          action type.
+                        \item The Auditor exports the audit trail as a
+                          tabular file usable in spreadsheet software.
+                      \end{enumerate} \\ \hline
+    \shortstack[l]{Alternative /\\exception flows}
+                    & \textit{1a.} The Auditor consults the full event log
+                      across the portfolio instead of a single contract:
+                      the same read-only view and export apply to every
+                      recorded action in scope. \\ \hline
+    Postconditions  & The Auditor holds a reproducible view of the
+                      contract as of the requested date and, where
+                      exported, a tabular audit file independent of the
+                      application's runtime; no record was altered by the
+                      consultation. \\ \hline
+  \end{xltabular}}
 
 %--------------------------------------------------------------------
 \section*{Conclusion}
-This chapter set out the architecture the rest of the report delivers. Five
-drivers -- auditability, integration-first design, EU data residency,
-multi-tenant isolation and maintainability -- led to CQRS and
-Event~Sourcing, because together they make the compliance-grade audit trail
-a property of the storage rather than a feature on top. The comby framework
-supplies those patterns and the multi-tenant machinery, which is what lets
-us cover Chapter~I's requirements over a small custom surface. The
-requirements map onto a four-context core domain model -- Contract, Approval,
-Deadline and DocumentLink, extended at its seams by the enterprise contexts --
-on a polyrepo, single-backend topology hosted in the EU, with tenant isolation
-and the audit trail as structural guarantees. The same design also names,
-through its open seams, where it is meant to grow.
+This chapter has specified what the platform must do and how well it
+must do it. We catalogued the actors: 4 per-tenant human roles
+specialising a common user, the platform-level Super~Admin outside this
+project's scope, and the system clock and the LLM as non-human actors.
+From the problem statement we derived the functional requirements, from
+the core contract registry to the tier of enterprise capabilities, and
+the 7 axes of non-functional requirements that constrain how they
+must be delivered. We then expanded the use cases the actors initiate
+from a single high-level overview down to the individual cases of each
+functional area, describing the contract-creation, approval and
+audit-reconstruction scenarios step by step.
 
-Chapter~\ref{chap:realisation} turns from this design to its realisation,
-consolidating the deliveries of the project : foundations, the contract
-core, and the enterprise capabilities. The seams named here mark where the
-event-sourced system is designed to evolve beyond that realised scope.
+With the requirements specified, Chapter~\ref{chap:arch} presents the
+structural response: the architecture through which these requirements
+are satisfied by construction.
 
 %==============================================================================
 \end{spacing}

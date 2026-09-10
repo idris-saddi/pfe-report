@@ -4,11 +4,11 @@
 %==============================================================================
 
 % 1. CONTEXT
-Contracts are the connective tissue of any business: they record what an
+Contracts record what an
 organisation has committed to, with whom, on what terms and until when. For
 the European \textit{Mittelstand} -- the mid-sized enterprises that form the
 economic backbone of Germany, Austria and Switzerland -- managing those
-commitments has remained a stubbornly manual affair, even as the rest of the
+commitments is still largely manual, even as the rest of the
 back office has moved online. At the same time, the regulatory bar has risen:
 GoBD\footnote{GoBD stands for \textit{Grunds\"atze zur ordnungsm\"a\ss igen
 F\"uhrung und Aufbewahrung von B\"uchern, Aufzeichnungen und Unterlagen in
@@ -18,8 +18,8 @@ tax-relevant digital documents, to ensure auditability and prevent fraud.},
 the European data-protection regulation (GDPR) and the
 ISO~27001 security standard now expect business records to be retained
 immutably, traced to an actor and a moment, and kept within controlled
-boundaries. The discipline that addresses this -- Contract Lifecycle
-Management (CLM) -- is mature in the large enterprise, but the tools that
+boundaries. The discipline that addresses this, Contract Lifecycle
+Management (CLM), is mature in the large enterprise, but the tools that
 serve it there assume budgets, IT departments and rollout timelines the
 mid-market does not have.
 
@@ -29,46 +29,47 @@ dedicated system, contracts are scattered across email inboxes, shared drives
 and filing cabinets; renewal and cancellation windows pass unnoticed, so
 agreements renew silently and decisions default to the counterparty; there is
 no auditable record of who approved which version of a contract; and the
-simple portfolio questions -- how much value expires next quarter, where the
-renegotiation leverage lies -- can be answered only by a manual exercise that
+simple portfolio questions (how much value expires next quarter, where the
+renegotiation leverage lies) can be answered only by a manual exercise that
 is stale the moment it is finished. The platforms that could close this
 gap either price and scope themselves for the enterprise, or, in the
 compliance-aware DACH niche, require the customer to migrate every document
-into the vendor's own storage -- an entry fee that pushes mid-market buyers
+into the vendor's own storage, an entry fee that pushes mid-market buyers
 back to spreadsheets and email.
 
 % 3. CONTRIBUTION
 This report presents \textbf{CLMPilot}, an integration-first contract
 lifecycle management platform for the DACH Mittelstand, built during an
 end-of-studies internship at Gradient~Zero. Its defining decision is to
-manage the lifecycle of a contract -- its metadata, deadlines, approvals and
-audit trail -- while the document itself stays in the customer's own storage,
-so adoption carries no migration fee. The platform is built on \texttt{comby},
-the company's in-house Go framework for Command-Query Responsibility
-Segregation and Event~Sourcing, which makes the compliance-grade audit trail
-a property of the storage model rather than a feature bolted on top. CLMPilot
-was delivered as a release train, and the realised pilot -- foundations, a
-full-stack minimum viable product, and a tier of enterprise features -- runs
-in production at \url{https://clmpilot.com}. The remaining internship effort
-then turns inward, from the product to the event-sourced system beneath it,
-in a forward-looking engineering study of how that framework should evolve.
+manage the lifecycle of a contract (its metadata, deadlines, approvals and
+audit trail) while the document itself stays in the customer's own storage,
+so adoption carries no migration fee. The platform is designed so that the
+compliance-grade audit trail is a property of its storage model itself.
+CLMPilot was delivered as a release train, and the realised pilot covers
+foundations, a full-stack minimum viable product, and a tier of enterprise
+features.
 
 % 4. REPORT OUTLINE
-The report is organised in two parts. The first frames the project and its
-design: Chapter~I sets the general context and analysis -- the hosting
-company, the market, the problem, the functional and non-functional
-requirements, the actors, and the methodology under which the work was
-carried out -- and Chapter~\ref{chap:arch} presents the architecture and
-design, justifying the choice of CQRS and Event~Sourcing on the \texttt{comby}
-framework, deriving the domain model and the system topology, setting out the
-security and compliance posture, and naming the seams the design deliberately
-leaves open for later evolution. The second part covers realisation and
-planned evolution: Chapter~\ref{chap:realisation} consolidates the work
-delivered across the realised phases, and Chapter~\ref{chap:future} sets 
-out the planned improvements to the event-sourced system, implementing updates 
-on broker communications, deepening multi-tenancy, and scaling the framework 
-and the event store. A general conclusion then recaps the contribution and 
-opens the perspectives for the work that follows.
+The report is organised in 4 chapters.
+Chapter~\ref{chap:context} sets the general context and the scope of
+the project: the hosting company, the market, the problem, the
+solution we propose in response, and the methodology under which the
+work was carried out. Chapter~\ref{chap:analysis} analyses and specifies the
+requirements: the actors, then the functional
+and non-functional requirements, and finally the use cases through which
+they are exercised.
+Chapter~\ref{chap:arch} presents the architecture and
+design, justifying the choice of CQRS and Event~Sourcing,
+deriving the domain model and the system topology, and setting out the
+security and compliance model.
+Chapter~\ref{chap:realisation} presents how the platform was built,
+consolidating the engineering work delivered across the realised phases,
+and Chapter~\ref{chap:delivered} presents the result: the platform as
+its users and operators meet it, and the performance measured on it in
+production. A general conclusion then recaps the contribution
+and sets out the perspectives for future work, from the evolution of
+the event-sourced framework beneath the platform to the further phases
+of the product roadmap.
 
 %==============================================================================
 \end{spacing}

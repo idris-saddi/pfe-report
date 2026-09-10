@@ -1,0 +1,48 @@
+@startuml topology
+'==============================================================================
+' Figure (Chapter III): CLMPilot deployment topology and external integrations.
+' Compact, designed view. Conceptual on purpose (supervisor feedback): roles,
+' not products -- the concrete tools behind each node are named in Chapter IV.
+' Render:  plantuml -tpdf topology.puml      (or -tpng)
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam componentStyle rectangle
+skinparam ranksep 20
+skinparam nodesep 16
+
+actor "User" as user
+
+node "EU-hosted server (container stack)" as srv {
+  component "Reverse proxy (TLS)" as nginx
+  package "web network" {
+    component "Frontend\n(SPA)" as fe
+    component "Backend" as be
+  }
+  package "internal network (private)" {
+    component "Intelligence\nservice" as intel
+    database "Relational DB\n(system of record)" as pg
+    database "Cache DB\n(sessions, read models)" as redis
+    queue    "Message\nbroker" as nats
+    database "Object\nstore" as minio
+  }
+}
+
+package "External integrations" as ext {
+  cloud "Email\nprovider" as sendgrid
+  cloud "Cloud\nstorage" as cs
+  cloud "E-signature\nprovider" as esign
+}
+
+user  --> nginx : HTTPS
+nginx --> fe
+nginx --> be    : /api
+be    --> intel
+be    --> pg
+be    --> redis
+be    --> nats
+be    --> minio
+be    --> sendgrid
+be    --> cs
+be    --> esign
+@enduml

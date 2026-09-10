@@ -1,0 +1,56 @@
+@startuml production-topology
+'==============================================================================
+' Figure (Chapter IV, Production deployment and release operations): the
+' realised production topology. Single EU-hosted machine, host nginx + TLS,
+' systemd-managed Docker Compose stack bound to loopback, nightly off-host
+' backups, version-tagged images pulled from the registry, and the external
+' services behind named interfaces.
+' Render:  plantuml -tsvg production-topology.puml  then  rsvg-convert -f pdf
+'==============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam ranksep 22
+skinparam nodesep 16
+
+actor "Users" as u
+component "UptimeRobot\n(5-minute health probe)" as up
+
+node "Hetzner cloud instance (EU, 4 GB)" as host {
+  component "nginx (host process)\nTLS via Let's Encrypt" as nginx
+  component "systemd unit" as sysd
+  node "Docker Compose stack (loopback only)" as stack {
+    component "frontend\n(SPA bundle)" as fe
+    component "backend\n(Go + comby)" as be
+    component "intelligence\n(Python)" as intel
+    database "PostgreSQL" as pg
+    database "Redis" as redis
+    queue "NATS" as nats
+    database "MinIO" as minio
+  }
+  component "backup cron\n(nightly database dump)" as bk
+}
+
+cloud "Docker Hub\n(version-tagged images)" as hub
+cloud "Backblaze B2\n(off-host backups)" as b2
+cloud "SendGrid\n(email)" as sg
+cloud "DocuSeal\n(e-signature)" as dsl
+cloud "Customer cloud storage\n(Drive / SharePoint / URL)" as cs
+cloud "Anthropic API\n(hosted LLM)" as llm
+
+u --> nginx : https://clmpilot.com
+up --> nginx : GET /healthz
+nginx --> fe : /
+nginx --> be : /api, /webhooks
+sysd ..> stack : start / restart on boot
+stack ..> hub : pull pinned images\n(deploy script)
+bk --> b2 : nightly dump (rclone)
+be --> intel
+be --> pg
+be --> redis
+be --> nats
+be --> minio
+be --> sg
+be <--> dsl : REST + webhooks
+be --> cs
+intel --> llm
+@enduml

@@ -11,6 +11,8 @@
 #
 # Targets:
 #   make            render stale figures, build, deliver report-idris.pdf (default)
+#   make watch      keep running: rebuild automatically on every change to
+#                   any .tex / .puml / puml-style.iuml / Makefile (Ctrl-C stops)
 #   make figures    (re)render only the stale .puml -> .pdf
 #   make force      re-render ALL figures, then build
 #   make clean      remove LaTeX aux files (keeps figure PDFs)
@@ -20,7 +22,9 @@
 #
 # Requires: plantuml, rsvg-convert (librsvg), latexmk.
 
-MAIN    := report
+# The LaTeX main file is report-idris.tex; latexmk compiles it into
+# $(BUILD)/ and the $(OUT) rule delivers the PDF to the repo root.
+MAIN    := report-idris
 # All LaTeX intermediates (.aux/.log/.toc/.mtc*/…) land here, not in report/.
 BUILD   := build
 # The compiled PDF, inside the build dir.
@@ -30,8 +34,18 @@ OUT     := ../report-idris.pdf
 PUML    := $(shell find . -name '*.puml')
 FIG_PDF := $(PUML:.puml=.pdf)
 TEX     := $(shell find . -name '*.tex')
+# Bibliography sources: an edit to the .bib/.bst must trigger a rebuild too,
+# otherwise make sees the .tex tree unchanged and never re-runs latexmk.
+BIB     := $(shell find . -name '*.bib' -o -name '*.bst')
+# Class/package sources: the cover page and page geometry live in
+# Classes/*.cls, so an edit there must trigger a rebuild for the same reason
+# as the .bib/.bst -- the .tex tree is untouched and make would skip latexmk.
+CLS     := $(shell find . -name '*.cls' -o -name '*.sty')
+# Cover logo kept as vector: gzero.svg is the tracked source, gzero.pdf the
+# build artifact LaTeX embeds (git ignores *.pdf outside figures/).
+LOGO    := gzero.pdf
 
-.PHONY: all figures force clean cleanall
+.PHONY: all watch figures force clean cleanall
 
 all: $(OUT)
 
@@ -42,21 +56,30 @@ $(OUT): $(PDF)
 
 # One figure: PlantUML -> SVG (pipe mode: read stdin, write stdout, so the
 # output name never depends on the @startuml id) -> PDF via rsvg-convert.
-# Make rebuilds this only when the .puml is newer than the .pdf.
-%.pdf: %.puml
+# Make rebuilds this when the .puml OR the shared graphic charter
+# (puml-style.iuml, injected via -I so every figure shares one look) is
+# newer than the .pdf.
+%.pdf: %.puml puml-style.iuml
 	@echo "  [puml] $< -> $@"
-	@plantuml -tsvg -p < $< > $@.svg
+	@plantuml -tsvg -p -I puml-style.iuml < $< > $@.svg
 	@rsvg-convert -f pdf -o $@ $@.svg
 	@rm -f $@.svg
 
-figures: $(FIG_PDF)
+# The cover's vector logo: same rsvg-convert step as the figures, but an
+# explicit rule rather than a %.pdf: %.svg pattern -- the figure rule writes a
+# transient <name>.pdf.svg, which such a pattern would try to convert too.
+gzero.pdf: gzero.svg
+	@echo "  [svg] $< -> $@"
+	@rsvg-convert -f pdf -o $@ $<
+
+figures: $(FIG_PDF) $(LOGO)
 
 # Build the report once every figure is current. latexmk runs its own
 # multi-pass / bibtex logic and only recompiles when something changed.
 # -outdir keeps every intermediate (and report.pdf) inside $(BUILD)/.
 # Each \include writes a per-chapter .aux beside itself *within* the outdir,
 # so mirror those subdirs first — in nonstopmode a missing one is fatal.
-$(PDF): $(FIG_PDF) $(TEX)
+$(PDF): $(FIG_PDF) $(LOGO) $(TEX) $(BIB) $(CLS)
 	@mkdir -p $(BUILD)
 	@grep -hoE '\\include\{[^}]+\}' $(MAIN).tex \
 	  | sed -E 's/.*\{([^}]+)\}/\1/' | xargs -n1 dirname | sort -u \
@@ -68,9 +91,30 @@ force:
 	@touch $(PUML)
 	@$(MAKE) --no-print-directory all
 
+# Continuous build: poll every 2 s; when any source file (.tex, .puml,
+# puml-style.iuml, Makefile) has been modified since the last attempt,
+# run a full incremental build. A failed build waits for the next save
+# instead of retrying in a loop. Ctrl-C to stop.
+STAMP := $(BUILD)/.watch-stamp
+watch:
+	@mkdir -p $(BUILD)
+	@echo "watch: initial build…"
+	@touch $(STAMP)
+	@$(MAKE) --no-print-directory all || echo "watch: BUILD FAILED — fix and save to retry"
+	@echo "watch: watching for changes (Ctrl-C to stop)"
+	@while true; do \
+	  if [ -n "$$(find . \( -name '*.tex' -o -name '*.puml' -o -name '*.iuml' -o -name '*.cls' -o -name '*.sty' -o -name '*.svg' -o -name 'Makefile' \) -newer $(STAMP) -print -quit 2>/dev/null)" ]; then \
+	    touch $(STAMP); \
+	    echo "watch: change detected at $$(date +%H:%M:%S) — rebuilding…"; \
+	    $(MAKE) --no-print-directory all && echo "watch: done ($$(date +%H:%M:%S))" \
+	      || echo "watch: BUILD FAILED — fix and save to retry"; \
+	  fi; \
+	  sleep 2; \
+	done
+
 clean:
 	latexmk -c -outdir=$(BUILD) $(MAIN).tex
 
 cleanall: clean
 	rm -rf $(BUILD)
-	rm -f $(FIG_PDF) $(OUT)
+	rm -f $(FIG_PDF) $(LOGO) $(OUT)

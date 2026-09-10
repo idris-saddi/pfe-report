@@ -1,0 +1,58 @@
+@startuml uc-contracts
+'==============================================================================
+' Detailed use cases: Contracts & documents.
+' Standard arrangement: actor LEFT, use cases in the boundary MIDDLE, the
+' external LLM (intelligence service) actor RIGHT. No out-of-scope actor
+' appears here, so no scope colouring (supervisor feedback).
+' Render:  make figures
+'==============================================================================
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam linetype polyline
+skinparam ranksep 110
+skinparam nodesep 20
+skinparam usecase {
+  BorderColor      #34495E
+  BackgroundColor  #FDFEFE
+  ArrowColor       #5D6D7E
+}
+skinparam actor {
+  BorderColor      #34495E
+}
+
+actor "Legal Manager" as lm
+
+rectangle "Contracts & documents" {
+  usecase "Register contract"     as UC_register
+  usecase "Edit contract"         as UC_edit
+  usecase "Archive contract"      as UC_archive
+  usecase "Search / filter\ncontracts" as UC_search
+  usecase "Attach document link"  as UC_attach
+  usecase "Detach document link"  as UC_detach
+  usecase "Capture fields with\nintelligence" as UC_intel
+  usecase "Send for electronic\nsignature"    as UC_esign
+}
+
+lm -- UC_register
+lm -- UC_edit
+lm -- UC_archive
+lm -- UC_search
+lm -- UC_attach
+lm -- UC_detach
+lm -- UC_esign
+' Base use case on the left; the extending use case sits to its right,
+' with the «extend» arrowhead still pointing at the base (UML standard).
+UC_attach <.. UC_intel : <<extend>>
+
+' External actor (far right)
+actor "LLM\n(intelligence service)" as llm
+UC_intel -- llm
+
+note bottom of UC_archive
+  Archive only — no hard
+  delete (immutability, GoBD)
+end note
+@enduml

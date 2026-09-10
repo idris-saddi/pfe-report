@@ -1,0 +1,99 @@
+' =============================================================================
+' CLMPilot report — shared graphic charter for all PlantUML figures.
+' Injected into every figure at render time by the Makefile
+' (plantuml -I puml-style.iuml), so individual .puml files stay lean and the
+' whole report keeps one consistent look. Per-file skinparams (e.g. the
+' red/yellow scope colours of the Chapter II use-case diagrams) still
+' override these defaults.
+'
+' Palette (soft, flat, low-saturation — max 3 hues):
+'   ink / lines   #2C3E50 text, #5D6D7E borders & arrows
+'   accent blue   #DCE8F7 (components, participants, class headers)
+'   neutral       #F5F7FA (packages, rectangles, surfaces)
+'   note sand     #FBF3DC with #C9B458 border
+' =============================================================================
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontColor #2C3E50
+skinparam roundCorner 10
+skinparam ArrowColor #5D6D7E
+skinparam ArrowFontColor #2C3E50
+skinparam linetype polyline
+' Wrap long sequence-message labels instead of spreading the lifelines —
+' keeps sequence diagrams narrow enough to stay readable at page width.
+' (Do NOT add skinparam ParticipantPadding here: current PlantUML deprecates
+' it and renders a warning banner INTO the diagram. When ONE figure needs its
+' lifelines spread, put a CSS style block in that .puml instead -- it widens
+' identically, prints no banner, and leaves the colours above intact:
+'     <style>
+'     sequenceDiagram { participant { Padding 30 } }
+'     </style>
+' Keep it per-file: a global padding would reflow every sequence figure.)
+skinparam maxMessageSize 150
+
+skinparam rectangle {
+  BackgroundColor #F5F7FA
+  BorderColor #8595A6
+}
+skinparam package {
+  BackgroundColor #FBFCFE
+  BorderColor #8595A6
+  FontColor #2C3E50
+}
+skinparam component {
+  BackgroundColor #DCE8F7
+  BorderColor #5D6D7E
+}
+skinparam database {
+  BackgroundColor #F5F7FA
+  BorderColor #5D6D7E
+}
+skinparam queue {
+  BackgroundColor #F5F7FA
+  BorderColor #5D6D7E
+}
+skinparam usecase {
+  BackgroundColor #FAFCFE
+  BorderColor #5D6D7E
+}
+skinparam actor {
+  BackgroundColor #DCE8F7
+  BorderColor #34495E
+}
+skinparam note {
+  BackgroundColor #FBF3DC
+  BorderColor #C9B458
+}
+skinparam sequence {
+  ParticipantBackgroundColor #DCE8F7
+  ParticipantBorderColor #5D6D7E
+  ActorBackgroundColor #DCE8F7
+  ActorBorderColor #34495E
+  LifeLineBorderColor #8595A6
+  DividerBackgroundColor #E4EBF3
+  DividerBorderColor #8595A6
+  GroupBackgroundColor #EDF2F8
+  GroupBorderColor #8595A6
+}
+skinparam state {
+  BackgroundColor #F5F7FA
+  BorderColor #5D6D7E
+  StartColor #34495E
+  EndColor #34495E
+}
+skinparam class {
+  BackgroundColor #FBFCFE
+  HeaderBackgroundColor #DCE8F7
+  BorderColor #5D6D7E
+}
+skinparam activity {
+  BackgroundColor #F5F7FA
+  BorderColor #5D6D7E
+  BarColor #5D6D7E
+  DiamondBackgroundColor #DCE8F7
+  DiamondBorderColor #5D6D7E
+}
+skinparam partition {
+  BackgroundColor #FBFCFE
+  BorderColor #8595A6
+}
